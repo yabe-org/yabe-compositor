@@ -7,7 +7,7 @@ project('yabe-compositor', 'cpp', 'c',
   ]
 )
 
-ffi_sp               = subproject('libffi', default_options: ['tests=false'])
+libffi_sp            = subproject('libffi', default_options: ['tests=false'])
 wayland_sp           = subproject('wayland', default_options: ['tests=false', 'documentation=false', 'scanner=false', 'dtd_validation=false', 'default_library=static'])
 wayland_protocols_sp = subproject('wayland-protocols', default_options: ['tests=false'])
 
@@ -23,5 +23,6 @@ yabe_compositor_lib = static_library('yabe_compositor',
   ],
   link_whole: [
     wayland_sp.get_variable('wayland_server'),
+    libffi_sp.get_variable('ffi_lib'),
   ],
 )

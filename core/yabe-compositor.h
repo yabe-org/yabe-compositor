@@ -4,8 +4,9 @@
 extern "C" {
 #endif
 
-void start(void (*print_log)(const char*), int fd);
-void draw();
+void yabe_compositor_start(void (*print_log)(const char*), int fd);
+void yabe_compositor_terminate();
+void yabe_compositor_draw(const float* vp_mat);
 
 #ifdef __cplusplus
 }

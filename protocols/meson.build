@@ -19,6 +19,19 @@ xdg_shell_protocol_c = custom_target(
 )
 
 srcs += [
+  'protocols/protocols.cpp',
+
+  'protocols/wayland/compositor.cpp',
+  'protocols/wayland/output.cpp',
+  'protocols/wayland/region.cpp',
+  'protocols/wayland/surface.cpp',
+  'protocols/wayland/wayland.cpp',
+
+  'protocols/xdg-shell/xdg-shell.cpp',
+  'protocols/xdg-shell/xdg-surface.cpp',
+  'protocols/xdg-shell/xdg-surface-role.cpp',
+  'protocols/xdg-shell/xdg-toplevel.cpp',
+  'protocols/xdg-shell/xdg-wm-base.cpp',
   xdg_shell_protocol_h,
   xdg_shell_protocol_c,
 ]

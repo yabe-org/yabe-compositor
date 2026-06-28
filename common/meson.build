@@ -1,0 +1,3 @@
+srcs += [
+  'common/common.cpp',
+]

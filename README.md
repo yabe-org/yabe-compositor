@@ -6,7 +6,7 @@ A Wayland compositor that works as a library
 
 This library provides following functions:
 
-- `void start(void (*print_log)(char*), int fd)`
+- `void start(void (*print_log)(const char*), int fd)`
 - `void draw()`
 
 ## Usage
@@ -37,9 +37,11 @@ Then you can use this library in your project like this:
 
 ```c
 #include <yabe_compositor.h>
+#include <print>
+#include <thread>
 
 namespace {
-  void print_log(char* log) {
+  void print_log(const char* log) {
     std::println("{}", log);
   }
 }

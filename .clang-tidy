@@ -32,7 +32,7 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-magic-numbers,
 
-HeaderFilterRegex: 'inc/.*\.hpp'
+HeaderFilterRegex: '.*\.h(pp)?'
 
 CheckOptions:
   - key: cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage

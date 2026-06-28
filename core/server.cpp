@@ -2,6 +2,7 @@
 
 #include <wayland-server-core.h>
 
+#include "common/common.hpp"
 #include "protocols/protocols.hpp"
 
 namespace yabe::core::server {
@@ -27,7 +28,9 @@ void Server::start(int fd) {
     throw std::runtime_error("Failed to initialize Wayland protocols");
   }
 
+  LOG_INFO("Starting wl_display");
   wl_display_run(this->wl_display_);
+  LOG_INFO("wl_display_run() finished");
 }
 
 void Server::terminate() {
@@ -37,6 +40,17 @@ void Server::terminate() {
     wl_display_destroy(this->wl_display_);
     this->wl_display_ = nullptr;
   }
+}
+
+void Server::draw(const float* vp_mat) {
+  this->rect_renderer_.rendering_scope(
+      vp_mat, [this](render::DrawRectFunc draw_rect) {
+        this->surfaces.foreach ([&draw_rect](Surface& surface) {
+          surface.upload_texture_if_needed();
+          draw_rect(surface.model_mat(), surface.texture());
+          surface.send_frame_done();
+        });
+      });
 }
 
 uint32_t Server::next_serial() {

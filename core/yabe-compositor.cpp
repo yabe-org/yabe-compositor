@@ -16,7 +16,6 @@ void yabe_compositor_terminate() {
 }
 
 void yabe_compositor_draw(const float* vp_mat) {
-  (void)vp_mat;
-  // todo
+  yabe::core::server::Server::get_instance().draw(vp_mat);
 }
 }

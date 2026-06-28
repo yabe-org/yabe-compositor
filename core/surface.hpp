@@ -3,12 +3,15 @@
 #include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
 
+#include <cstdint>
+#include <glm/glm.hpp>
 #include <list>
 #include <memory>
 #include <optional>
 
 #include "common/common.hpp"
 #include "common/pos.hpp"
+#include "core/render/texture.hpp"
 
 namespace yabe::core {
 class SurfaceRole {
@@ -33,6 +36,9 @@ class Surface {
   void attach(wl_resource* resource);
   void commit();
 
+  void upload_texture_if_needed();
+  void send_frame_done();
+
   void set_role(std::unique_ptr<SurfaceRole>&& role) {
     this->role_ = std::move(role);
   }
@@ -49,7 +55,7 @@ class Surface {
 
   static Surface* from(wl_resource* wl_surface);
 
-  void move_absolute(const common::ScreenPos& pos);
+  void move_absolute(const glm::vec3& pos);
   void move_relative(double dx, double dy);
 
   void motion(const common::SurfacePos& pos) const;
@@ -69,16 +75,14 @@ class Surface {
   [[nodiscard]] wl_client* client() const {
     return wl_resource_get_client(this->resource_);
   }
-  [[nodiscard]] double x() const {
-    return this->pos_.x;
+  [[nodiscard]] glm::mat4              model_mat() const;
+  [[nodiscard]] const render::Texture& texture() const {
+    return this->texture_;
   }
-  [[nodiscard]] double y() const {
-    return this->pos_.y;
-  }
-  [[nodiscard]] double width() const {
+  [[nodiscard]] int32_t width() const {
     return this->width_;
   }
-  [[nodiscard]] double height() const {
+  [[nodiscard]] int32_t height() const {
     return this->height_;
   }
   [[nodiscard]] SurfaceType type() const {
@@ -86,13 +90,17 @@ class Surface {
   }
 
  private:
-  common::ScreenPos pos_;
-  double            width_ = -1.0, height_ = -1.0;
+  glm::vec3 pos_;
+  int32_t   width_ = 0, height_ = 0;
 
   SurfaceType type_ = SurfaceType::TOPLEVEL;
 
-  std::optional<wl_resource*> buffer_;
-  std::optional<wl_resource*> callback_;
+  struct {
+    std::optional<wl_resource*> buffer;
+    std::optional<wl_resource*> callback;
+  } pending_, current_;
+  render::Texture texture_;
+  bool            is_texture_uploaded_ = false;
 
   std::unique_ptr<SurfaceRole> role_;
 

@@ -3,6 +3,7 @@
 #include <wayland-server.h>
 
 #include "common/common.hpp"
+#include "core/render/rect-renderer.hpp"
 #include "core/surface_container.hpp"
 
 namespace yabe::core::server {
@@ -15,6 +16,7 @@ class Server {
 
   void start(int fd);
   void terminate();
+  void draw(const float* vp_mat);
 
   uint32_t       next_serial();
   wl_event_loop* loop();
@@ -26,7 +28,8 @@ class Server {
   ~Server() = default;
   static Server instance;
 
-  wl_display* wl_display_ = nullptr;
+  render::RectRenderer rect_renderer_;
+  wl_display*          wl_display_ = nullptr;
 };
 
 /// shortening

@@ -4,11 +4,8 @@
 
 #include <functional>
 #include <list>
-#include <optional>
-#include <utility>
 
 #include "common/common.hpp"
-#include "common/pos.hpp"
 #include "surface.hpp"
 
 namespace yabe::core {
@@ -20,9 +17,6 @@ class SurfaceContainer {
 
   Surface* create_new_surface(wl_resource* wl_surface);
   void     erase(wl_resource* wl_surface);
-
-  std::optional<std::pair<Surface*, common::SurfacePos>> get_intersected_at(
-      const common::ScreenPos& pos);
 
   void raise_to_top(Surface* surface);
 

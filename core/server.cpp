@@ -1,5 +1,6 @@
 #include "server.hpp"
 
+#include <GLES3/gl3.h>
 #include <wayland-server-core.h>
 
 #include "common/common.hpp"
@@ -52,6 +53,14 @@ void Server::terminate() {
 }
 
 void Server::draw(const float* vp_mat) {
+  glDisable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glClearColor(0.F, 0.F, 0.F, 1.F);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](render::DrawRectFunc draw_rect) {
         this->surfaces.foreach ([&draw_rect](Surface& surface) {

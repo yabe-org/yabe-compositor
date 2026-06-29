@@ -1,6 +1,5 @@
 #include "surface.hpp"
 
-#include <bits/types/struct_timeval.h>
 #include <sys/time.h>
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
@@ -14,7 +13,7 @@
 
 namespace yabe::core {
 Surface::Surface(wl_resource* resource)
-    : pos_{0.F, 0.F, 0.4F}, resource_(resource) {
+    : pos_{0.F, 0.F, -0.5F}, resource_(resource) {
   LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
@@ -106,7 +105,7 @@ void Surface::unfocus() {
 }
 
 glm::mat4 Surface::model_mat() const {
-  constexpr float kPixelPerMeter = 500.F;
+  constexpr float kPixelPerMeter = 2500.F;
   glm::mat4       model_mat(1.F);
   model_mat = glm::translate(model_mat, this->pos_) *
               glm::scale(model_mat, glm::vec3(this->width_ / kPixelPerMeter,

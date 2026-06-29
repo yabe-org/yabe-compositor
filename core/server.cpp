@@ -69,6 +69,8 @@ void Server::draw(const float* vp_mat) {
           surface.send_frame_done();
         });
       });
+  this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),
+      this->ray_cursor.direction(), this->ray_cursor.length());
 }
 
 uint32_t Server::next_serial() {

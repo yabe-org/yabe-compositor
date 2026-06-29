@@ -1,0 +1,90 @@
+#include "ray-renderer.hpp"
+
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+
+#include "core/ray-cursor.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "shader.hpp"
+
+namespace yabe::core::render {
+namespace {
+// clang-format off
+const char* vert_shader = GLSL(
+  layout(location = 0) in float t;
+
+  uniform mat4 vp_mat;
+  uniform vec3 start_pos;
+  uniform vec3 end_pos;
+
+  void main() {
+    vec3 pos = mix(start_pos, end_pos, t);
+    gl_Position = vp_mat * vec4(pos, 1.0);
+  }
+);
+const char* frag_shader = GLSL(
+  precision mediump float;
+  out vec4 frag_color;
+  void main() {
+    frag_color = vec4(0.0, 0.9, 0.0, 0.8);
+  }
+);
+// clang-format on
+}  // namespace
+
+RayRenderer::~RayRenderer() {
+  if (!this->initialized_) {
+    return;
+  }
+  glDeleteProgram(this->program_);
+  glDeleteShader(this->vert_shader_);
+  glDeleteShader(this->frag_shader_);
+  glDeleteVertexArrays(1, &this->vao_);
+  glDeleteBuffers(1, &this->vbo_);
+}
+
+void RayRenderer::draw(const float* vp_mat, const glm::vec3& start_pos,
+    const glm::vec3& direction, float length) {
+  if (!this->initialized_) {
+    this->init();
+  }
+  glUseProgram(this->program_);
+  glBindVertexArray(this->vao_);
+  glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
+  glUniformMatrix4fv(this->vp_mat_location_, 1, GL_FALSE, vp_mat);
+
+  glm::vec3 end_pos = start_pos + (direction * length);
+
+  glUniform3fv(this->start_pos_location_, 1, glm::value_ptr(start_pos));
+  glUniform3fv(this->end_pos_location_, 1, glm::value_ptr(end_pos));
+
+  glDrawArrays(GL_LINES, 0, 2);
+}
+
+void RayRenderer::init() {
+  this->vert_shader_ = compile_glsl(GL_VERTEX_SHADER, vert_shader).value();
+  this->frag_shader_ = compile_glsl(GL_FRAGMENT_SHADER, frag_shader).value();
+  this->program_     = glCreateProgram();
+  glAttachShader(this->program_, this->vert_shader_);
+  glAttachShader(this->program_, this->frag_shader_);
+  glLinkProgram(this->program_);
+
+  this->vp_mat_location_    = glGetUniformLocation(this->program_, "vp_mat");
+  this->start_pos_location_ = glGetUniformLocation(this->program_, "start_pos");
+  this->end_pos_location_   = glGetUniformLocation(this->program_, "end_pos");
+
+  glGenVertexArrays(1, &this->vao_);
+  glGenBuffers(1, &this->vbo_);
+  const std::array<GLfloat, 2> vertices = {0.F, 1.F};
+  glBindVertexArray(this->vao_);
+  glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(),
+      vertices.data(), GL_STATIC_DRAW);
+
+  glVertexAttribPointer(
+      0, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  this->initialized_ = true;
+}
+}  // namespace yabe::core::render

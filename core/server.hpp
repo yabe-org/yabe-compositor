@@ -3,6 +3,8 @@
 #include <wayland-server.h>
 
 #include "common/common.hpp"
+#include "core/ray-cursor.hpp"
+#include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/surface_container.hpp"
 
@@ -22,6 +24,7 @@ class Server {
   wl_event_loop* loop();
 
   SurfaceContainer surfaces;
+  RayCursor        ray_cursor;
 
  private:
   Server()  = default;
@@ -29,6 +32,7 @@ class Server {
   static Server instance;
 
   render::RectRenderer rect_renderer_;
+  render::RayRenderer  ray_renderer_;
   wl_display*          wl_display_ = nullptr;
 };
 

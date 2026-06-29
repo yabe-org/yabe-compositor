@@ -9,7 +9,7 @@
 namespace yabe::core::render {
 namespace {
 // clang-format off
-const char* kVertexShader= GLSL(
+const char* vert_shader = GLSL(
   layout(location = 0) in vec3 pos;
   layout(location = 1) in vec2 tex_coord;
   out vec2 tex_coord_out;
@@ -22,7 +22,7 @@ const char* kVertexShader= GLSL(
     tex_coord_out = tex_coord;
   }
 );
-const char* kFragShader = GLSL(
+const char* frag_shader = GLSL(
   precision mediump float;
   uniform sampler2D texture_sampler;
 
@@ -72,8 +72,8 @@ void RectRenderer::rendering_scope(const float* vp_mat,
 void RectRenderer::init() {
   // If compilation fails, the compositor won't work,
   // so use `.value()` so that it throws an exception
-  this->vert_shader_ = compile_glsl(GL_VERTEX_SHADER, kVertexShader).value();
-  this->frag_shader_ = compile_glsl(GL_FRAGMENT_SHADER, kFragShader).value();
+  this->vert_shader_ = compile_glsl(GL_VERTEX_SHADER, vert_shader).value();
+  this->frag_shader_ = compile_glsl(GL_FRAGMENT_SHADER, frag_shader).value();
   this->program_     = glCreateProgram();
   glAttachShader(this->program_, this->vert_shader_);
   glAttachShader(this->program_, this->frag_shader_);

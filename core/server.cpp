@@ -14,7 +14,16 @@ void Server::start(int fd) {
     throw std::runtime_error("Failed to create Wayland display");
   }
   if (fd == -1) {
-    if (!wl_display_add_socket_auto(this->wl_display_)) {
+    constexpr int kMaxDisplayId = 32;
+    int           display_id    = 1;
+    for (; display_id < kMaxDisplayId; ++display_id) {
+      const auto socket_name = std::format("wayland-{}", display_id);
+      if (wl_display_add_socket(this->wl_display_, socket_name.c_str()) == 0) {
+        LOG_INFO("Wayland display socket created: {}", socket_name);
+        break;
+      }
+    }
+    if (display_id == kMaxDisplayId) {
       throw std::runtime_error("Failed to add socket to Wayland display");
     }
   } else {

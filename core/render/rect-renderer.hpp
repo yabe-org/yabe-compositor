@@ -16,11 +16,12 @@ class RectRenderer {
  public:
   DISABLE_MOVE_AND_COPY(RectRenderer);
   // initialization must be done in the rendering thread, so we don't initialize
-  // in the constructor instead, we will initialize at the beginning of
+  // in the constructor. instead, we will initialize at the beginning of
   // rendering_scope function
   explicit RectRenderer() = default;
   ~RectRenderer();
 
+  /// must be called in the rendering thread
   void rendering_scope(const float*             vp_mat,
       const std::function<void(DrawRectFunc&)>& render_func);
 

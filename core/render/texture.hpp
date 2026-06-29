@@ -8,12 +8,16 @@ namespace yabe::core::render {
 class Texture {
  public:
   DISABLE_MOVE_AND_COPY(Texture);
-  explicit Texture();
+  // initialization must be done in the rendering thread
+  // so texture_ will be created at upload()
+  explicit Texture() = default;
   ~Texture();
 
   [[nodiscard]] GLuint get_texture_id() const {
     return this->texture_;
   }
+
+  /// must be called in the rendering thread
   void upload(void* data, uint32_t wl_shm_format, int32_t width, int32_t height,
       int32_t stride);
 

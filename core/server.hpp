@@ -3,6 +3,7 @@
 #include <wayland-server.h>
 
 #include "common/common.hpp"
+#include "core/input/server-seat.hpp"
 #include "core/ray-cursor.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"

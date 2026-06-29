@@ -28,6 +28,6 @@ class SurfaceContainer {
 
  private:
   // front surface is the backmost
-  std::list<std::unique_ptr<Surface>> surfaces_;
+  std::list<std::shared_ptr<Surface>> surfaces_;
 };
 }  // namespace yabe::core

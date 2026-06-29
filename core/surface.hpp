@@ -46,10 +46,10 @@ class Surface {
     this->type_ = type;
   }
 
-  void set_iter(std::list<std::unique_ptr<Surface>>::iterator it) {
+  void set_iter(std::list<std::shared_ptr<Surface>>::iterator it) {
     this->it_ = it;
   }
-  std::list<std::unique_ptr<Surface>>::iterator get_self_iter() {
+  std::list<std::shared_ptr<Surface>>::iterator get_self_iter() {
     return this->it_;
   }
 
@@ -104,7 +104,7 @@ class Surface {
 
   std::unique_ptr<SurfaceRole> role_;
 
-  std::list<std::unique_ptr<Surface>>::iterator it_;
+  std::list<std::shared_ptr<Surface>>::iterator it_;
   wl_resource*                                  resource_;
 };
 }  // namespace yabe::core

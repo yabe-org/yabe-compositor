@@ -6,11 +6,14 @@ project('yabe-compositor', 'cpp', 'c',
     'default_library=static',
   ]
 )
+add_project_arguments([
+  '-Wno-gnu-zero-variadic-macro-arguments',
+], language: 'cpp')
 
 libffi_sp            = subproject('libffi', default_options: ['tests=false'])
 wayland_sp           = subproject('wayland', default_options: ['tests=false', 'documentation=false', 'scanner=false', 'dtd_validation=false', 'default_library=static'])
 wayland_protocols_sp = subproject('wayland-protocols', default_options: ['tests=false'])
-glm_sp              = subproject('glm')
+glm_sp               = subproject('glm')
 
 srcs = []
 subdir('common')

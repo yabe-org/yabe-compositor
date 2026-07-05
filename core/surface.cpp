@@ -77,21 +77,6 @@ void Surface::send_frame_done() {
   this->current_.callback = std::nullopt;
 }
 
-void Surface::motion(const common::SurfacePos& /*pos*/) const {
-}
-void Surface::enter(const common::SurfacePos& /*pos*/) const {
-}
-void Surface::leave() const {
-}
-void Surface::frame() const {
-}
-void Surface::button(uint32_t /*time*/, uint32_t /*button*/,
-    wl_pointer_button_state /*state*/) const {
-}
-void Surface::axis(
-    uint32_t /*time*/, wl_pointer_axis /*axis*/, double /*valua*/) const {
-}
-
 void Surface::focus() {
   server::get().surfaces.raise_to_top(this);
   if (this->role_) {
@@ -108,9 +93,32 @@ glm::mat4 Surface::model_mat() const {
   constexpr float kPixelPerMeter = 2500.F;
   glm::mat4       model_mat(1.F);
   model_mat = glm::translate(model_mat, this->pos_) *
-              glm::scale(model_mat, glm::vec3(this->width_ / kPixelPerMeter,
-                                        this->height_ / kPixelPerMeter, 1.F));
+              glm::scale(model_mat,
+                  glm::vec3(static_cast<float>(this->width_) / kPixelPerMeter,
+                      static_cast<float>(this->height_) / kPixelPerMeter, 0.F));
   return model_mat;
+}
+
+std::optional<IntersectInfo> Surface::check_intersection(
+    const glm::vec3& origin, const glm::vec3& direction) const {
+  if (!this->current_.buffer.has_value() ||
+      this->type_ == SurfaceType::CURSOR) {
+    return std::nullopt;
+  }
+  auto      geom_mat          = this->model_mat();
+  glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
+  glm::vec3 vert_right_bottom = geom_mat * glm::vec4(+0.5F, -0.5F, 0.F, 1.F);
+  glm::vec3 vert_left_top     = geom_mat * glm::vec4(-0.5F, +0.5F, 0.F, 1.F);
+  auto      result            = common::intersection::with_surface(
+      origin, direction, vert_left_bottom, vert_right_bottom, vert_left_top);
+  if (!result.has_value()) {
+    return std::nullopt;
+  }
+  return IntersectInfo{
+      .distance = result->distance,
+      .pos{static_cast<float>(this->width_) * result->u,
+           static_cast<float>(this->height_) * (1.F - result->v), 0.F}
+  };
 }
 
 Surface* Surface::from(wl_resource* wl_surface) {

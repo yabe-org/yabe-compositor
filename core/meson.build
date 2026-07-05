@@ -5,6 +5,11 @@ srcs += [
   'core/surface_container.cpp',
   'core/yabe-compositor.cpp',
 
+  'core/server-seat/server-pointer.cpp',
+  'core/server-seat/server-seat.cpp',
+
+  'core/client-seat/client-pointer.cpp',
+
   'core/render/ray-renderer.cpp',
   'core/render/rect-renderer.cpp',
   'core/render/shader.cpp',

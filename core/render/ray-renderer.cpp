@@ -3,7 +3,6 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "core/ray-cursor.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "shader.hpp"
 
@@ -81,8 +80,7 @@ void RayRenderer::init() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(),
       vertices.data(), GL_STATIC_DRAW);
 
-  glVertexAttribPointer(
-      0, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0);
+  glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0);
   glEnableVertexAttribArray(0);
 
   this->initialized_ = true;

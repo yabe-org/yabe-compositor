@@ -7,6 +7,7 @@ project('yabe-compositor', 'cpp', 'c',
   ]
 )
 add_project_arguments([
+  '-DGLM_ENABLE_EXPERIMENTAL',
   '-Wno-gnu-zero-variadic-macro-arguments',
 ], language: 'cpp')
 

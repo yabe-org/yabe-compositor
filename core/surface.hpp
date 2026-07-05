@@ -10,6 +10,7 @@
 #include <optional>
 
 #include "common/common.hpp"
+#include "common/intersection.hpp"
 #include "common/pos.hpp"
 #include "core/render/texture.hpp"
 
@@ -24,6 +25,11 @@ class SurfaceRole {
 enum class SurfaceType : uint8_t {
   TOPLEVEL,
   CURSOR,
+};
+
+struct IntersectInfo {
+  float     distance;
+  glm::vec3 pos;
 };
 
 class Surface {
@@ -57,14 +63,8 @@ class Surface {
 
   void move_absolute(const glm::vec3& pos);
   void move_relative(double dx, double dy);
-
-  void motion(const common::SurfacePos& pos) const;
-  void enter(const common::SurfacePos& pos) const;
-  void leave() const;
-  void frame() const;
-  void button(
-      uint32_t time, uint32_t button, wl_pointer_button_state state) const;
-  void axis(uint32_t time, wl_pointer_axis axis, double value) const;
+  [[nodiscard]] std::optional<IntersectInfo> check_intersection(
+      const glm::vec3& origin, const glm::vec3& direction) const;
 
   void focus();
   void unfocus();

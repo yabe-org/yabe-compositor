@@ -52,6 +52,10 @@ void Server::terminate() {
   }
 }
 
+void Server::flush_clients() {
+  wl_display_flush_clients(this->wl_display_);
+}
+
 void Server::draw(const float* vp_mat) {
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);

@@ -2,6 +2,7 @@
 
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <numbers>
 
 #include "common/common.hpp"
@@ -27,7 +28,7 @@ class RayCursor {
     return this->length_;
   }
   [[nodiscard]] glm::vec3 direction() const {
-    return this->rotation() * kBaseDirection;
+    return glm::rotate(this->rotation(), kBaseDirection);
   }
 
  private:

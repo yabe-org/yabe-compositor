@@ -3,6 +3,7 @@
 #include <GLES3/gl3.h>
 
 #include "common/common.hpp"
+#include "common/unit.hpp"
 
 namespace yabe::core::render {
 class Texture {
@@ -18,8 +19,8 @@ class Texture {
   }
 
   /// must be called in the rendering thread
-  void upload(void* data, uint32_t wl_shm_format, int32_t width, int32_t height,
-      int32_t stride);
+  void upload(void* data, uint32_t wl_shm_format, const unit::Pixel& width,
+      const unit::Pixel& height, int32_t stride);
 
  private:
   GLuint texture_ = 0;

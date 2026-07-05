@@ -9,8 +9,8 @@ Texture::~Texture() {
   }
 }
 
-void Texture::upload(void* data, uint32_t wl_shm_format, int32_t width,
-    int32_t height, int32_t stride) {
+void Texture::upload(void* data, uint32_t wl_shm_format,
+    const unit::Pixel& width, const unit::Pixel& height, int32_t stride) {
   if (this->texture_ == 0) {
     glGenTextures(1, &this->texture_);
   }
@@ -23,7 +23,7 @@ void Texture::upload(void* data, uint32_t wl_shm_format, int32_t width,
   LOG_DBG("format: {} ({:x})", wl_shm_format, wl_shm_format);
   // FIXME: properly handle wl_shm_format by converting to OpenGL format
   glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / 4 /*RGBA*/);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *width, *height, 0, GL_RGBA,
       GL_UNSIGNED_BYTE, data);
   glBindTexture(GL_TEXTURE_2D, 0);
 }

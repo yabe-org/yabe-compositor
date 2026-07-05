@@ -7,12 +7,14 @@
 #include <glm/ext.hpp>
 
 #include "common/common.hpp"
+#include "common/geometry.hpp"
 #include "common/intersection.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
 
 namespace yabe::core {
-Surface::Surface(wl_resource* resource) : resource_(resource) {
+Surface::Surface(wl_resource* resource)
+    : geometry_({0.F, 0.F, -kSurfaceDistance}), resource_(resource) {
   LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
@@ -54,13 +56,14 @@ void Surface::upload_texture_if_needed() {
   if (!shm_buffer) {
     return;
   }
-  this->width_  = wl_shm_buffer_get_width(shm_buffer);
-  this->height_ = wl_shm_buffer_get_height(shm_buffer);
-  auto* data    = wl_shm_buffer_get_data(shm_buffer);
-  auto  format  = wl_shm_buffer_get_format(shm_buffer);
-  auto  stride  = wl_shm_buffer_get_stride(shm_buffer);
+  this->texture_width_.value  = wl_shm_buffer_get_width(shm_buffer);
+  this->texture_height_.value = wl_shm_buffer_get_height(shm_buffer);
+  auto* data                  = wl_shm_buffer_get_data(shm_buffer);
+  auto  format                = wl_shm_buffer_get_format(shm_buffer);
+  auto  stride                = wl_shm_buffer_get_stride(shm_buffer);
   wl_shm_buffer_begin_access(shm_buffer);
-  this->texture_.upload(data, format, this->width_, this->height_, stride);
+  this->texture_.upload(
+      data, format, this->texture_width_, this->texture_height_, stride);
   wl_shm_buffer_end_access(shm_buffer);
   wl_buffer_send_release(buffer);
 }
@@ -77,13 +80,10 @@ void Surface::send_frame_done() {
 }
 
 void Surface::move_absolute(const glm::vec3& pos) {
-  this->polar_    = std::asin(pos.y);
-  this->azimuth_  = std::atan2(pos.x, -pos.z);
-  this->distance_ = glm::length(pos);
+  this->geometry_.move_absolute(pos);
 }
 void Surface::move_relative(float polar, float azimuth) {
-  this->polar_ += polar;
-  this->azimuth_ += azimuth;
+  this->geometry_.move_relative(azimuth, polar, 0.F);
 }
 
 void Surface::focus() {
@@ -99,17 +99,11 @@ void Surface::unfocus() {
 }
 
 glm::mat4 Surface::model_mat() {
-  const glm::vec3 pos{
-      this->distance_ * std::cos(this->polar_) * std::sin(this->azimuth_),
-      this->distance_ * std::sin(this->polar_),
-      -this->distance_ * std::cos(this->polar_) * std::cos(this->azimuth_),
-  };
-  constexpr float kPixelPerMeter = 2500.F;
-  glm::mat4       model_mat(1.F);
-  model_mat = glm::translate(model_mat, pos) *
-              glm::scale(model_mat,
-                  glm::vec3(static_cast<float>(this->width_) / kPixelPerMeter,
-                      static_cast<float>(this->height_) / kPixelPerMeter, 0.F));
+  glm::mat4 model_mat(1.F);
+  model_mat =
+      glm::translate(model_mat, this->geometry_.pos()) *
+      glm::scale(model_mat, glm::vec3(*this->texture_width_.to_world_unit(),
+                                *this->texture_height_.to_world_unit(), 0.F));
   return model_mat;
 }
 
@@ -130,8 +124,8 @@ std::optional<IntersectInfo> Surface::check_intersection(
   }
   return IntersectInfo{
       .distance = result->distance,
-      .pos{static_cast<float>(this->width_) * result->u,
-           static_cast<float>(this->height_) * (1.F - result->v), 0.F}
+      .pos{static_cast<float>(*this->texture_width_) * result->u,
+           static_cast<float>(*this->texture_height_) * (1.F - result->v), 0.F}
   };
 }
 }  // namespace yabe::core

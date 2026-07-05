@@ -10,6 +10,9 @@
 #include <optional>
 
 #include "common/common.hpp"
+#include "common/coordinate.hpp"
+#include "common/geometry.hpp"
+#include "common/unit.hpp"
 #include "core/render/texture.hpp"
 
 namespace yabe::core {
@@ -78,21 +81,19 @@ class Surface {
   [[nodiscard]] const render::Texture& texture() const {
     return this->texture_;
   }
-  [[nodiscard]] int32_t width() const {
-    return this->width_;
+  [[nodiscard]] const unit::Pixel& texture_width() const {
+    return this->texture_width_;
   }
-  [[nodiscard]] int32_t height() const {
-    return this->height_;
+  [[nodiscard]] const unit::Pixel& texture_height() const {
+    return this->texture_height_;
   }
   [[nodiscard]] SurfaceType type() const {
     return this->type_;
   }
 
  private:
-  // initial pos should [0.F, 0.F, -kSurfaceDistance]
-  float   polar_ = 0.F, azimuth_ = 0.F;
-  float   distance_ = kSurfaceDistance;
-  int32_t width_ = 0, height_ = 0;
+  Geometry    geometry_;
+  unit::Pixel texture_width_{0}, texture_height_{0};
 
   SurfaceType type_ = SurfaceType::TOPLEVEL;
 

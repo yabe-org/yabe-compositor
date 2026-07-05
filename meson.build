@@ -16,7 +16,9 @@ wayland_sp           = subproject('wayland', default_options: ['tests=false', 'd
 wayland_protocols_sp = subproject('wayland-protocols', default_options: ['tests=false'])
 glm_sp               = subproject('glm')
 
-srcs = []
+srcs = [
+  'yabe-compositor.cpp',
+]
 subdir('common')
 subdir('core')
 subdir('protocols')

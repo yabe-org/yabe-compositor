@@ -7,7 +7,7 @@
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/server-seat/server-seat.hpp"
-#include "core/surface_container.hpp"
+#include "core/surface-container.hpp"
 
 namespace yabe::core::server {
 class Server {

@@ -2,8 +2,7 @@ srcs += [
   'core/ray-cursor.cpp',
   'core/server.cpp',
   'core/surface.cpp',
-  'core/surface_container.cpp',
-  'core/yabe-compositor.cpp',
+  'core/surface-container.cpp',
 
   'core/server-seat/server-pointer.cpp',
   'core/server-seat/server-seat.cpp',

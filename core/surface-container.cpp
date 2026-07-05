@@ -1,4 +1,4 @@
-#include "surface_container.hpp"
+#include "surface-container.hpp"
 
 #include <wayland-server-core.h>
 #include <wayland-server.h>

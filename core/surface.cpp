@@ -7,13 +7,12 @@
 #include <glm/ext.hpp>
 
 #include "common/common.hpp"
-#include "common/pos.hpp"
+#include "common/intersection.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
 
 namespace yabe::core {
-Surface::Surface(wl_resource* resource)
-    : pos_{0.F, 0.F, -0.5F}, resource_(resource) {
+Surface::Surface(wl_resource* resource) : resource_(resource) {
   LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
@@ -77,8 +76,18 @@ void Surface::send_frame_done() {
   this->current_.callback = std::nullopt;
 }
 
+void Surface::move_absolute(const glm::vec3& pos) {
+  this->polar_    = std::asin(pos.y);
+  this->azimuth_  = std::atan2(pos.x, -pos.z);
+  this->distance_ = glm::length(pos);
+}
+void Surface::move_relative(float polar, float azimuth) {
+  this->polar_ += polar;
+  this->azimuth_ += azimuth;
+}
+
 void Surface::focus() {
-  server::get().surfaces.raise_to_top(this);
+  server::get().surfaces.raise_to_top(this->resource_);
   if (this->role_) {
     this->role_->set_activated(true);
   }
@@ -89,10 +98,15 @@ void Surface::unfocus() {
   }
 }
 
-glm::mat4 Surface::model_mat() const {
+glm::mat4 Surface::model_mat() {
+  const glm::vec3 pos{
+      this->distance_ * std::cos(this->polar_) * std::sin(this->azimuth_),
+      this->distance_ * std::sin(this->polar_),
+      -this->distance_ * std::cos(this->polar_) * std::cos(this->azimuth_),
+  };
   constexpr float kPixelPerMeter = 2500.F;
   glm::mat4       model_mat(1.F);
-  model_mat = glm::translate(model_mat, this->pos_) *
+  model_mat = glm::translate(model_mat, pos) *
               glm::scale(model_mat,
                   glm::vec3(static_cast<float>(this->width_) / kPixelPerMeter,
                       static_cast<float>(this->height_) / kPixelPerMeter, 0.F));
@@ -100,7 +114,7 @@ glm::mat4 Surface::model_mat() const {
 }
 
 std::optional<IntersectInfo> Surface::check_intersection(
-    const glm::vec3& origin, const glm::vec3& direction) const {
+    const glm::vec3& origin, const glm::vec3& direction) {
   if (!this->current_.buffer.has_value() ||
       this->type_ == SurfaceType::CURSOR) {
     return std::nullopt;
@@ -119,9 +133,5 @@ std::optional<IntersectInfo> Surface::check_intersection(
       .pos{static_cast<float>(this->width_) * result->u,
            static_cast<float>(this->height_) * (1.F - result->v), 0.F}
   };
-}
-
-Surface* Surface::from(wl_resource* wl_surface) {
-  return static_cast<Surface*>(wl_resource_get_user_data(wl_surface));
 }
 }  // namespace yabe::core

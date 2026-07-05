@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat {
@@ -19,6 +20,15 @@ void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
     this->set_focused_surface(std::weak_ptr<Surface>());
     return;
   }
+
+  const auto cursor_surface = this->cursor_surface_.lock();
+  if (cursor_surface) {
+    const auto cursor_distance = intersect_info.distance * 0.98F;
+    cursor_surface->move_absolute(
+        server::get().ray_cursor.origin() +
+        server::get().ray_cursor.direction() * cursor_distance);
+  }
+
   const auto& client_seat =
       server::get().seat.get_client_seat(surface.lock()->client());
   if (!client_seat) {
@@ -34,6 +44,25 @@ void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
   client_seat.value()->pointer.send_motion(
       intersect_info.pos.x, intersect_info.pos.y);
   client_seat.value()->pointer.send_frame();
+}
+
+void ServerPointer::set_surface_as_cursor(
+    wl_resource* surface, int32_t hotspot_x, int32_t hotspot_y) {
+  if (surface == nullptr) {
+    this->cursor_surface_ = std::weak_ptr<Surface>();
+    return;
+  }
+  auto cursor_surface = server::get().surfaces.get(surface).lock();
+  if (!cursor_surface) {
+    LOG_ERR("cursor surface not found");
+    return;
+  }
+  const auto cursor_distance = server::get().ray_cursor.length() * 0.98F;
+  cursor_surface->set_type(SurfaceType::CURSOR);
+  cursor_surface->move_absolute(
+      server::get().ray_cursor.origin() +
+      server::get().ray_cursor.direction() * cursor_distance);
+  this->cursor_surface_ = cursor_surface;
 }
 
 void ServerPointer::handle_pointer_button(uint32_t button, bool is_pressed) {

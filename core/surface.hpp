@@ -10,8 +10,6 @@
 #include <optional>
 
 #include "common/common.hpp"
-#include "common/intersection.hpp"
-#include "common/pos.hpp"
 #include "core/render/texture.hpp"
 
 namespace yabe::core {
@@ -31,6 +29,8 @@ struct IntersectInfo {
   float     distance;
   glm::vec3 pos;
 };
+
+constexpr float kSurfaceDistance = 0.5F;
 
 class Surface {
  public:
@@ -59,12 +59,11 @@ class Surface {
     return this->it_;
   }
 
-  static Surface* from(wl_resource* wl_surface);
-
   void move_absolute(const glm::vec3& pos);
-  void move_relative(double dx, double dy);
+  void move_relative(float polar, float azimuth);
+
   [[nodiscard]] std::optional<IntersectInfo> check_intersection(
-      const glm::vec3& origin, const glm::vec3& direction) const;
+      const glm::vec3& origin, const glm::vec3& direction);
 
   void focus();
   void unfocus();
@@ -75,7 +74,7 @@ class Surface {
   [[nodiscard]] wl_client* client() const {
     return wl_resource_get_client(this->resource_);
   }
-  [[nodiscard]] glm::mat4              model_mat() const;
+  [[nodiscard]] glm::mat4              model_mat();
   [[nodiscard]] const render::Texture& texture() const {
     return this->texture_;
   }
@@ -90,8 +89,10 @@ class Surface {
   }
 
  private:
-  glm::vec3 pos_;
-  int32_t   width_ = 0, height_ = 0;
+  // initial pos should [0.F, 0.F, -kSurfaceDistance]
+  float   polar_ = 0.F, azimuth_ = 0.F;
+  float   distance_ = kSurfaceDistance;
+  int32_t width_ = 0, height_ = 0;
 
   SurfaceType type_ = SurfaceType::TOPLEVEL;
 

@@ -2,8 +2,6 @@
 
 #include <GLES3/gl3.h>
 
-#include "wayland-server-protocol.h"
-
 namespace yabe::core::render {
 Texture::~Texture() {
   if (this->texture_ != 0) {

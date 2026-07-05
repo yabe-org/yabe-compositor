@@ -15,10 +15,11 @@ class SurfaceContainer {
   explicit SurfaceContainer() = default;
   ~SurfaceContainer()         = default;
 
-  Surface* create_new_surface(wl_resource* wl_surface);
-  void     erase(wl_resource* wl_surface);
+  std::weak_ptr<Surface> create_new_surface(wl_resource* wl_surface);
+  std::weak_ptr<Surface> get(wl_resource* wl_surface);
+  void                   erase(wl_resource* wl_surface);
 
-  void raise_to_top(Surface* surface);
+  void raise_to_top(wl_resource* surface);
   std::optional<std::pair<std::weak_ptr<Surface>, IntersectInfo>>
   get_nearest_intersection(const glm::vec3& origin, const glm::vec3& direction);
 

@@ -7,22 +7,38 @@
 #include <utility>
 
 namespace yabe::core {
-Surface* SurfaceContainer::create_new_surface(wl_resource* wl_surface) {
-  auto  surface = std::make_unique<Surface>(wl_surface);
-  auto* p       = surface.get();
-  auto  it = this->surfaces_.emplace(this->surfaces_.end(), std::move(surface));
-  p->set_iter(it);
-  return p;
+std::weak_ptr<Surface> SurfaceContainer::create_new_surface(
+    wl_resource* wl_surface) {
+  auto surface = std::make_shared<Surface>(wl_surface);
+  auto it      = this->surfaces_.emplace(this->surfaces_.end(), surface);
+  surface->set_iter(it);
+  return surface;
+}
+
+std::weak_ptr<Surface> SurfaceContainer::get(wl_resource* wl_surface) {
+  auto surface = std::find_if(this->surfaces_.begin(), this->surfaces_.end(),
+      [wl_surface](const std::shared_ptr<Surface>& s) {
+        return s->resource() == wl_surface;
+      });
+  if (surface == this->surfaces_.end()) {
+    return {};
+  }
+  return *surface;
 }
 
 void SurfaceContainer::erase(wl_resource* wl_surface) {
-  auto it = Surface::from(wl_surface)->get_self_iter();
-  this->surfaces_.erase(it);
+  auto surface = this->get(wl_surface).lock();
+  if (surface) {
+    this->surfaces_.erase(surface->get_self_iter());
+  }
 }
 
-void SurfaceContainer::raise_to_top(Surface* surface) {
-  auto it = surface->get_self_iter();
-  this->surfaces_.splice(this->surfaces_.end(), this->surfaces_, it);
+void SurfaceContainer::raise_to_top(wl_resource* wl_surface) {
+  auto surface = this->get(wl_surface).lock();
+  if (surface) {
+    this->surfaces_.splice(
+        this->surfaces_.end(), this->surfaces_, surface->get_self_iter());
+  }
 }
 
 std::optional<std::pair<std::weak_ptr<Surface>, IntersectInfo>>

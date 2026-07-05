@@ -7,9 +7,10 @@
 namespace yabe::proto::wayland::seat::pointer {
 namespace {
 void set_cursor(wl_client* /*client*/, wl_resource* /*resource*/,
-    uint32_t /*serial*/, wl_resource* /*surface_resource*/,
-    int32_t /*hotspot_x*/, int32_t hotspot_y) {
-  // TODO
+    uint32_t /*serial*/, wl_resource* surface_resource, int32_t hotspot_x,
+    int32_t hotspot_y) {
+  core::server::get().seat.pointer.set_surface_as_cursor(
+      surface_resource, hotspot_x, hotspot_y);
 }
 void release(wl_client* /*client*/, wl_resource* resource) {
   wl_resource_destroy(resource);

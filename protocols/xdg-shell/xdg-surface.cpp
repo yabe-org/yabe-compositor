@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "core/surface.hpp"
+#include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-surface-role.hpp"
 #include "xdg-toplevel.hpp"
 
@@ -45,7 +45,13 @@ constexpr struct xdg_surface_interface kImpl = {
 };
 }  // namespace
 
-void create(wl_client* client, uint32_t id, core::Surface* surface) {
+void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
+  auto surface = core::server::get().surfaces.get(wl_surface).lock();
+  if (!surface) {
+    wl_client_post_implementation_error(
+        client, "xdg_surface requested for unknown wl_surface");
+    return;
+  }
   wl_resource* resource =
       wl_resource_create(client, &xdg_surface_interface, 7, id);
   if (resource == nullptr) {

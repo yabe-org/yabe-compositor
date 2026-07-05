@@ -17,7 +17,7 @@ void create_positioner(
 }
 void get_xdg_surface(wl_client* client, wl_resource* /*resource*/, uint32_t id,
     wl_resource* surface_resource) {
-  xdg_surface::create(client, id, core::Surface::from(surface_resource));
+  xdg_surface::create(client, id, surface_resource);
 }
 void pong(
     wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*serial*/) {

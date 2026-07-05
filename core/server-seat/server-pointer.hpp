@@ -15,6 +15,13 @@ class ServerPointer {
   explicit ServerPointer() = default;
   ~ServerPointer()         = default;
 
+  /// @param surface nullable
+  void set_surface_as_cursor(
+      wl_resource* surface, int32_t hotspot_x, int32_t hotspot_y);
+  [[nodiscard]] const std::weak_ptr<Surface>& get_cursor_surface() const {
+    return this->cursor_surface_;
+  }
+
   void handle_pointer_move_relative(float dx, float dy);
   void handle_pointer_button(uint32_t button, bool is_pressed);
   void handle_pointer_axis(uint32_t axis, float value);
@@ -25,5 +32,6 @@ class ServerPointer {
   /// @return true if the focused surface is changed
   bool                   set_focused_surface(std::weak_ptr<Surface> surface);
   std::weak_ptr<Surface> focused_surface_;
+  std::weak_ptr<Surface> cursor_surface_;
 };
 }  // namespace yabe::core::server_seat

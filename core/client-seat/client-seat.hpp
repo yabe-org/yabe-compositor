@@ -2,6 +2,7 @@
 
 #include <wayland-server.h>
 
+#include "client-keyboard.hpp"
 #include "client-pointer.hpp"
 #include "common/common.hpp"
 
@@ -12,6 +13,7 @@ class ClientSeat {
   explicit ClientSeat() = default;
   ~ClientSeat()         = default;
 
-  ClientPointer pointer;
+  ClientKeyboard keyboard;
+  ClientPointer  pointer;
 };
 }  // namespace yabe::core::client_seat

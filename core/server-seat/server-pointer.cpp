@@ -66,6 +66,9 @@ void ServerPointer::set_surface_as_cursor(
 }
 
 void ServerPointer::handle_pointer_button(uint32_t button, bool is_pressed) {
+  if (is_pressed) {
+    server::get().seat.keyboard.set_focused_surface(this->focused_surface_);
+  }
   const auto& client_seat = this->get_focused_client_seat();
   if (client_seat) {
     client_seat.value()->pointer.send_button(button, is_pressed);

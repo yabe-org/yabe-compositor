@@ -5,6 +5,7 @@
 
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"
+#include "core/server-seat/server-keyboard.hpp"
 #include "core/server-seat/server-pointer.hpp"
 
 namespace yabe::core::server_seat {
@@ -26,7 +27,17 @@ class ServerSeat {
     return it->second;
   }
 
-  ServerPointer pointer;
+  template <typename Func>
+  void foreach (Func func) {
+    for (auto& [client, client_seat] : this->client_seats_) {
+      if (client_seat) {
+        func(*client_seat);
+      }
+    }
+  }
+
+  ServerKeyboard keyboard;
+  ServerPointer  pointer;
 
  private:
   std::unordered_map<wl_client*, std::shared_ptr<client_seat::ClientSeat>>

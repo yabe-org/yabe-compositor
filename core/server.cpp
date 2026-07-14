@@ -1,6 +1,8 @@
 #include "server.hpp"
 
 #include <GLES3/gl3.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <wayland-server-core.h>
 

@@ -28,6 +28,7 @@ srcs += [
   'protocols/wayland/wayland.cpp',
   'protocols/wayland/seat/seat.cpp',
   'protocols/wayland/seat/pointer.cpp',
+  'protocols/wayland/seat/keyboard.cpp',
 
   'protocols/xdg-shell/xdg-shell.cpp',
   'protocols/xdg-shell/xdg-surface.cpp',

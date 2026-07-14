@@ -3,6 +3,7 @@
 #include <wayland-server.h>
 
 #include "core/server.hpp"
+#include "keyboard.hpp"
 #include "pointer.hpp"
 
 namespace yabe::proto::wayland::seat {
@@ -10,9 +11,8 @@ namespace {
 void get_pointer(wl_client* client, wl_resource* /*resource*/, uint32_t id) {
   pointer::create(client, id);
 }
-void get_keyboard(
-    wl_client*  /*client*/, wl_resource* /*resource*/, uint32_t /*id*/) {
-  // TODO
+void get_keyboard(wl_client* client, wl_resource* /*resource*/, uint32_t id) {
+  keyboard::create(client, id);
 }
 void get_touch(wl_client* client, wl_resource* /*resource*/, uint32_t /*id*/) {
   wl_client_post_implementation_error(
@@ -43,6 +43,7 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
   }
   auto* client_seat = core::server::get().seat.create_client_seat(client);
   wl_resource_set_implementation(resource, &kImpl, client_seat, destroy);
-  wl_seat_send_capabilities(resource, WL_SEAT_CAPABILITY_POINTER);
+  wl_seat_send_capabilities(
+      resource, WL_SEAT_CAPABILITY_POINTER | WL_SEAT_CAPABILITY_KEYBOARD);
 }
 }  // namespace yabe::proto::wayland::seat

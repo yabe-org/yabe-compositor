@@ -57,4 +57,23 @@ void yabe_compositor_axis(uint32_t axis, float value) {
   yabe::core::server::get().seat.pointer.handle_pointer_axis(axis, value);
   yabe::core::server::get().flush_clients();
 }
+
+void yabe_compositor_keymap(uint32_t format, int32_t fd, uint32_t size) {
+  yabe::core::server::get().seat.keyboard.set_keymap(format, fd, size);
+  yabe::core::server::get().flush_clients();
+}
+void yabe_compositor_repeat_info(int32_t rate, int32_t delay) {
+  yabe::core::server::get().seat.keyboard.set_repeat_info(rate, delay);
+  yabe::core::server::get().flush_clients();
+}
+void yabe_compositor_key(uint32_t key, bool is_pressed) {
+  yabe::core::server::get().seat.keyboard.handle_keyboard_key(key, is_pressed);
+  yabe::core::server::get().flush_clients();
+}
+void yabe_compositor_modifiers(uint32_t mods_depressed, uint32_t mods_latched,
+    uint32_t mods_locked, uint32_t group) {
+  yabe::core::server::get().seat.keyboard.set_modifiers(
+      mods_depressed, mods_latched, mods_locked, group);
+  yabe::core::server::get().flush_clients();
+}
 }

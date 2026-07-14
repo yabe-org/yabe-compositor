@@ -4,9 +4,11 @@ srcs += [
   'core/surface.cpp',
   'core/surface-container.cpp',
 
+  'core/server-seat/server-keyboard.cpp',
   'core/server-seat/server-pointer.cpp',
   'core/server-seat/server-seat.cpp',
 
+  'core/client-seat/client-keyboard.cpp',
   'core/client-seat/client-pointer.cpp',
 
   'core/render/ray-renderer.cpp',

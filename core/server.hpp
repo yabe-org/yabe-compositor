@@ -17,8 +17,11 @@ class Server {
     return instance;
   }
 
-  void start(int fd);
+  void init();
+  void set_socket_fd(std::optional<int> fd);
+  void start();
   void terminate();
+  void add_client_fd(int fd);
   void flush_clients();
   void draw(const float* vp_mat);
 
@@ -33,6 +36,8 @@ class Server {
   Server()  = default;
   ~Server() = default;
   static Server instance;
+
+  bool is_initialized_ = false;
 
   render::RectRenderer rect_renderer_;
   render::RayRenderer  ray_renderer_;

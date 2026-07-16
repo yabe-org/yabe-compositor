@@ -4,19 +4,34 @@
 
 #include "common/common.hpp"
 #include "core/server.hpp"
-#include "wayland-client-core.h"
 
 extern "C" {
-void yabe_compositor_start(void (*print_log)(const char*), int fd) {
+void yabe_compositor_init(void (*print_log)(const char*)) {
   if (print_log != nullptr) {
     yabe::print_log = print_log;
   }
-  LOG_INFO("yabe_compositor_start() called with fd: {}", fd);
   try {
-    yabe::core::server::get().start(fd);
+    yabe::core::server::get().init();
+  } catch (std::exception& e) {
+    LOG_ERR("Exception in yabe_compositor_init: {}", e.what());
+  }
+}
+
+void yabe_compositor_register_socket_fd(int fd) {
+  auto fd_opt = (fd == -1) ? std::nullopt : std::optional<int>(fd);
+  yabe::core::server::get().set_socket_fd(fd_opt);
+}
+
+void yabe_compositor_start() {
+  try {
+    yabe::core::server::get().start();
   } catch (std::exception& e) {
     LOG_ERR("Exception in yabe_compositor_start: {}", e.what());
   }
+}
+
+void yabe_compositor_add_client_fd(int fd) {
+  yabe::core::server::get().add_client_fd(fd);
 }
 
 void yabe_compositor_terminate() {

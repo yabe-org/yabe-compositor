@@ -1,36 +1,19 @@
 #include "server.hpp"
 
 #include <GLES3/gl3.h>
+#include <unistd.h>
 #include <wayland-server-core.h>
 
 #include "common/common.hpp"
 #include "protocols/protocols.hpp"
 
 namespace yabe::core::server {
-Server Server::instance;
+Server Server::instance;  // NOLINT
 
-void Server::start(int fd) {
+void Server::init() {
   this->wl_display_ = wl_display_create();
   if (!this->wl_display_) {
     throw std::runtime_error("Failed to create Wayland display");
-  }
-  if (fd == -1) {
-    constexpr int kMaxDisplayId = 32;
-    int           display_id    = 1;
-    for (; display_id < kMaxDisplayId; ++display_id) {
-      const auto socket_name = std::format("wayland-{}", display_id);
-      if (wl_display_add_socket(this->wl_display_, socket_name.c_str()) == 0) {
-        LOG_INFO("Wayland display socket created: {}", socket_name);
-        break;
-      }
-    }
-    if (display_id == kMaxDisplayId) {
-      throw std::runtime_error("Failed to add socket to Wayland display");
-    }
-  } else {
-    if (!wl_display_add_socket_fd(this->wl_display_, fd)) {
-      throw std::runtime_error("Failed to add socket fd to Wayland display");
-    }
   }
   wl_display_init_shm(this->wl_display_);
 
@@ -38,9 +21,43 @@ void Server::start(int fd) {
     throw std::runtime_error("Failed to initialize Wayland protocols");
   }
 
-  LOG_INFO("Starting wl_display");
+  LOG_INFO("Server is initialized");
+  this->is_initialized_ = true;
+}
+
+void Server::set_socket_fd(std::optional<int> fd) {
+  if (fd.has_value()) {
+    if (wl_display_add_socket_fd(this->wl_display_, *fd) == 0) {
+      throw std::runtime_error("Failed to add socket fd to Wayland display");
+    }
+    return;
+  }
+  constexpr int kMaxDisplayId = 32;
+  int           display_id    = 1;
+  for (; display_id < kMaxDisplayId; ++display_id) {
+    const auto socket_name = std::format("wayland-{}", display_id);
+    if (wl_display_add_socket(this->wl_display_, socket_name.c_str()) == 0) {
+      LOG_INFO("Wayland display socket created: {}", socket_name);
+      break;
+    }
+  }
+  if (display_id == kMaxDisplayId) {
+    throw std::runtime_error("Failed to add socket to Wayland display");
+  }
+}
+
+void Server::start() {
+  if (!this->is_initialized_) {
+    throw std::runtime_error("Server is not initialized");
+  }
   wl_display_run(this->wl_display_);
-  LOG_INFO("wl_display_run() finished");
+}
+
+void Server::add_client_fd(int fd) {
+  if (wl_client_create(this->wl_display_, fd) == nullptr) {
+    LOG_ERR("Failed to create Wayland client for fd: {}", fd);
+    close(fd);
+  }
 }
 
 void Server::terminate() {

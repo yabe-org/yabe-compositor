@@ -8,8 +8,12 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-void yabe_compositor_start(void (*print_log)(const char*), int fd);
+void yabe_compositor_init(void (*print_log)(const char*));
+/// @param fd if fd is -1, the compositor will create a socket
+void yabe_compositor_register_socket_fd(int fd);
+void yabe_compositor_start();
 void yabe_compositor_terminate();
+void yabe_compositor_add_client_fd(int fd);
 void yabe_compositor_draw(const float* vp_mat);
 
 /// @param dx right is positive

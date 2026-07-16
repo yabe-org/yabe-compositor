@@ -74,6 +74,37 @@ void Server::flush_clients() {
 }
 
 void Server::draw(const float* vp_mat) {
+  const GLboolean        was_cull_face_enabled     = glIsEnabled(GL_CULL_FACE);
+  const GLboolean        was_depth_test_enabled    = glIsEnabled(GL_DEPTH_TEST);
+  const GLboolean        was_blend_enabled         = glIsEnabled(GL_BLEND);
+  GLint                  previous_program          = 0;
+  GLint                  previous_vao              = 0;
+  GLint                  previous_array_buffer     = 0;
+  GLint                  previous_active_texture   = 0;
+  GLint                  previous_texture_2d       = 0;
+  GLint                  previous_unpack_alignment = 0;
+  GLint                  previous_unpack_row_length = 0;
+  GLint                  previous_depth_func        = 0;
+  GLint                  previous_blend_src_rgb     = 0;
+  GLint                  previous_blend_dst_rgb     = 0;
+  GLint                  previous_blend_src_alpha   = 0;
+  GLint                  previous_blend_dst_alpha   = 0;
+  std::array<GLfloat, 4> previous_clear_color       = {};
+  glGetIntegerv(GL_CURRENT_PROGRAM, &previous_program);
+  glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previous_vao);
+  glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previous_array_buffer);
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &previous_active_texture);
+  glActiveTexture(GL_TEXTURE0);
+  glGetIntegerv(GL_TEXTURE_BINDING_2D, &previous_texture_2d);
+  glGetIntegerv(GL_UNPACK_ALIGNMENT, &previous_unpack_alignment);
+  glGetIntegerv(GL_UNPACK_ROW_LENGTH, &previous_unpack_row_length);
+  glGetIntegerv(GL_DEPTH_FUNC, &previous_depth_func);
+  glGetIntegerv(GL_BLEND_SRC_RGB, &previous_blend_src_rgb);
+  glGetIntegerv(GL_BLEND_DST_RGB, &previous_blend_dst_rgb);
+  glGetIntegerv(GL_BLEND_SRC_ALPHA, &previous_blend_src_alpha);
+  glGetIntegerv(GL_BLEND_DST_ALPHA, &previous_blend_dst_alpha);
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, previous_clear_color.data());
+
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -82,6 +113,38 @@ void Server::draw(const float* vp_mat) {
 
   glClearColor(0.F, 0.F, 0.F, 1.F);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  this->draw_content(vp_mat);
+
+  if (was_cull_face_enabled) {
+    glEnable(GL_CULL_FACE);
+  } else {
+    glDisable(GL_CULL_FACE);
+  }
+  if (was_depth_test_enabled) {
+    glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
+  }
+  if (was_blend_enabled) {
+    glEnable(GL_BLEND);
+  } else {
+    glDisable(GL_BLEND);
+  }
+  glDepthFunc(previous_depth_func);
+  glBlendFuncSeparate(previous_blend_src_rgb, previous_blend_dst_rgb,
+      previous_blend_src_alpha, previous_blend_dst_alpha);
+  glClearColor(previous_clear_color[0], previous_clear_color[1],
+      previous_clear_color[2], previous_clear_color[3]);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, previous_unpack_row_length);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, previous_unpack_alignment);
+  glBindTexture(GL_TEXTURE_2D, previous_texture_2d);
+  glActiveTexture(previous_active_texture);
+  glBindBuffer(GL_ARRAY_BUFFER, previous_array_buffer);
+  glBindVertexArray(previous_vao);
+  glUseProgram(previous_program);
+}
+
+void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](render::DrawRectFunc draw_rect) {
         this->surfaces.foreach ([&draw_rect](Surface& surface) {

@@ -154,6 +154,7 @@ void Texture::upload(void* data, uint32_t wl_shm_format,
   if (this->texture_ == 0) {
     glGenTextures(1, &this->texture_);
   }
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, this->texture_);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -169,6 +170,5 @@ void Texture::upload(void* data, uint32_t wl_shm_format,
   glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / gl_format->bytes_per_pixel);
   glTexImage2D(GL_TEXTURE_2D, 0, gl_format->format, *width, *height, 0,
       gl_format->format, gl_format->type, data);
-  glBindTexture(GL_TEXTURE_2D, 0);
 }
 }  // namespace yabe::core::render

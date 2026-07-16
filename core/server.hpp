@@ -37,6 +37,8 @@ class Server {
   ~Server() = default;
   static Server instance;
 
+  void draw_content(const float* vp_mat);
+
   bool is_initialized_ = false;
 
   render::RectRenderer rect_renderer_;

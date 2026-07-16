@@ -8,5 +8,6 @@
 
 namespace yabe::core::render {
 std::optional<GLuint> compile_glsl(int type, const char* src);
+bool                  link_program(GLuint program);
 
-}
+}  // namespace yabe::core::render

@@ -3,6 +3,7 @@
 #include <array>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <stdexcept>
 
 #include "shader.hpp"
 
@@ -52,9 +53,12 @@ void RectRenderer::rendering_scope(const float* vp_mat,
   if (!this->initialized_) {
     this->init();
   }
+
   glUseProgram(this->program_);
   glBindVertexArray(this->vao_);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1i(this->texture_sampler_location_, 0);
   glUniformMatrix4fv(this->vp_mat_location_, 1, GL_FALSE, vp_mat);
 
   DrawRectFunc draw_rect = [this](glm::mat4 model_mat, const Texture& texture) {
@@ -64,9 +68,6 @@ void RectRenderer::rendering_scope(const float* vp_mat,
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   };
   render_func(draw_rect);
-
-  glBindVertexArray(0);
-  glUseProgram(0);
 }
 
 void RectRenderer::init() {
@@ -77,7 +78,9 @@ void RectRenderer::init() {
   this->program_     = glCreateProgram();
   glAttachShader(this->program_, this->vert_shader_);
   glAttachShader(this->program_, this->frag_shader_);
-  glLinkProgram(this->program_);
+  if (!link_program(this->program_)) {
+    throw std::runtime_error("Failed to link RectRenderer shader program");
+  }
 
   this->vp_mat_location_    = glGetUniformLocation(this->program_, "vp_mat");
   this->model_mat_location_ = glGetUniformLocation(this->program_, "model_mat");

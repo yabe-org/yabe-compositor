@@ -2,6 +2,7 @@
 
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <stdexcept>
 
 #include "glm/gtc/type_ptr.hpp"
 #include "shader.hpp"
@@ -47,6 +48,7 @@ void RayRenderer::draw(const float* vp_mat, const glm::vec3& start_pos,
   if (!this->initialized_) {
     this->init();
   }
+
   glUseProgram(this->program_);
   glBindVertexArray(this->vao_);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
@@ -66,7 +68,9 @@ void RayRenderer::init() {
   this->program_     = glCreateProgram();
   glAttachShader(this->program_, this->vert_shader_);
   glAttachShader(this->program_, this->frag_shader_);
-  glLinkProgram(this->program_);
+  if (!link_program(this->program_)) {
+    throw std::runtime_error("Failed to link RayRenderer shader program");
+  }
 
   this->vp_mat_location_    = glGetUniformLocation(this->program_, "vp_mat");
   this->start_pos_location_ = glGetUniformLocation(this->program_, "start_pos");
@@ -82,6 +86,9 @@ void RayRenderer::init() {
 
   glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0);
   glEnableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 
   this->initialized_ = true;
 }

@@ -22,23 +22,28 @@ Surface::~Surface() {
 }
 
 void Surface::set_callback(wl_resource* resource) {
+  const std::lock_guard lock(this->buffer_mutex_);
   this->pending_.callback = resource;
 }
 
 void Surface::attach(wl_resource* resource) {
+  const std::lock_guard lock(this->buffer_mutex_);
   this->pending_.buffer = resource;
 }
 
 void Surface::commit() {
-  if (this->pending_.buffer.has_value()) {
-    this->is_texture_uploaded_ = false;
-    this->current_.buffer      = this->pending_.buffer;
-    this->pending_.buffer      = std::nullopt;
-  }
+  {
+    const std::lock_guard lock(this->buffer_mutex_);
+    if (this->pending_.buffer.has_value()) {
+      this->is_texture_uploaded_ = false;
+      this->current_.buffer      = this->pending_.buffer;
+      this->pending_.buffer      = std::nullopt;
+    }
 
-  if (this->pending_.callback.has_value()) {
-    this->current_.callback = this->pending_.callback;
-    this->pending_.callback = std::nullopt;
+    if (this->pending_.callback.has_value()) {
+      this->current_.callback = this->pending_.callback;
+      this->pending_.callback = std::nullopt;
+    }
   }
 
   if (this->role_) {
@@ -47,6 +52,7 @@ void Surface::commit() {
 }
 
 void Surface::upload_texture_if_needed() {
+  const std::lock_guard lock(this->buffer_mutex_);
   if (!this->current_.buffer.has_value() || this->is_texture_uploaded_) {
     return;
   }
@@ -65,18 +71,40 @@ void Surface::upload_texture_if_needed() {
   this->texture_.upload(
       data, format, this->texture_width_, this->texture_height_, stride);
   wl_shm_buffer_end_access(shm_buffer);
-  wl_buffer_send_release(buffer);
+  this->uploaded_buffer_ = buffer;
 }
-void Surface::send_frame_done() {
-  if (!this->current_.callback.has_value()) {
+void Surface::finish_rendering() {
+  std::optional<wl_resource*> buffer;
+  std::optional<wl_resource*> callback;
+  {
+    const std::lock_guard lock(this->buffer_mutex_);
+    buffer = this->uploaded_buffer_;
+    this->uploaded_buffer_ = std::nullopt;
+    callback = this->current_.callback;
+    this->current_.callback = std::nullopt;
+  }
+  if (!buffer.has_value() && !callback.has_value()) {
     return;
   }
-  struct timeval now;
-  gettimeofday(&now, nullptr);
-  auto* callback = this->current_.callback.value();
-  wl_callback_send_done(callback, (now.tv_sec * 1000) + (now.tv_usec / 1000));
-  wl_resource_destroy(callback);
-  this->current_.callback = std::nullopt;
+
+  const auto weak_surface = this->weak_from_this();
+  server::get().enqueue([weak_surface, buffer, callback]() {
+    const auto surface = weak_surface.lock();
+    if (!surface) {
+      return;
+    }
+    if (buffer.has_value()) {
+      wl_buffer_send_release(buffer.value());
+    }
+    if (!callback.has_value()) {
+      return;
+    }
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    wl_callback_send_done(
+        callback.value(), (now.tv_sec * 1000) + (now.tv_usec / 1000));
+    wl_resource_destroy(callback.value());
+  });
 }
 
 void Surface::move_absolute(const glm::vec3& pos) {

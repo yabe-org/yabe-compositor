@@ -2,6 +2,7 @@
 
 #include <GLES3/gl3.h>
 #include <fcntl.h>
+#include <sys/eventfd.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <wayland-server-core.h>
@@ -21,6 +22,25 @@ void Server::init() {
 
   if (!proto::init(this->wl_display_)) {
     throw std::runtime_error("Failed to initialize Wayland protocols");
+  }
+
+  this->task_dispatch_event_fd_ = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+  if (this->task_dispatch_event_fd_ < 0) {
+    throw std::runtime_error("Failed to create compositor task event fd");
+  }
+  this->task_source_ = wl_event_loop_add_fd(
+      this->loop(), this->task_dispatch_event_fd_, WL_EVENT_READABLE,
+      [](int fd, uint32_t, void*) {
+        uint64_t value = 0;
+        while (read(fd, &value, sizeof(value)) < 0 && errno == EINTR) {}
+        server::get().consume_queued_tasks();
+        return 0;
+      },
+      this);
+  if (!this->task_source_) {
+    close(this->task_dispatch_event_fd_);
+    this->task_dispatch_event_fd_ = -1;
+    throw std::runtime_error("Failed to add compositor task event source");
   }
 
   LOG_INFO("Server is initialized");
@@ -53,26 +73,56 @@ void Server::start() {
     throw std::runtime_error("Server is not initialized");
   }
   wl_display_run(this->wl_display_);
+
+  wl_display_destroy_clients(this->wl_display_);
+  wl_event_source_remove(this->task_source_);
+  this->task_source_ = nullptr;
+  close(this->task_dispatch_event_fd_);
+  this->task_dispatch_event_fd_ = -1;
+  wl_display_destroy(this->wl_display_);
+  this->wl_display_     = nullptr;
+  this->is_initialized_ = false;
 }
 
 void Server::add_client_fd(int fd) {
-  if (wl_client_create(this->wl_display_, fd) == nullptr) {
-    LOG_ERR("Failed to create Wayland client for fd: {}", fd);
-    close(fd);
-  }
+  this->enqueue([this, fd]() {
+    if (wl_client_create(this->wl_display_, fd) == nullptr) {
+      LOG_ERR("Failed to create Wayland client for fd: {}", fd);
+      close(fd);
+    }
+  });
 }
 
 void Server::terminate() {
-  if (this->wl_display_) {
-    wl_display_destroy_clients(this->wl_display_);
+  if (!this->wl_display_) {
+    return;
+  }
+  this->enqueue([this]() {
     wl_display_terminate(this->wl_display_);
-    wl_display_destroy(this->wl_display_);
-    this->wl_display_ = nullptr;
+  });
+}
+
+void Server::enqueue(std::function<void()> task) {
+  {
+    const std::lock_guard lock(this->task_mutex_);
+    this->tasks_.push_back(std::move(task));
+  }
+  const uint64_t value = 1;
+  if (write(this->task_dispatch_event_fd_, &value, sizeof(value)) < 0 &&
+      errno != EAGAIN) {
+    LOG_ERR("Failed to wake compositor event loop: {}", strerror(errno));
   }
 }
 
-void Server::flush_clients() {
-  wl_display_flush_clients(this->wl_display_);
+void Server::consume_queued_tasks() {
+  std::vector<std::function<void()>> tasks;
+  {
+    const std::lock_guard lock(this->task_mutex_);
+    tasks.swap(this->tasks_);
+  }
+  for (auto& task : tasks) {
+    task();
+  }
 }
 
 void Server::draw(const float* vp_mat) {
@@ -154,7 +204,7 @@ void Server::draw_content(const float* vp_mat) {
           if (surface.type() != SurfaceType::CURSOR) {
             surface.upload_texture_if_needed();
             draw_rect(surface.model_mat(), surface.texture());
-            surface.send_frame_done();
+            surface.finish_rendering();
           }
         });
         const auto cursor_surface =
@@ -163,7 +213,7 @@ void Server::draw_content(const float* vp_mat) {
           glDisable(GL_DEPTH_TEST);
           cursor_surface->upload_texture_if_needed();
           draw_rect(cursor_surface->model_mat(), cursor_surface->texture());
-          cursor_surface->send_frame_done();
+          cursor_surface->finish_rendering();
           glEnable(GL_DEPTH_TEST);
         }
       });

@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <optional>
 
 #include "common/common.hpp"
@@ -35,7 +36,7 @@ struct IntersectInfo {
 
 constexpr float kSurfaceDistance = 0.5F;
 
-class Surface {
+class Surface : public std::enable_shared_from_this<Surface> {
  public:
   DISABLE_MOVE_AND_COPY(Surface);
   explicit Surface(wl_resource* resource);
@@ -46,7 +47,7 @@ class Surface {
   void commit();
 
   void upload_texture_if_needed();
-  void send_frame_done();
+  void finish_rendering();
 
   void set_role(std::unique_ptr<SurfaceRole>&& role) {
     this->role_ = std::move(role);
@@ -102,7 +103,9 @@ class Surface {
     std::optional<wl_resource*> callback;
   } pending_, current_;
   render::Texture texture_;
-  bool            is_texture_uploaded_ = false;
+  bool                        is_texture_uploaded_ = false;
+  std::optional<wl_resource*> uploaded_buffer_;
+  std::mutex                  buffer_mutex_;
 
   std::unique_ptr<SurfaceRole> role_;
 

@@ -2,6 +2,10 @@
 
 #include <wayland-server.h>
 
+#include <functional>
+#include <mutex>
+#include <vector>
+
 #include "common/common.hpp"
 #include "core/ray-cursor.hpp"
 #include "core/render/ray-renderer.hpp"
@@ -22,8 +26,10 @@ class Server {
   void start();
   void terminate();
   void add_client_fd(int fd);
-  void flush_clients();
+  void enqueue(std::function<void()> task);
   void draw(const float* vp_mat);
+
+  void consume_queued_tasks();
 
   uint32_t       next_serial();
   wl_event_loop* loop();
@@ -41,9 +47,13 @@ class Server {
 
   bool is_initialized_ = false;
 
-  render::RectRenderer rect_renderer_;
-  render::RayRenderer  ray_renderer_;
-  wl_display*          wl_display_ = nullptr;
+  render::RectRenderer               rect_renderer_;
+  render::RayRenderer                ray_renderer_;
+  wl_display*                        wl_display_             = nullptr;
+  wl_event_source*                   task_source_            = nullptr;
+  int                                task_dispatch_event_fd_ = -1;
+  std::mutex                         task_mutex_;
+  std::vector<std::function<void()>> tasks_;
 };
 
 /// shortening

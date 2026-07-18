@@ -15,7 +15,9 @@ void destroy(wl_client* /* client */, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 void get_toplevel(wl_client* client, wl_resource* resource, uint32_t id) {
-  auto* toplevel = xdg_toplevel::create(client, id);
+  auto* self =
+      static_cast<XdgSurfaceRole*>(wl_resource_get_user_data(resource));
+  auto* toplevel = xdg_toplevel::create(client, id, self->surface());
   if (!toplevel) {
     return;
   }
@@ -58,7 +60,7 @@ void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
     wl_client_post_no_memory(client);
     return;
   }
-  auto  role_obj = std::make_unique<XdgSurfaceRole>(resource);
+  auto  role_obj = std::make_unique<XdgSurfaceRole>(resource, surface);
   auto* p        = role_obj.get();
   surface->set_role(std::move(role_obj));
   wl_resource_set_implementation(resource, &kImpl, p, nullptr);

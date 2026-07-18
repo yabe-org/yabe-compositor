@@ -6,8 +6,9 @@
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_surface {
-XdgSurfaceRole::XdgSurfaceRole(wl_resource* xdg_surface)
-    : xdg_surface_(xdg_surface) {
+XdgSurfaceRole::XdgSurfaceRole(
+    wl_resource* xdg_surface, std::weak_ptr<core::Surface>&& wl_surface)
+    : wl_surface_(std::move(wl_surface)), xdg_surface_(xdg_surface) {
 }
 
 void XdgSurfaceRole::commit() {

@@ -11,6 +11,9 @@ ServerPointer::ServerPointer()
     : grab_(pointer_grab::DefaultPointerGrab::start()) {
 }
 
+void ServerPointer::unfocus_surface() {
+  this->set_focused_surface(std::weak_ptr<Surface>());
+}
 void ServerPointer::focus_pointed_surface() {
   const auto intersection = server::get().surfaces.get_nearest_intersection(
       server::get().ray_cursor.origin(), server::get().ray_cursor.direction());

@@ -9,6 +9,7 @@ srcs += [
   'core/server-seat/server-seat.cpp',
 
   'core/server-seat/pointer-grab/default.cpp',
+  'core/server-seat/pointer-grab/move.cpp',
 
   'core/client-seat/client-keyboard.cpp',
   'core/client-seat/client-pointer.cpp',

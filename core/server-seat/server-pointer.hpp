@@ -21,6 +21,7 @@ class ServerPointer {
   [[nodiscard]] const std::weak_ptr<Surface>& get_focused_surface() const {
     return this->focused_surface_;
   }
+  void unfocus_surface();
   void focus_pointed_surface();
   /// @param surface nullable
   void set_surface_as_cursor(

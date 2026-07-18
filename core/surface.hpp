@@ -34,7 +34,7 @@ struct IntersectInfo {
   glm::vec3 pos;
 };
 
-constexpr float kSurfaceDistance = 0.5F;
+constexpr float kSurfaceDistance = 0.7F;
 
 class Surface : public std::enable_shared_from_this<Surface> {
  public:

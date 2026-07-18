@@ -99,10 +99,13 @@ class Surface : public std::enable_shared_from_this<Surface> {
   SurfaceType type_ = SurfaceType::TOPLEVEL;
 
   struct {
+    // even if the buffer is not nullopt, its pointer is nullable
+    // in order to distinguish between "attach() is not called"
+    // and "null buffer is attached (the content is removed)"
     std::optional<wl_resource*> buffer;
     std::optional<wl_resource*> callback;
   } pending_, current_;
-  render::Texture texture_;
+  render::Texture             texture_;
   bool                        is_texture_uploaded_ = false;
   std::optional<wl_resource*> uploaded_buffer_;
   std::mutex                  buffer_mutex_;

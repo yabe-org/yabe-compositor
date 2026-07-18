@@ -32,9 +32,18 @@ void Surface::attach(wl_resource* resource) {
 }
 
 void Surface::commit() {
+  std::optional<wl_resource*> buffer_to_release;
   {
     const std::lock_guard lock(this->buffer_mutex_);
     if (this->pending_.buffer.has_value()) {
+      // if the current buffer exists, is not uploaded yet, and is different
+      // from newly attached buffer, current buffer will no longer be used
+      bool is_current_buffer_valid = this->current_.buffer.has_value() &&
+                                     *this->current_.buffer != nullptr;
+      if (!this->is_texture_uploaded_ && is_current_buffer_valid &&
+          this->current_.buffer != this->pending_.buffer) {
+        buffer_to_release = this->current_.buffer;
+      }
       this->is_texture_uploaded_ = false;
       this->current_.buffer      = this->pending_.buffer;
       this->pending_.buffer      = std::nullopt;
@@ -44,6 +53,10 @@ void Surface::commit() {
       this->current_.callback = this->pending_.callback;
       this->pending_.callback = std::nullopt;
     }
+  }
+
+  if (buffer_to_release.has_value()) {
+    wl_buffer_send_release(buffer_to_release.value());
   }
 
   if (this->role_) {
@@ -78,9 +91,9 @@ void Surface::finish_rendering() {
   std::optional<wl_resource*> callback;
   {
     const std::lock_guard lock(this->buffer_mutex_);
-    buffer = this->uploaded_buffer_;
-    this->uploaded_buffer_ = std::nullopt;
-    callback = this->current_.callback;
+    buffer                  = this->uploaded_buffer_;
+    this->uploaded_buffer_  = std::nullopt;
+    callback                = this->current_.callback;
     this->current_.callback = std::nullopt;
   }
   if (!buffer.has_value() && !callback.has_value()) {

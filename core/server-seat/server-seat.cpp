@@ -1,5 +1,7 @@
 #include "server-seat.hpp"
 
+#include "core/server-seat/pointer-grab/default.hpp"
+
 namespace yabe::core::server_seat {
 client_seat::ClientSeat* ServerSeat ::create_client_seat(wl_client* client) {
   auto  client_seat = std::make_unique<client_seat::ClientSeat>();

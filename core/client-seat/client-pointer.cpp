@@ -1,6 +1,7 @@
 #include "client-pointer.hpp"
 
 #include "common/common.hpp"
+#include "common/time.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
 
@@ -41,8 +42,9 @@ void ClientPointer::send_motion(float x, float y) {
 
 void ClientPointer::send_button(uint32_t button, uint32_t state) {
   const auto serial = server::get().next_serial();
+  const auto now    = common::now_msec();
   for (auto* resource : this->pointers_) {
-    wl_pointer_send_button(resource, serial, 0, button, state);
+    wl_pointer_send_button(resource, serial, now, button, state);
   }
 }
 

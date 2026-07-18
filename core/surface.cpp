@@ -1,6 +1,5 @@
 #include "surface.hpp"
 
-#include <sys/time.h>
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
 
@@ -9,6 +8,7 @@
 #include "common/common.hpp"
 #include "common/geometry.hpp"
 #include "common/intersection.hpp"
+#include "common/time.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
 
@@ -112,10 +112,7 @@ void Surface::finish_rendering() {
     if (!callback.has_value()) {
       return;
     }
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    wl_callback_send_done(
-        callback.value(), (now.tv_sec * 1000) + (now.tv_usec / 1000));
+    wl_callback_send_done(callback.value(), common::now_msec());
     wl_resource_destroy(callback.value());
   });
 }

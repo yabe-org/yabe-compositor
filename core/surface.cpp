@@ -137,11 +137,20 @@ void Surface::unfocus() {
 }
 
 glm::mat4 Surface::model_mat() {
-  glm::mat4 model_mat(1.F);
-  model_mat =
-      glm::translate(model_mat, this->geometry_.pos()) *
-      glm::scale(model_mat, glm::vec3(*this->texture_width_.to_world_unit(),
-                                *this->texture_height_.to_world_unit(), 0.F));
+  glm::mat4  model_mat(1.F);
+  const auto pos = this->geometry_.pos();
+
+  const auto distance_from_y_axis = glm::length(glm::vec2(pos.x, pos.z));
+  // if the distance from Y axis is zero, yaw can't be determined
+  const auto yaw = distance_from_y_axis > 0.F ? glm::atan(-pos.x, -pos.z) : 0.F;
+  const auto pitch = glm::atan(pos.y, distance_from_y_axis);
+  auto rotation    = glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
+  rotation         = glm::rotate(rotation, pitch, glm::vec3(1.F, 0.F, 0.F));
+
+  model_mat = glm::translate(model_mat, pos) * rotation *
+              glm::scale(glm::mat4(1.F),
+                  glm::vec3(*this->texture_width_.to_world_unit(),
+                      *this->texture_height_.to_world_unit(), 0.F));
   return model_mat;
 }
 

@@ -6,15 +6,13 @@
 #include <glm/ext.hpp>
 
 #include "common/common.hpp"
-#include "common/geometry.hpp"
 #include "common/intersection.hpp"
 #include "common/time.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
 
 namespace yabe::core {
-Surface::Surface(wl_resource* resource)
-    : geometry_({0.F, 0.F, -kSurfaceDistance}), resource_(resource) {
+Surface::Surface(wl_resource* resource) : resource_(resource) {
   LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
@@ -59,8 +57,8 @@ void Surface::commit() {
     wl_buffer_send_release(buffer_to_release.value());
   }
 
-  if (this->role_) {
-    this->role_->commit();
+  if (const auto role = this->role_.lock()) {
+    role->commit();
   }
 }
 
@@ -117,62 +115,15 @@ void Surface::finish_rendering() {
   });
 }
 
-void Surface::move_absolute(const glm::vec3& pos) {
-  this->geometry_.move_absolute(pos);
-}
-void Surface::move_relative(float polar, float azimuth) {
-  this->geometry_.move_relative(azimuth, polar, 0.F);
-}
-
 void Surface::focus() {
   server::get().surfaces.raise_to_top(this->resource_);
-  if (this->role_) {
-    this->role_->set_activated(true);
+  if (const auto role = this->role_.lock()) {
+    role->set_activated(true);
   }
 }
 void Surface::unfocus() {
-  if (this->role_) {
-    this->role_->set_activated(false);
+  if (const auto role = this->role_.lock()) {
+    role->set_activated(false);
   }
-}
-
-glm::mat4 Surface::model_mat() {
-  glm::mat4  model_mat(1.F);
-  const auto pos = this->geometry_.pos();
-
-  const auto distance_from_y_axis = glm::length(glm::vec2(pos.x, pos.z));
-  // if the distance from Y axis is zero, yaw can't be determined
-  const auto yaw = distance_from_y_axis > 0.F ? glm::atan(-pos.x, -pos.z) : 0.F;
-  const auto pitch = glm::atan(pos.y, distance_from_y_axis);
-  auto rotation    = glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
-  rotation         = glm::rotate(rotation, pitch, glm::vec3(1.F, 0.F, 0.F));
-
-  model_mat = glm::translate(model_mat, pos) * rotation *
-              glm::scale(glm::mat4(1.F),
-                  glm::vec3(*this->texture_width_.to_world_unit(),
-                      *this->texture_height_.to_world_unit(), 0.F));
-  return model_mat;
-}
-
-std::optional<IntersectInfo> Surface::check_intersection(
-    const glm::vec3& origin, const glm::vec3& direction) {
-  if (!this->current_.buffer.has_value() ||
-      this->type_ == SurfaceType::CURSOR) {
-    return std::nullopt;
-  }
-  auto      geom_mat          = this->model_mat();
-  glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
-  glm::vec3 vert_right_bottom = geom_mat * glm::vec4(+0.5F, -0.5F, 0.F, 1.F);
-  glm::vec3 vert_left_top     = geom_mat * glm::vec4(-0.5F, +0.5F, 0.F, 1.F);
-  auto      result            = common::intersection::with_surface(
-      origin, direction, vert_left_bottom, vert_right_bottom, vert_left_top);
-  if (!result.has_value()) {
-    return std::nullopt;
-  }
-  return IntersectInfo{
-      .distance = result->distance,
-      .pos{static_cast<float>(*this->texture_width_) * result->u,
-           static_cast<float>(*this->texture_height_) * (1.F - result->v), 0.F}
-  };
 }
 }  // namespace yabe::core

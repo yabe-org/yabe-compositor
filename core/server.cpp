@@ -199,20 +199,16 @@ void Server::draw(const float* vp_mat) {
 void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](render::DrawRectFunc draw_rect) {
-        this->surfaces.foreach ([&draw_rect](Surface& surface) {
-          // FIXME: temporary workaround
-          if (surface.type() != SurfaceType::CURSOR) {
-            surface.upload_texture_if_needed();
-            draw_rect(surface.model_mat(), surface.texture());
-            surface.finish_rendering();
-          }
-        });
+        this->scene.draw(draw_rect);
         const auto cursor_surface =
             this->seat.pointer.get_cursor_surface().lock();
         if (cursor_surface) {
           glDisable(GL_DEPTH_TEST);
           cursor_surface->upload_texture_if_needed();
-          draw_rect(cursor_surface->model_mat(), cursor_surface->texture());
+          draw_rect(
+              this->ray_cursor.cursor_model_mat(cursor_surface->texture_width(),
+                  cursor_surface->texture_height()),
+              cursor_surface->texture());
           cursor_surface->finish_rendering();
           glEnable(GL_DEPTH_TEST);
         }

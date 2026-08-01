@@ -4,6 +4,10 @@
 #include <optional>
 
 namespace yabe::common::intersection {
+struct IntersectInfo {
+  float     distance;
+  glm::vec3 pos;
+};
 struct SurfaceInfo {
   float distance;
   float u, v;

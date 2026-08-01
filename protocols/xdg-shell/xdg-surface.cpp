@@ -5,25 +5,28 @@
 
 #include <memory>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
-#include "protocols/xdg-shell/xdg-surface-role.hpp"
 #include "xdg-toplevel.hpp"
 
 namespace yabe::proto::xdg_shell::xdg_surface {
+XdgSurface::XdgSurface(
+    wl_resource* resource, std::weak_ptr<core::Surface>&& wl_surface)
+    : resource_(resource), wl_surface_(std::move(wl_surface)) {
+}
+
+void XdgSurface::configure() {
+  xdg_surface_send_configure(
+      this->resource_, core::server::get().next_serial());
+}
+
 namespace {
 void destroy(wl_client* /* client */, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 void get_toplevel(wl_client* client, wl_resource* resource, uint32_t id) {
-  auto* self =
-      static_cast<XdgSurfaceRole*>(wl_resource_get_user_data(resource));
-  auto* toplevel = xdg_toplevel::create(client, id, self->surface());
-  if (!toplevel) {
-    return;
-  }
-  auto* role =
-      static_cast<XdgSurfaceRole*>(wl_resource_get_user_data(resource));
-  role->set_xdg_role_object(toplevel);
+  auto self = core::server::get().xdg_surface_map.at(resource);
+  xdg_toplevel::create(client, id, self);
 }
 void get_popup(wl_client* /*client*/, wl_resource* /* resource */,
     uint32_t /*id*/, wl_resource* /* parent */, wl_resource* /* positioner */) {
@@ -45,6 +48,10 @@ constexpr struct xdg_surface_interface kImpl = {
     .set_window_geometry = set_window_geometry,
     .ack_configure       = ack_configure,
 };
+
+void destroy(wl_resource* resource) {
+  core::server::get().xdg_surface_map.erase(resource);
+}
 }  // namespace
 
 void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
@@ -60,9 +67,8 @@ void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
     wl_client_post_no_memory(client);
     return;
   }
-  auto  role_obj = std::make_unique<XdgSurfaceRole>(resource, surface);
-  auto* p        = role_obj.get();
-  surface->set_role(std::move(role_obj));
-  wl_resource_set_implementation(resource, &kImpl, p, nullptr);
+  core::server::get().xdg_surface_map.emplace(
+      resource, std::make_shared<XdgSurface>(resource, std::weak_ptr(surface)));
+  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
 }
 }  // namespace yabe::proto::xdg_shell::xdg_surface

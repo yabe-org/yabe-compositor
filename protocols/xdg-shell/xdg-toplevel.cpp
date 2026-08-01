@@ -7,25 +7,54 @@
 #include "common/common.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server.hpp"
-#include "core/surface.hpp"
+#include "protocols/xdg-shell/xdg-surface.hpp"
 #include "wayland-server-core.h"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_toplevel {
-XdgToplevel::XdgToplevel(std::weak_ptr<core::Surface>&& surface)
-    : surface_(std::move(surface)) {
+XdgToplevel::XdgToplevel(wl_resource*        resource,
+    std::weak_ptr<xdg_surface::XdgSurface>&& surface,
+    std::weak_ptr<core::scene::Toplevel>&&   toplevel)
+    : resource_(resource)
+    , xdg_surface_(std::move(surface))
+    , toplevel_(std::move(toplevel)) {
+}
+
+void XdgToplevel::commit() {
+  if (this->is_initial_commit_sent_) {
+    return;
+  }
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return;
+  }
+  this->is_initial_commit_sent_ = true;
+  xdg_surface->configure();
+}
+
+void XdgToplevel::set_activated(bool is_activated) {
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return;
+  }
+  wl_array states;
+  wl_array_init(&states);
+  if (is_activated) {
+    auto* state =
+        static_cast<uint32_t*>(wl_array_add(&states, sizeof(uint32_t)));
+    if (state) {
+      *state = XDG_TOPLEVEL_STATE_ACTIVATED;
+    }
+  }
+  xdg_toplevel_send_configure(this->resource_, 0, 0, &states);
+  wl_array_release(&states);
+  xdg_surface->configure();
 }
 
 void XdgToplevel::move() {
-  LOG_DBG("move");
-  auto surface = this->surface_.lock();
-  if (!surface) {
-    return;
-  }
-  LOG_DBG(
-      "move started for surface {}", wl_resource_get_id(surface->resource()));
   core::server::get().seat.pointer.start_grab(
-      core::server_seat::pointer_grab::MovePointerGrab::start(surface));
+      core::server_seat::pointer_grab::MovePointerGrab::start(
+          std::weak_ptr(this->toplevel_)));
 }
 
 namespace {
@@ -50,8 +79,7 @@ void show_window_menu(wl_client* /*client*/, wl_resource* /*resource*/,
 }
 void move(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
     uint32_t /*serial*/) {
-  auto* self = static_cast<XdgToplevel*>(wl_resource_get_user_data(resource));
-  self->move();
+  core::server::get().xdg_toplevel_map.at(resource)->move();
 }
 void resize(wl_client* /*client*/, wl_resource* /*resource*/,
     wl_resource* /*seat*/, uint32_t /*serial*/, uint32_t /*edges*/) {
@@ -99,21 +127,39 @@ constexpr struct xdg_toplevel_interface kImpl = {
     .set_minimized    = set_minimized,
 };
 
+void destroy(wl_resource* resource) {
+  if (auto toplevel = core::server::get().xdg_toplevel_map.at(resource)) {
+    if (auto scene_node = toplevel->scene_node().lock()) {
+      core::server::get().scene.erase(scene_node.get());
+    }
+  }
+  core::server::get().xdg_toplevel_map.erase(resource);
+}
 }  // namespace
 
-wl_resource* create(
-    wl_client* client, uint32_t id, std::weak_ptr<core::Surface>&& surface) {
+wl_resource* create(wl_client* client, uint32_t id,
+    std::weak_ptr<xdg_surface::XdgSurface> xdg_surface) {
+  const auto locked_xdg_surface = xdg_surface.lock();
+  if (!locked_xdg_surface) {
+    return nullptr;
+  }
+  const auto surface = locked_xdg_surface->wl_surface().lock();
+  if (!surface) {
+    return nullptr;
+  }
   wl_resource* resource = wl_resource_create(
       client, &xdg_toplevel_interface, xdg_toplevel_interface.version, id);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
     return nullptr;
   }
-  auto* self = new XdgToplevel(std::move(surface));
-  wl_resource_set_implementation(
-      resource, &kImpl, self, [](wl_resource* resource) {
-        delete static_cast<XdgToplevel*>(wl_resource_get_user_data(resource));
-      });
+  auto toplevel = std::make_shared<core::scene::Toplevel>(surface);
+  auto self     = std::make_shared<XdgToplevel>(
+      resource, std::move(xdg_surface), std::weak_ptr(toplevel));
+  core::server::get().scene.insert(std::move(toplevel));
+  core::server::get().xdg_toplevel_map.emplace(resource, self);
+  surface->set_role(self);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
   return resource;
 }
 }  // namespace yabe::proto::xdg_shell::xdg_toplevel

@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <optional>
+#include <vector>
 
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"

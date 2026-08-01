@@ -6,6 +6,7 @@
 #include <numbers>
 
 #include "common/common.hpp"
+#include "common/unit.hpp"
 
 namespace yabe::core {
 class RayCursor {
@@ -15,6 +16,11 @@ class RayCursor {
   ~RayCursor()         = default;
 
   void move_relative(float polar, float azimuth);
+  void set_length(float length);
+  void set_cursor_hotspot(int32_t x, int32_t y);
+
+  [[nodiscard]] glm::mat4 cursor_model_mat(
+      unit::Pixel width, unit::Pixel height) const;
 
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;
@@ -38,5 +44,8 @@ class RayCursor {
   float     length_  = 5.F;
   float     polar_   = std::numbers::pi / 2.F;  // [0, pi]
   float     azimuth_ = std::numbers::pi;        // x-z plane, [0, 2pi]
+
+  unit::Pixel cursor_hotspot_x_{0};
+  unit::Pixel cursor_hotspot_y_{0};
 };
 }  // namespace yabe::core

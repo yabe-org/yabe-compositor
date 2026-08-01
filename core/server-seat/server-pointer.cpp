@@ -15,7 +15,7 @@ void ServerPointer::unfocus_surface() {
   this->set_focused_surface(std::weak_ptr<Surface>());
 }
 void ServerPointer::focus_pointed_surface() {
-  const auto intersection = server::get().surfaces.get_nearest_intersection(
+  const auto intersection = server::get().scene.get_nearest_intersection(
       server::get().ray_cursor.origin(), server::get().ray_cursor.direction());
 
   if (!intersection.has_value()) {
@@ -31,10 +31,7 @@ void ServerPointer::focus_pointed_surface() {
 
   const auto cursor_surface = this->get_cursor_surface().lock();
   if (cursor_surface) {
-    const auto cursor_distance = intersect_info.distance * 0.98F;
-    cursor_surface->move_absolute(
-        server::get().ray_cursor.origin() +
-        server::get().ray_cursor.direction() * cursor_distance);
+    server::get().ray_cursor.set_length(intersect_info.distance * 0.98F);
   }
 
   const auto& client_seat =
@@ -65,11 +62,7 @@ void ServerPointer::set_surface_as_cursor(
     LOG_ERR("cursor surface not found");
     return;
   }
-  const auto cursor_distance = server::get().ray_cursor.length() * 0.98F;
-  cursor_surface->set_type(SurfaceType::CURSOR);
-  cursor_surface->move_absolute(
-      server::get().ray_cursor.origin() +
-      server::get().ray_cursor.direction() * cursor_distance);
+  server::get().ray_cursor.set_cursor_hotspot(hotspot_x, hotspot_y);
   this->cursor_surface_ = cursor_surface;
 }
 

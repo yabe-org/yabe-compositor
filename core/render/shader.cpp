@@ -22,7 +22,7 @@ std::optional<GLuint> compile_glsl(int type, const char* src) {
 
   std::vector<char> log_message(log_length);
   glGetShaderInfoLog(shader_id, log_length, nullptr, log_message.data());
-  LOG_ERR("[Shader error]\n{}", log_message);
+  LOG_ERR("[Shader error]\n{}", log_message.data());
   glDeleteShader(shader_id);
   return std::nullopt;
 }

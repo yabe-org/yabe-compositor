@@ -5,7 +5,6 @@
 
 #include <memory>
 
-#include "common/common.hpp"
 #include "core/server.hpp"
 #include "xdg-toplevel.hpp"
 
@@ -18,6 +17,13 @@ XdgSurface::XdgSurface(
 void XdgSurface::configure() {
   xdg_surface_send_configure(
       this->resource_, core::server::get().next_serial());
+}
+void XdgSurface::set_window_geometry(core::unit::Pixel x, core::unit::Pixel y,
+    core::unit::Pixel width, core::unit::Pixel height) {
+  this->x_      = x;
+  this->y_      = y;
+  this->width_  = width;
+  this->height_ = height;
 }
 
 namespace {
@@ -32,10 +38,11 @@ void get_popup(wl_client* /*client*/, wl_resource* /* resource */,
     uint32_t /*id*/, wl_resource* /* parent */, wl_resource* /* positioner */) {
   // todo
 }
-void set_window_geometry(wl_client* /* client */, wl_resource* /* resource */,
-    int32_t /* x */, int32_t /* y */, int32_t /* width */,
-    int32_t /* height */) {
+void set_window_geometry(wl_client* /* client */, wl_resource* resource,
+    int32_t x, int32_t y, int32_t width, int32_t height) {
   // TODO
+  auto self = core::server::get().xdg_surface_map.at(resource);
+  self->set_window_geometry({x}, {y}, {width}, {height});
 }
 void ack_configure(wl_client* /* client */, wl_resource* /* resource */,
     uint32_t /* serial */) {

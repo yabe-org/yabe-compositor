@@ -20,7 +20,14 @@ class Toplevel : public SceneNode {
   void move_absolute(const glm::vec3& pos);
   void move_relative(float polar, float azimuth);
 
-  [[nodiscard]] glm::mat4 model_mat();
+  [[nodiscard]] glm::mat4        model_mat();
+  [[nodiscard]] const glm::vec3& position() {
+    return this->geometry_.pos();
+  }
+
+  [[nodiscard]] std::weak_ptr<Surface> surface() const {
+    return this->surface_;
+  }
 
  private:
   Geometry geometry_;

@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "common/common.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
+#include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "wayland-server-core.h"
@@ -33,28 +33,43 @@ void XdgToplevel::commit() {
 }
 
 void XdgToplevel::set_activated(bool is_activated) {
+  this->is_activated_ = is_activated;
+  this->send_configure(0, 0);
+}
+
+void XdgToplevel::start_move() {
+  core::server::get().seat.pointer.start_grab(
+      core::server_seat::pointer_grab::MovePointerGrab::start(
+          std::weak_ptr(this->toplevel_)));
+}
+void XdgToplevel::start_resize(uint32_t edges) {
+  core::server::get().seat.pointer.start_grab(
+      core::server_seat::pointer_grab::ResizePointerGrab::start(
+          this->shared_from_this(), edges));
+}
+
+void XdgToplevel::request_resize(
+    core::unit::Pixel width, core::unit::Pixel height) {
+  this->send_configure(*width, *height);
+}
+
+void XdgToplevel::send_configure(int32_t width, int32_t height) {
   const auto xdg_surface = this->xdg_surface_.lock();
   if (!xdg_surface) {
     return;
   }
   wl_array states;
   wl_array_init(&states);
-  if (is_activated) {
+  if (this->is_activated_) {
     auto* state =
         static_cast<uint32_t*>(wl_array_add(&states, sizeof(uint32_t)));
     if (state) {
       *state = XDG_TOPLEVEL_STATE_ACTIVATED;
     }
   }
-  xdg_toplevel_send_configure(this->resource_, 0, 0, &states);
+  xdg_toplevel_send_configure(this->resource_, width, height, &states);
   wl_array_release(&states);
   xdg_surface->configure();
-}
-
-void XdgToplevel::move() {
-  core::server::get().seat.pointer.start_grab(
-      core::server_seat::pointer_grab::MovePointerGrab::start(
-          std::weak_ptr(this->toplevel_)));
 }
 
 namespace {
@@ -79,11 +94,11 @@ void show_window_menu(wl_client* /*client*/, wl_resource* /*resource*/,
 }
 void move(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
     uint32_t /*serial*/) {
-  core::server::get().xdg_toplevel_map.at(resource)->move();
+  core::server::get().xdg_toplevel_map.at(resource)->start_move();
 }
-void resize(wl_client* /*client*/, wl_resource* /*resource*/,
-    wl_resource* /*seat*/, uint32_t /*serial*/, uint32_t /*edges*/) {
-  // TODO
+void resize(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
+    uint32_t /*serial*/, uint32_t               edges) {
+  core::server::get().xdg_toplevel_map.at(resource)->start_resize(edges);
 }
 void set_max_size(wl_client* /*client*/, wl_resource* /*resource*/,
     int32_t /*width*/, int32_t /*height*/) {

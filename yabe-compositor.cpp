@@ -1,7 +1,8 @@
 #include "yabe-compositor.h"
 
-#include <exception>
 #include <unistd.h>
+
+#include <exception>
 
 #include "common/common.hpp"
 #include "core/server.hpp"

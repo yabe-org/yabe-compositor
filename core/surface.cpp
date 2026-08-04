@@ -6,7 +6,6 @@
 #include <glm/ext.hpp>
 
 #include "common/common.hpp"
-#include "common/intersection.hpp"
 #include "common/time.hpp"
 #include "core/server.hpp"
 #include "wayland-server-core.h"
@@ -16,6 +15,7 @@ Surface::Surface(wl_resource* resource) : resource_(resource) {
   LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
+  this->unmap();
   LOG_DBG("surface#{} deleted", wl_resource_get_id(this->resource_));
 }
 
@@ -83,6 +83,12 @@ void Surface::upload_texture_if_needed() {
       data, format, this->texture_width_, this->texture_height_, stride);
   wl_shm_buffer_end_access(shm_buffer);
   this->uploaded_buffer_ = buffer;
+
+  if (this->surface_node_.has_value()) {
+    auto& scale = this->surface_node_.value()->geometry().scale();
+    scale.x     = *this->texture_width_.to_world_unit();
+    scale.y     = *this->texture_height_.to_world_unit();
+  }
 }
 void Surface::finish_rendering() {
   std::optional<wl_resource*> buffer;
@@ -113,6 +119,31 @@ void Surface::finish_rendering() {
     wl_callback_send_done(callback.value(), common::now_msec());
     wl_resource_destroy(callback.value());
   });
+}
+
+void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent) {
+  if (this->surface_node_.has_value()) {
+    return;
+  }
+  this->surface_node_ =
+      std::make_shared<scene::SurfaceNode>(this->shared_from_this());
+  if (this->current_.buffer.has_value()) {
+    auto& scale = this->surface_node_.value()->geometry().scale();
+    scale.x     = *this->texture_width_.to_world_unit();
+    scale.y     = *this->texture_height_.to_world_unit();
+  }
+  if (parent.has_value()) {
+    parent.value()->add_child(this->surface_node_.value());
+  } else {
+    server::get().scene.insert(this->surface_node_.value());
+  }
+}
+void Surface::unmap() {
+  if (!this->surface_node_.has_value()) {
+    return;
+  }
+  server::get().scene.erase(this->surface_node_.value());
+  this->surface_node_ = std::nullopt;
 }
 
 void Surface::focus() {

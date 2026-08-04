@@ -4,9 +4,7 @@
 
 #include <memory>
 
-#include "common/common.hpp"
 #include "common/unit.hpp"
-#include "core/scene/toplevel.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-toplevel.hpp"
 #include "xdg-shell-protocol.h"
@@ -24,10 +22,10 @@ ResizePointerGrab* ResizePointerGrab::start(
 
   const auto xdg_toplevel        = instance.resizing_toplevel_.lock();
   const auto xdg_surface         = xdg_toplevel->xdg_surface().lock();
-  const auto locked_toplevel     = xdg_toplevel->scene_node().lock();
+  const auto locked_toplevel     = xdg_toplevel->surface_node().lock();
   instance.initial_width_        = xdg_surface->width();
   instance.initial_height_       = xdg_surface->height();
-  instance.initial_toplevel_pos_ = locked_toplevel->position();
+  instance.initial_toplevel_pos_ = locked_toplevel->geometry().pos();
   return &instance;
 }
 
@@ -67,8 +65,8 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
       this->initial_width_ + surface_delta_width.to_pixel(),
       this->initial_height_ + surface_delta_height.to_pixel());
 
-  const auto toplevel = xdg_toplevel->scene_node().lock();
-  if (!toplevel) {
+  const auto surface_node = xdg_toplevel->surface_node().lock();
+  if (!surface_node) {
     return;
   }
   glm::vec3 move_amount{
@@ -82,7 +80,7 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
   if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM) {
     move_amount.y *= -1.F;
   }
-  toplevel->move_absolute(this->initial_toplevel_pos_ + move_amount);
+  surface_node->move_absolute(this->initial_toplevel_pos_ + move_amount);
 }
 
 void ResizePointerGrab::button(uint32_t button, bool is_pressed) {

@@ -12,12 +12,21 @@
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_toplevel {
-XdgToplevel::XdgToplevel(wl_resource*        resource,
-    std::weak_ptr<xdg_surface::XdgSurface>&& surface,
-    std::weak_ptr<core::scene::Toplevel>&&   toplevel)
-    : resource_(resource)
-    , xdg_surface_(std::move(surface))
-    , toplevel_(std::move(toplevel)) {
+XdgToplevel::XdgToplevel(
+    wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface)
+    : resource_(resource), xdg_surface_(std::move(surface)) {
+  this->xdg_surface_.lock()->wl_surface().lock()->map();
+}
+XdgToplevel::~XdgToplevel() {
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return;
+  }
+  const auto surface = xdg_surface->wl_surface().lock();
+  if (!surface) {
+    return;
+  }
+  surface->unmap();
 }
 
 void XdgToplevel::commit() {
@@ -38,9 +47,21 @@ void XdgToplevel::set_activated(bool is_activated) {
 }
 
 void XdgToplevel::start_move() {
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return;
+  }
+  const auto surface = xdg_surface->wl_surface().lock();
+  if (!surface) {
+    return;
+  }
+  const auto surface_node = surface->surface_node();
+  if (!surface_node.has_value()) {
+    return;
+  }
   core::server::get().seat.pointer.start_grab(
       core::server_seat::pointer_grab::MovePointerGrab::start(
-          std::weak_ptr(this->toplevel_)));
+          surface_node.value()));
 }
 void XdgToplevel::start_resize(uint32_t edges) {
   core::server::get().seat.pointer.start_grab(
@@ -70,6 +91,22 @@ void XdgToplevel::send_configure(int32_t width, int32_t height) {
   xdg_toplevel_send_configure(this->resource_, width, height, &states);
   wl_array_release(&states);
   xdg_surface->configure();
+}
+
+std::weak_ptr<core::scene::SurfaceNode> XdgToplevel::surface_node() {
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return {};
+  }
+  const auto surface = xdg_surface->wl_surface().lock();
+  if (!surface) {
+    return {};
+  }
+  const auto surface_node = surface->surface_node();
+  if (!surface_node.has_value()) {
+    return {};
+  }
+  return surface_node.value();
 }
 
 namespace {
@@ -143,11 +180,6 @@ constexpr struct xdg_toplevel_interface kImpl = {
 };
 
 void destroy(wl_resource* resource) {
-  if (auto toplevel = core::server::get().xdg_toplevel_map.at(resource)) {
-    if (auto scene_node = toplevel->scene_node().lock()) {
-      core::server::get().scene.erase(scene_node.get());
-    }
-  }
   core::server::get().xdg_toplevel_map.erase(resource);
 }
 }  // namespace
@@ -168,10 +200,7 @@ wl_resource* create(wl_client* client, uint32_t id,
     wl_client_post_no_memory(client);
     return nullptr;
   }
-  auto toplevel = std::make_shared<core::scene::Toplevel>(surface);
-  auto self     = std::make_shared<XdgToplevel>(
-      resource, std::move(xdg_surface), std::weak_ptr(toplevel));
-  core::server::get().scene.insert(std::move(toplevel));
+  auto self = std::make_shared<XdgToplevel>(resource, std::move(xdg_surface));
   core::server::get().xdg_toplevel_map.emplace(resource, self);
   surface->set_role(self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);

@@ -11,6 +11,7 @@
 #include "common/common.hpp"
 #include "common/unit.hpp"
 #include "core/render/texture.hpp"
+#include "core/scene/surface-node.hpp"
 
 namespace yabe::core {
 class SurfaceRole {
@@ -41,6 +42,11 @@ class Surface : public std::enable_shared_from_this<Surface> {
     this->role_ = std::move(role);
   }
 
+  /// Create SurfaceNode and insert it into Scene
+  void map(
+      std::optional<std::shared_ptr<scene::SceneNode>> parent = std::nullopt);
+  void unmap();
+
   void focus();
   void unfocus();
 
@@ -49,6 +55,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
   }
   [[nodiscard]] wl_client* client() const {
     return wl_resource_get_client(this->resource_);
+  }
+  [[nodiscard]] std::optional<std::shared_ptr<scene::SurfaceNode>>
+  surface_node() const {
+    return this->surface_node_;
   }
   [[nodiscard]] const render::Texture& texture() const {
     return this->texture_;
@@ -75,7 +85,9 @@ class Surface : public std::enable_shared_from_this<Surface> {
   std::optional<wl_resource*> uploaded_buffer_;
   std::mutex                  buffer_mutex_;
 
-  std::weak_ptr<SurfaceRole> role_;
+  std::weak_ptr<SurfaceRole>                         role_;
+  std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =
+      std::nullopt;
 
   wl_resource* resource_;
 };

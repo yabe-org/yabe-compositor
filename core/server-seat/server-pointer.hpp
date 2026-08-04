@@ -6,6 +6,7 @@
 
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"
+#include "core/scene/surface-node.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
 #include "core/surface.hpp"
 
@@ -17,9 +18,10 @@ class ServerPointer {
   ~ServerPointer() = default;
 
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
-                                              get_focused_client_seat() const;
-  [[nodiscard]] const std::weak_ptr<Surface>& get_focused_surface() const {
-    return this->focused_surface_;
+  get_focused_client_seat() const;
+  [[nodiscard]] const std::weak_ptr<scene::SurfaceNode>&
+  get_focused_surface_node() const {
+    return this->focused_surface_node_;
   }
   void unfocus_surface();
   void focus_pointed_surface();
@@ -38,11 +40,11 @@ class ServerPointer {
   void handle_pointer_axis(uint32_t axis, float value);
 
  private:
-  /// @return true if the focused surface is changed
-  bool set_focused_surface(std::weak_ptr<Surface> surface);
+  /// @return true if the focused surface node is changed
+  bool set_focused_surface_node(std::weak_ptr<scene::SurfaceNode> surface_node);
 
-  std::weak_ptr<Surface> focused_surface_;
-  std::weak_ptr<Surface> cursor_surface_;
+  std::weak_ptr<scene::SurfaceNode> focused_surface_node_;
+  std::weak_ptr<Surface>            cursor_surface_;
 
   pointer_grab::PointerGrab* grab_;
 };

@@ -4,15 +4,14 @@
 
 #include <memory>
 
-#include "core/scene/toplevel.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
 MovePointerGrab* MovePointerGrab::start(
-    std::weak_ptr<scene::Toplevel>&& toplevel) {
+    std::weak_ptr<scene::SceneNode>&& scene_node) {
   static MovePointerGrab instance;
   server::get().seat.pointer.unfocus_surface();
-  instance.moving_toplevel_ = std::move(toplevel);
+  instance.moving_scene_node_ = std::move(scene_node);
   return &instance;
 }
 
@@ -23,7 +22,7 @@ void MovePointerGrab::cleanup() {
 void MovePointerGrab::move_relative(float dx, float dy) {
   server::get().ray_cursor.move_relative(-dy, -dx);
 
-  const auto toplevel = this->moving_toplevel_.lock();
+  const auto toplevel = this->moving_scene_node_.lock();
   if (!toplevel) {
     server::get().seat.pointer.end_grab();
     return;

@@ -3,16 +3,15 @@
 #include <memory>
 
 #include "common/common.hpp"
-#include "core/scene/toplevel.hpp"
+#include "core/scene/scene-node.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
-#include "core/surface.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
 class MovePointerGrab final : public PointerGrab {
  public:
   DISABLE_MOVE_AND_COPY(MovePointerGrab);
 
-  static MovePointerGrab* start(std::weak_ptr<scene::Toplevel>&& toplevel);
+  static MovePointerGrab* start(std::weak_ptr<scene::SceneNode>&& scene_node);
 
   void cleanup() override;
   void move_relative(float dx, float dy) override;
@@ -22,6 +21,6 @@ class MovePointerGrab final : public PointerGrab {
   explicit MovePointerGrab() = default;
   ~MovePointerGrab()         = default;
 
-  std::weak_ptr<scene::Toplevel> moving_toplevel_;
+  std::weak_ptr<scene::SceneNode> moving_scene_node_;
 };
 }  // namespace yabe::core::server_seat::pointer_grab

@@ -1,6 +1,14 @@
 #include "geometry.hpp"
 
 namespace yabe::core {
+glm::mat4 Geometry::model_mat() {
+  glm::mat4 model_mat(1.F);
+  model_mat = glm::translate(model_mat, this->cartesian_.pos) *
+              glm::mat4_cast(this->rotation_) *
+              glm::scale(glm::mat4(1.F), this->scale_);
+  return model_mat;
+}
+
 void Geometry::move_absolute(const glm::vec3& new_cartesian) {
   this->cartesian_.pos = new_cartesian;
 }

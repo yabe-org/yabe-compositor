@@ -25,14 +25,10 @@ std::optional<SurfaceInfo> with_surface(const glm::vec3& o,
   if (t < 0) {
     return std::nullopt;
   }
-  const float u = glm::dot(p, w) / det;
-  if (u < 0 || u > 1) {
-    return std::nullopt;
-  }
-  const float v = glm::dot(q, d) / det;
-  if (v < 0 || v > 1) {
-    return std::nullopt;
-  }
-  return SurfaceInfo{.distance = t, .u = u, .v = v};
+  return SurfaceInfo{
+      .distance = t,
+      .u        = glm::dot(p, w) / det,
+      .v        = glm::dot(q, d) / det,
+  };
 }
 }  // namespace yabe::common::intersection

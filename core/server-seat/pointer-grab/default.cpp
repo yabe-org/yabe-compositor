@@ -20,8 +20,12 @@ void DefaultPointerGrab::move_relative(float dx, float dy) {
 
 void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
   if (is_pressed) {
-    server::get().seat.keyboard.set_focused_surface(
-        server::get().seat.pointer.get_focused_surface());
+    const auto pointer_focused_surface_node =
+        server::get().seat.pointer.get_focused_surface_node().lock();
+    if (pointer_focused_surface_node) {
+      server::get().seat.keyboard.set_focused_surface(
+          pointer_focused_surface_node->surface());
+    }
   }
   const auto& client_seat =
       server::get().seat.pointer.get_focused_client_seat();

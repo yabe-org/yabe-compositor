@@ -6,7 +6,7 @@ srcs += [
 
   'core/scene/scene-node.cpp',
   'core/scene/scene.cpp',
-  'core/scene/toplevel.cpp',
+  'core/scene/surface-node.cpp',
 
   'core/server-seat/server-keyboard.cpp',
   'core/server-seat/server-pointer.cpp',

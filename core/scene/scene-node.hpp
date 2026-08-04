@@ -5,34 +5,42 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "common/geometry.hpp"
 #include "common/intersection.hpp"
 #include "core/render/rect-renderer.hpp"
-#include "core/surface.hpp"
 
 namespace yabe::core::scene {
 class SceneNode {
  public:
   DISABLE_MOVE_AND_COPY(SceneNode);
-  explicit SceneNode(std::weak_ptr<Surface>&& surface);
+  explicit SceneNode(const Geometry& geometry);
   virtual ~SceneNode() = default;
 
-  virtual void draw(render::DrawRectFunc& draw_rect) = 0;
+  void draw(render::DrawRectFunc& draw_rect);
+
+  void add_child(std::shared_ptr<SceneNode> child);
+  /// @return true if the child was found and erased
+  bool try_erace_child(const std::shared_ptr<SceneNode>& child);
+  void move_absolute(const glm::vec3& pos);
+  void move_relative(float polar, float azimuth);
 
   [[nodiscard]] std::optional<common::intersection::IntersectInfo>
   check_intersection(const glm::vec3& origin, const glm::vec3& direction);
 
-  [[nodiscard]] std::weak_ptr<Surface> surface() const {
-    return this->surface_;
+  [[nodiscard]] Geometry& geometry() {
+    return this->geometry_;
   }
 
  protected:
+  virtual void draw_self(render::DrawRectFunc& draw_rect) = 0;
   [[nodiscard]] virtual std::optional<common::intersection::IntersectInfo>
   check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction) = 0;
 
-  std::weak_ptr<Surface> surface_;
-
  private:
+  void look_at_camera();
+
+  Geometry                              geometry_;
   std::list<std::shared_ptr<SceneNode>> children_;
 };
 }  // namespace yabe::core::scene

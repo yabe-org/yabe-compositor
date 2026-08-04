@@ -35,11 +35,7 @@ void ServerPointer::focus_pointed_surface() {
     this->set_focused_surface_node({});
     return;
   }
-
-  const auto cursor_surface = this->get_cursor_surface().lock();
-  if (cursor_surface) {
-    server::get().ray_cursor.set_length(intersect_info.distance * 0.98F);
-  }
+  server::get().ray_cursor.set_length(intersect_info.distance);
 
   const auto& client_seat =
       server::get().seat.get_client_seat(surface_node->surface()->client());

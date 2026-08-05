@@ -19,6 +19,19 @@ void Scene::erase(const std::shared_ptr<SceneNode>& node) {
   }
 }
 
+void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
+  auto it = std::find(this->nodes_.begin(), this->nodes_.end(), node);
+  if (it != this->nodes_.end()) {
+    this->nodes_.splice(this->nodes_.end(), this->nodes_, it);
+    return;
+  }
+  for (auto& it : this->nodes_) {
+    if (it->try_raise_child_to_front(node)) {
+      return;
+    }
+  }
+}
+
 void Scene::draw(render::DrawRectFunc& draw_rect) {
   for (const auto& node : this->nodes_) {
     node->draw(draw_rect);

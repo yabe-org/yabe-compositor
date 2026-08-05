@@ -20,6 +20,15 @@ void SceneNode::add_child(std::shared_ptr<SceneNode> child) {
 bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
   return this->children_.remove(child) > 0;
 }
+bool SceneNode::try_raise_child_to_front(
+    const std::shared_ptr<SceneNode>& child) {
+  auto it = std::find(this->children_.begin(), this->children_.end(), child);
+  if (it == this->children_.end()) {
+    return false;
+  }
+  this->children_.splice(this->children_.end(), this->children_, it);
+  return true;
+}
 
 void SceneNode::move_absolute(const glm::vec3& pos) {
   this->geometry_.move_absolute(pos);

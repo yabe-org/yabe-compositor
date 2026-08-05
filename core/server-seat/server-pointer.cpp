@@ -60,13 +60,13 @@ void ServerPointer::set_surface_as_cursor(
     this->cursor_surface_ = std::weak_ptr<Surface>();
     return;
   }
-  auto cursor_surface = server::get().surfaces.get(surface).lock();
-  if (!cursor_surface) {
+  auto cursor_surface = server::get().surface_map.find(surface);
+  if (cursor_surface == server::get().surface_map.end()) {
     LOG_ERR("cursor surface not found");
     return;
   }
   server::get().ray_cursor.set_cursor_hotspot(hotspot_x, hotspot_y);
-  this->cursor_surface_ = cursor_surface;
+  this->cursor_surface_ = cursor_surface->second;
 }
 
 void ServerPointer::start_grab(pointer_grab::PointerGrab* grab) {

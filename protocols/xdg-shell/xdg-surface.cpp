@@ -62,8 +62,8 @@ void destroy(wl_resource* resource) {
 }  // namespace
 
 void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
-  auto surface = core::server::get().surfaces.get(wl_surface).lock();
-  if (!surface) {
+  auto surface = core::server::get().surface_map.find(wl_surface);
+  if (surface == core::server::get().surface_map.end()) {
     wl_client_post_implementation_error(
         client, "xdg_surface requested for unknown wl_surface");
     return;
@@ -74,8 +74,8 @@ void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
     wl_client_post_no_memory(client);
     return;
   }
-  core::server::get().xdg_surface_map.emplace(
-      resource, std::make_shared<XdgSurface>(resource, std::weak_ptr(surface)));
+  core::server::get().xdg_surface_map.emplace(resource,
+      std::make_shared<XdgSurface>(resource, std::weak_ptr(surface->second)));
   wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
 }
 }  // namespace yabe::proto::xdg_shell::xdg_surface

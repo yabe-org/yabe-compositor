@@ -147,7 +147,9 @@ void Surface::unmap() {
 }
 
 void Surface::focus() {
-  server::get().surfaces.raise_to_top(this->resource_);
+  if (this->surface_node_.has_value()) {
+    server::get().scene.raise_to_front(this->surface_node_.value());
+  }
   if (const auto role = this->role_.lock()) {
     role->set_activated(true);
   }

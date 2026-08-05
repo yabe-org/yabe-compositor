@@ -19,8 +19,10 @@ class SceneNode {
   void draw(render::DrawRectFunc& draw_rect);
 
   void add_child(std::shared_ptr<SceneNode> child);
-  /// @return true if the child was found and erased
+  /// @return true if the child was erased
   bool try_erace_child(const std::shared_ptr<SceneNode>& child);
+  /// @return true if the child was raised
+  bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child);
   void move_absolute(const glm::vec3& pos);
   void move_relative(float polar, float azimuth);
 

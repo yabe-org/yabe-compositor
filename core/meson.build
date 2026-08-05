@@ -2,7 +2,6 @@ srcs += [
   'core/ray-cursor.cpp',
   'core/server.cpp',
   'core/surface.cpp',
-  'core/surface-container.cpp',
 
   'core/scene/scene-node.cpp',
   'core/scene/scene.cpp',

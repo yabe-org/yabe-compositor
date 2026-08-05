@@ -17,6 +17,7 @@ class Scene {
 
   void insert(std::shared_ptr<SceneNode>&& node);
   void erase(const std::shared_ptr<SceneNode>& node);
+  void raise_to_front(const std::shared_ptr<SceneNode>& node);
 
   void draw(render::DrawRectFunc& draw_rect);
 

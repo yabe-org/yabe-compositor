@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <mutex>
 
 #include "common/common.hpp"
 #include "core/render/rect-renderer.hpp"
@@ -26,5 +27,6 @@ class Scene {
 
  private:
   std::list<std::shared_ptr<SceneNode>> nodes_;
+  std::mutex                            mutex_;
 };
 }  // namespace yabe::core::scene

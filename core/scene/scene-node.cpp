@@ -1,8 +1,8 @@
 #include "scene-node.hpp"
 
+#include <algorithm>
 #include <optional>
 
-#include "common/common.hpp"
 #include "core/scene/scene-intersection.hpp"
 
 namespace yabe::core::scene {
@@ -20,8 +20,15 @@ void SceneNode::draw(render::DrawRectFunc& draw_rect) {
 void SceneNode::add_child(std::shared_ptr<SceneNode> child) {
   this->children_.push_back(std::move(child));
 }
+// NOLINTNEXTLINE(misc-no-recursion): ???
 bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
-  return this->children_.remove(child) > 0;
+  return std::ranges::any_of(this->children_, [&](const auto& it) {
+    if (it == child) {
+      this->children_.remove(it);
+      return true;
+    }
+    return it->try_erace_child(child);
+  });
 }
 bool SceneNode::try_raise_child_to_front(
     const std::shared_ptr<SceneNode>& child) {

@@ -13,14 +13,15 @@ class Surface;
 namespace yabe::core::scene {
 constexpr float kSurfaceDistance = 0.7F;
 
+// Surface owns this and erases this from Scene on destruction
 class SurfaceNode : public SceneNode {
  public:
   DISABLE_MOVE_AND_COPY(SurfaceNode);
-  explicit SurfaceNode(std::shared_ptr<core::Surface>&& surface);
+  explicit SurfaceNode(std::weak_ptr<core::Surface>&& surface);
   ~SurfaceNode() override = default;
 
   [[nodiscard]] std::shared_ptr<Surface> surface() const {
-    return this->surface_;
+    return this->surface_.lock();
   }
 
  private:
@@ -29,6 +30,9 @@ class SurfaceNode : public SceneNode {
   check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction) override;
 
-  std::shared_ptr<core::Surface> surface_;
+  // weak reference to avoid circular reference
+  // Surface always valid while SurfaceNode exists
+  // (note that Surface owner is Server::surface_map)
+  std::weak_ptr<core::Surface> surface_;
 };
 }  // namespace yabe::core::scene

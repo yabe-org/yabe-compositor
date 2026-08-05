@@ -5,7 +5,7 @@
 #include "core/surface.hpp"
 
 namespace yabe::core::scene {
-SurfaceNode::SurfaceNode(std::shared_ptr<core::Surface>&& surface)
+SurfaceNode::SurfaceNode(std::weak_ptr<core::Surface>&& surface)
     : SceneNode(Geometry(glm::vec3{0.F, 0.F, -kSurfaceDistance}))
     , surface_(std::move(surface)) {
   // scale (size) will be set by wl_surface.commit()
@@ -14,9 +14,9 @@ SurfaceNode::SurfaceNode(std::shared_ptr<core::Surface>&& surface)
 }
 
 void SurfaceNode::draw_self(render::DrawRectFunc& draw_rect) {
-  this->surface_->upload_texture_if_needed();
-  draw_rect(this->geometry().model_mat(), this->surface_->texture());
-  this->surface_->finish_rendering();
+  this->surface()->upload_texture_if_needed();
+  draw_rect(this->geometry().model_mat(), this->surface()->texture());
+  this->surface()->finish_rendering();
 }
 
 std::optional<common::intersection::IntersectInfo>
@@ -39,8 +39,8 @@ SurfaceNode::check_intersection_self(
   }
   return common::intersection::IntersectInfo{
       .distance = result->distance,
-      .pos{static_cast<float>(*this->surface_->texture_width()) * result->u,
-           static_cast<float>(*this->surface_->texture_height()) *
+      .pos{static_cast<float>(*this->surface()->texture_width()) * result->u,
+           static_cast<float>(*this->surface()->texture_height()) *
               (1.F - result->v),
            0.F}
   };

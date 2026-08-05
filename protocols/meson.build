@@ -33,6 +33,8 @@ srcs += [
   'protocols/wayland/seat/seat.cpp',
   'protocols/wayland/seat/pointer.cpp',
   'protocols/wayland/seat/keyboard.cpp',
+  'protocols/wayland/subcompositor/subcompositor.cpp',
+  'protocols/wayland/subcompositor/subsurface.cpp',
 
   'protocols/xdg-shell/xdg-shell.cpp',
   'protocols/xdg-shell/xdg-surface.cpp',

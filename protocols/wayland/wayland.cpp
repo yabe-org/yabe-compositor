@@ -7,6 +7,7 @@
 #include "data-device/data-device-manager.hpp"
 #include "output.hpp"
 #include "seat/seat.hpp"
+#include "subcompositor/subcompositor.hpp"
 
 namespace yabe::proto::wayland {
 bool init(wl_display* display) {
@@ -29,6 +30,11 @@ bool init(wl_display* display) {
           wl_data_device_manager_interface.version, nullptr,
           data_device_manager::bind)) {
     LOG_ERR("Failed to create global (data_device_manager)");
+    return false;
+  }
+  if (!wl_global_create(display, &wl_subcompositor_interface,
+          wl_subcompositor_interface.version, nullptr, subcompositor::bind)) {
+    LOG_ERR("Failed to create global (subcompositor)");
     return false;
   }
   return true;

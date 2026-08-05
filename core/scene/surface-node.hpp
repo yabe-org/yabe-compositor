@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "common/common.hpp"
-#include "common/intersection.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
 
 namespace yabe::core {
@@ -26,8 +26,7 @@ class SurfaceNode : public SceneNode {
 
  private:
   void draw_self(render::DrawRectFunc& draw_rect) override;
-  [[nodiscard]] std::optional<common::intersection::IntersectInfo>
-  check_intersection_self(
+  [[nodiscard]] std::optional<SceneIntersection> check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction) override;
 
   // weak reference to avoid circular reference

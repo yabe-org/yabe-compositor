@@ -1,6 +1,9 @@
 #include "surface-node.hpp"
 
+#include "common/common.hpp"
 #include "common/geometry.hpp"
+#include "common/intersection.hpp"
+#include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
 #include "core/surface.hpp"
 
@@ -19,8 +22,7 @@ void SurfaceNode::draw_self(render::DrawRectFunc& draw_rect) {
   this->surface()->finish_rendering();
 }
 
-std::optional<common::intersection::IntersectInfo>
-SurfaceNode::check_intersection_self(
+std::optional<SceneIntersection> SurfaceNode::check_intersection_self(
     const glm::vec3& origin, const glm::vec3& direction) {
   auto      geom_mat          = this->geometry().model_mat();
   glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
@@ -37,12 +39,17 @@ SurfaceNode::check_intersection_self(
   if (result->v < 0.F || result->v > 1.F) {
     return std::nullopt;
   }
-  return common::intersection::IntersectInfo{
+  const auto x =
+      static_cast<float>(*this->surface()->texture_width()) * result->u;
+  const auto y = static_cast<float>(*this->surface()->texture_height()) *
+                 (1.F - result->v);
+  const common::intersection::IntersectInfo info{
       .distance = result->distance,
-      .pos{static_cast<float>(*this->surface()->texture_width()) * result->u,
-           static_cast<float>(*this->surface()->texture_height()) *
-              (1.F - result->v),
-           0.F}
+      .pos      = {x, y, 0.F},
+  };
+  return SceneIntersection{
+      .node           = this->shared_from_this(),
+      .intersect_info = info,
   };
 }
 }  // namespace yabe::core::scene

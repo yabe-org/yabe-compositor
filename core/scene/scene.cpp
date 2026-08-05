@@ -1,5 +1,6 @@
 #include "scene.hpp"
 
+#include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
 
 namespace yabe::core::scene {
@@ -38,21 +39,17 @@ void Scene::draw(render::DrawRectFunc& draw_rect) {
   }
 }
 
-std::optional<
-    std::pair<std::weak_ptr<SceneNode>, common::intersection::IntersectInfo>>
-Scene::get_nearest_intersection(
+std::optional<SceneIntersection> Scene::get_nearest_intersection(
     const glm::vec3& origin, const glm::vec3& direction) {
-  std::optional<
-      std::pair<std::weak_ptr<SceneNode>, common::intersection::IntersectInfo>>
-      nearest;
+  std::optional<SceneIntersection> nearest;
   for (const auto& node : this->nodes_) {
     const auto intersection = node->check_intersection(origin, direction);
     if (!intersection.has_value()) {
       continue;
     }
-    if (!nearest.has_value() ||
-        intersection->distance < nearest->second.distance) {
-      nearest = std::make_pair(node, *intersection);
+    if (!nearest.has_value() || intersection->intersect_info.distance <
+                                    nearest->intersect_info.distance) {
+      nearest = intersection;
     }
   }
   return nearest;

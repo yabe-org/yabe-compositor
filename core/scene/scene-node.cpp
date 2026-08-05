@@ -2,6 +2,9 @@
 
 #include <optional>
 
+#include "common/common.hpp"
+#include "core/scene/scene-intersection.hpp"
+
 namespace yabe::core::scene {
 SceneNode::SceneNode(const Geometry& geometry) : geometry_(geometry) {
 }
@@ -32,11 +35,9 @@ bool SceneNode::try_raise_child_to_front(
 
 void SceneNode::move_absolute(const glm::vec3& pos) {
   this->geometry_.move_absolute(pos);
-  this->look_at_camera();
 }
 void SceneNode::move_relative(float polar, float azimuth) {
   this->geometry_.move_relative(azimuth, polar, 0.F);
-  this->look_at_camera();
 }
 void SceneNode::look_at_camera() {
   const auto pos                  = this->geometry_.pos();
@@ -49,24 +50,24 @@ void SceneNode::look_at_camera() {
   this->geometry().rotation() = rotation;
 }
 
-std::optional<common::intersection::IntersectInfo>
+std::optional<SceneIntersection>
 SceneNode::check_intersection(  // NOLINT(misc-no-recursion): ???
     const glm::vec3& origin, const glm::vec3& direction) {
-  std::optional<common::intersection::IntersectInfo> nearest_intersection =
-      std::nullopt;
+  std::optional<SceneIntersection> nearest_intersected_child;
   for (const auto& child : this->children_) {
     const auto child_intersection =
         child->check_intersection(origin, direction);
     if (!child_intersection.has_value()) {
       continue;
     }
-    if (!nearest_intersection.has_value() ||
-        child_intersection->distance < nearest_intersection->distance) {
-      nearest_intersection = child_intersection;
+    if (!nearest_intersected_child.has_value() ||
+        child_intersection->intersect_info.distance <=
+            nearest_intersected_child->intersect_info.distance) {
+      nearest_intersected_child = child_intersection;
     }
   }
-  if (nearest_intersection.has_value()) {
-    return nearest_intersection;
+  if (nearest_intersected_child.has_value()) {
+    return nearest_intersected_child;
   }
   return this->check_intersection_self(origin, direction);
 }

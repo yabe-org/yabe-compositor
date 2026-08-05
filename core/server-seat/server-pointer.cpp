@@ -6,6 +6,7 @@
 #include "core/scene/surface-node.hpp"
 #include "core/server-seat/pointer-grab/default.hpp"
 #include "core/server.hpp"
+#include "wayland-server-core.h"
 
 namespace yabe::core::server_seat {
 ServerPointer::ServerPointer()
@@ -23,19 +24,14 @@ void ServerPointer::focus_pointed_surface() {
     this->set_focused_surface_node({});
     return;
   }
-  const auto& [scene_node, intersect_info] = intersection.value();
-  const auto locked_scene_node             = scene_node.lock();
-  if (!locked_scene_node) {
-    this->set_focused_surface_node({});
-    return;
-  }
   const auto surface_node =
-      std::dynamic_pointer_cast<scene::SurfaceNode>(locked_scene_node);
+      std::dynamic_pointer_cast<scene::SurfaceNode>(intersection.value().node);
   if (!surface_node) {
     this->set_focused_surface_node({});
     return;
   }
-  server::get().ray_cursor.set_length(intersect_info.distance);
+  server::get().ray_cursor.set_length(
+      intersection.value().intersect_info.distance);
 
   const auto& client_seat =
       server::get().seat.get_client_seat(surface_node->surface()->client());
@@ -47,10 +43,12 @@ void ServerPointer::focus_pointed_surface() {
   const auto is_focus_changed = this->set_focused_surface_node(surface_node);
   if (is_focus_changed) {
     client_seat.value()->pointer.send_enter(surface_node->surface()->resource(),
-        intersect_info.pos.x, intersect_info.pos.y);
+        intersection.value().intersect_info.pos.x,
+        intersection.value().intersect_info.pos.y);
   }
   client_seat.value()->pointer.send_motion(
-      intersect_info.pos.x, intersect_info.pos.y);
+      intersection.value().intersect_info.pos.x,
+      intersection.value().intersect_info.pos.y);
   client_seat.value()->pointer.send_frame();
 }
 

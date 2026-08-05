@@ -6,11 +6,11 @@
 
 #include "common/common.hpp"
 #include "common/geometry.hpp"
-#include "common/intersection.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/scene/scene-intersection.hpp"
 
 namespace yabe::core::scene {
-class SceneNode {
+class SceneNode : public std::enable_shared_from_this<SceneNode> {
  public:
   DISABLE_MOVE_AND_COPY(SceneNode);
   explicit SceneNode(const Geometry& geometry);
@@ -26,8 +26,8 @@ class SceneNode {
   void move_absolute(const glm::vec3& pos);
   void move_relative(float polar, float azimuth);
 
-  [[nodiscard]] std::optional<common::intersection::IntersectInfo>
-  check_intersection(const glm::vec3& origin, const glm::vec3& direction);
+  [[nodiscard]] std::optional<SceneIntersection> check_intersection(
+      const glm::vec3& origin, const glm::vec3& direction);
 
   [[nodiscard]] Geometry& geometry() {
     return this->geometry_;
@@ -35,7 +35,7 @@ class SceneNode {
 
  protected:
   virtual void draw_self(render::DrawRectFunc& draw_rect) = 0;
-  [[nodiscard]] virtual std::optional<common::intersection::IntersectInfo>
+  [[nodiscard]] virtual std::optional<SceneIntersection>
   check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction) = 0;
 

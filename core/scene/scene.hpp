@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "common/common.hpp"
-#include "common/intersection.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
 
 namespace yabe::core::scene {
@@ -21,9 +21,8 @@ class Scene {
 
   void draw(render::DrawRectFunc& draw_rect);
 
-  std::optional<
-      std::pair<std::weak_ptr<SceneNode>, common::intersection::IntersectInfo>>
-  get_nearest_intersection(const glm::vec3& origin, const glm::vec3& direction);
+  std::optional<SceneIntersection> get_nearest_intersection(
+      const glm::vec3& origin, const glm::vec3& direction);
 
  private:
   std::list<std::shared_ptr<SceneNode>> nodes_;

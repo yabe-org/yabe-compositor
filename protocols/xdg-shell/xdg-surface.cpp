@@ -6,6 +6,8 @@
 #include <memory>
 
 #include "core/server.hpp"
+#include "protocols/xdg-shell/xdg-popup.hpp"
+#include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-toplevel.hpp"
 
 namespace yabe::proto::xdg_shell::xdg_surface {
@@ -34,9 +36,17 @@ void get_toplevel(wl_client* client, wl_resource* resource, uint32_t id) {
   auto self = core::server::get().xdg_surface_map.at(resource);
   xdg_toplevel::create(client, id, self);
 }
-void get_popup(wl_client* /*client*/, wl_resource* /* resource */,
-    uint32_t /*id*/, wl_resource* /* parent */, wl_resource* /* positioner */) {
-  // todo
+void get_popup(wl_client* client, wl_resource* resource, uint32_t id,
+    wl_resource* parent, wl_resource* positioner) {
+  auto parent_surface = core::server::get().xdg_surface_map.find(parent);
+  if (parent_surface == core::server::get().xdg_surface_map.end()) {
+    wl_client_post_implementation_error(wl_resource_get_client(resource),
+        "xdg_popup requested for unknown parent surface");
+    return;
+  }
+  auto self = core::server::get().xdg_surface_map.at(resource);
+  xdg_popup::create(client, id, self, parent_surface->second,
+      xdg_positioner::get(positioner));
 }
 void set_window_geometry(wl_client* /* client */, wl_resource* resource,
     int32_t x, int32_t y, int32_t width, int32_t height) {

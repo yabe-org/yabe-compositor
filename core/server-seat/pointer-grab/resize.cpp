@@ -81,6 +81,7 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
     move_amount.y *= -1.F;
   }
   surface_node->move_absolute(this->initial_toplevel_pos_ + move_amount);
+  surface_node->look_at_camera();
 }
 
 void ResizePointerGrab::button(uint32_t button, bool is_pressed) {

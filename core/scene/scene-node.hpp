@@ -25,6 +25,7 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child);
   void move_absolute(const glm::vec3& pos);
   void move_relative(float polar, float azimuth);
+  void look_at_camera();
 
   [[nodiscard]] std::optional<SceneIntersection> check_intersection(
       const glm::vec3& origin, const glm::vec3& direction);
@@ -40,8 +41,6 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const glm::vec3& origin, const glm::vec3& direction) = 0;
 
  private:
-  void look_at_camera();
-
   Geometry                              geometry_;
   std::list<std::shared_ptr<SceneNode>> children_;
 };

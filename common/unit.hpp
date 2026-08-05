@@ -37,6 +37,12 @@ struct Pixel {
   Pixel operator-(const Pixel& other) const {
     return Pixel{this->value - other.value};
   }
+  void operator+=(const Pixel& other) {
+    this->value += other.value;
+  }
+  void operator-=(const Pixel& other) {
+    this->value -= other.value;
+  }
   template <typename T>
   Pixel operator*(T scalar) const {
     return Pixel{static_cast<int32_t>(this->value * scalar)};

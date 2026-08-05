@@ -36,6 +36,8 @@ srcs += [
   'protocols/wayland/subcompositor/subcompositor.cpp',
   'protocols/wayland/subcompositor/subsurface.cpp',
 
+  'protocols/xdg-shell/xdg-popup.cpp',
+  'protocols/xdg-shell/xdg-positioner.cpp',
   'protocols/xdg-shell/xdg-shell.cpp',
   'protocols/xdg-shell/xdg-surface.cpp',
   'protocols/xdg-shell/xdg-toplevel.cpp',

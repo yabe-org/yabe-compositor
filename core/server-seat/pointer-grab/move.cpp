@@ -28,6 +28,7 @@ void MovePointerGrab::move_relative(float dx, float dy) {
     return;
   }
   toplevel->move_relative(dy, dx);
+  toplevel->look_at_camera();
 }
 
 void MovePointerGrab::button(uint32_t button, bool is_pressed) {

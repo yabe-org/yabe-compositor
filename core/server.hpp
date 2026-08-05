@@ -14,6 +14,7 @@
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/surface.hpp"
+#include "protocols/xdg-shell/xdg-popup.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "protocols/xdg-shell/xdg-toplevel.hpp"
 
@@ -45,6 +46,9 @@ class Server {
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::xdg_shell::xdg_toplevel::XdgToplevel>>
       xdg_toplevel_map;
+  std::unordered_map<wl_resource*,
+      std::shared_ptr<proto::xdg_shell::xdg_popup::XdgPopup>>
+      xdg_popup_map;
 
   server_seat::ServerSeat seat;
   RayCursor               ray_cursor;

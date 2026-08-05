@@ -6,10 +6,15 @@
 #include "coordinate.hpp"
 
 namespace yabe::core {
-// TODO: size and rotation
 class Geometry {
  public:
   explicit Geometry(const glm::vec3& pos) : cartesian_(pos) {
+  }
+  [[nodiscard]] coordinate::CartesianCoord& cartesian() {
+    return this->cartesian_;
+  }
+  [[nodiscard]] coordinate::SphericalCoord spherical() {
+    return this->cartesian_.to_spherical();
   }
   [[nodiscard]] glm::vec3& pos() {
     return this->cartesian_.pos;

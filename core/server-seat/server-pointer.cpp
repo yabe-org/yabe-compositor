@@ -70,8 +70,7 @@ void ServerPointer::set_surface_as_cursor(
 }
 
 void ServerPointer::start_grab(pointer_grab::PointerGrab* grab) {
-  assert(grab);  // NOLINT(misc-static-assert, cert-dcl03-c): clang-tidy lies
-                 // that it can be replaced with static_assert
+  assert(grab);
   this->grab_ = grab;
 }
 void ServerPointer::end_grab() {

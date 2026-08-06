@@ -23,7 +23,7 @@ void frame(wl_client* client, wl_resource* resource, uint32_t callback) {
   wl_resource* callback_resource = wl_resource_create(
       client, &wl_callback_interface, wl_callback_interface.version, callback);
   if (callback_resource) {
-    core::server::get().surface_map.at(resource)->set_callback(
+    core::server::get().surface_map.at(resource)->set_frame_callback(
         callback_resource);
   } else {
     wl_client_post_no_memory(client);
@@ -56,9 +56,15 @@ void offset(wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*dx*/,
     int32_t /*dy*/) {
   // TODO
 }
-void get_release(
-    wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*callback*/) {
-  // TODO
+void get_release(wl_client* client, wl_resource* resource, uint32_t callback) {
+  wl_resource* callback_resource = wl_resource_create(
+      client, &wl_callback_interface, wl_callback_interface.version, callback);
+  if (callback_resource) {
+    core::server::get().surface_map.at(resource)->set_release_callback(
+        callback_resource);
+  } else {
+    wl_client_post_no_memory(client);
+  }
 }
 constexpr struct wl_surface_interface kImpl = {
     .destroy              = destroy,

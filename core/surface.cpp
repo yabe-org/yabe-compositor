@@ -19,9 +19,13 @@ Surface::~Surface() {
   LOG_DBG("surface#{} deleted", wl_resource_get_id(this->resource_));
 }
 
-void Surface::set_callback(wl_resource* resource) {
+void Surface::set_frame_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
-  this->pending_.callback = resource;
+  this->pending_.frame_callback = resource;
+}
+void Surface::set_release_callback(wl_resource* resource) {
+  const std::lock_guard lock(this->buffer_mutex_);
+  this->pending_.release_callback = resource;
 }
 
 void Surface::attach(wl_resource* resource) {
@@ -47,14 +51,25 @@ void Surface::commit() {
       this->pending_.buffer      = std::nullopt;
     }
 
-    if (this->pending_.callback.has_value()) {
-      this->current_.callback = this->pending_.callback;
-      this->pending_.callback = std::nullopt;
+    if (this->pending_.frame_callback.has_value()) {
+      this->current_.frame_callback = this->pending_.frame_callback;
+      this->pending_.frame_callback = std::nullopt;
+    }
+
+    if (this->pending_.release_callback.has_value()) {
+      this->current_.release_callback = this->pending_.release_callback;
+      this->pending_.release_callback = std::nullopt;
     }
   }
 
   if (buffer_to_release.has_value()) {
     wl_buffer_send_release(buffer_to_release.value());
+    if (this->current_.release_callback.has_value()) {
+      wl_callback_send_done(
+          this->current_.release_callback.value(), common::now_msec());
+      wl_resource_destroy(this->current_.release_callback.value());
+      this->current_.release_callback = std::nullopt;
+    }
   }
 
   if (const auto role = this->role_.lock()) {
@@ -95,10 +110,10 @@ void Surface::finish_rendering() {
   std::optional<wl_resource*> callback;
   {
     const std::lock_guard lock(this->buffer_mutex_);
-    buffer                  = this->uploaded_buffer_;
-    this->uploaded_buffer_  = std::nullopt;
-    callback                = this->current_.callback;
-    this->current_.callback = std::nullopt;
+    buffer                        = this->uploaded_buffer_;
+    this->uploaded_buffer_        = std::nullopt;
+    callback                      = this->current_.frame_callback;
+    this->current_.frame_callback = std::nullopt;
   }
   if (!buffer.has_value() && !callback.has_value()) {
     return;

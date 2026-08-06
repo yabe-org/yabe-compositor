@@ -31,7 +31,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
   explicit Surface(wl_resource* resource);
   ~Surface();
 
-  void set_callback(wl_resource* resource);
+  void set_frame_callback(wl_resource* resource);
+  void set_release_callback(wl_resource* resource);
   void attach(wl_resource* resource);
   void commit();
 
@@ -78,7 +79,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
     // in order to distinguish between "attach() is not called"
     // and "null buffer is attached (the content is removed)"
     std::optional<wl_resource*> buffer;
-    std::optional<wl_resource*> callback;
+    std::optional<wl_resource*> frame_callback;
+    std::optional<wl_resource*> release_callback;
   } pending_, current_;
   render::Texture             texture_;
   bool                        is_texture_uploaded_ = false;

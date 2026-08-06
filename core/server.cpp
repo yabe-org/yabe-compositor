@@ -136,7 +136,6 @@ void Server::draw(const float* vp_mat) {
   GLint                  previous_texture_2d       = 0;
   GLint                  previous_unpack_alignment = 0;
   GLint                  previous_unpack_row_length = 0;
-  GLint                  previous_depth_func        = 0;
   GLint                  previous_blend_src_rgb     = 0;
   GLint                  previous_blend_dst_rgb     = 0;
   GLint                  previous_blend_src_alpha   = 0;
@@ -150,7 +149,6 @@ void Server::draw(const float* vp_mat) {
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &previous_texture_2d);
   glGetIntegerv(GL_UNPACK_ALIGNMENT, &previous_unpack_alignment);
   glGetIntegerv(GL_UNPACK_ROW_LENGTH, &previous_unpack_row_length);
-  glGetIntegerv(GL_DEPTH_FUNC, &previous_depth_func);
   glGetIntegerv(GL_BLEND_SRC_RGB, &previous_blend_src_rgb);
   glGetIntegerv(GL_BLEND_DST_RGB, &previous_blend_dst_rgb);
   glGetIntegerv(GL_BLEND_SRC_ALPHA, &previous_blend_src_alpha);
@@ -158,8 +156,7 @@ void Server::draw(const float* vp_mat) {
   glGetFloatv(GL_COLOR_CLEAR_VALUE, previous_clear_color.data());
 
   glDisable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
+  glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -182,7 +179,6 @@ void Server::draw(const float* vp_mat) {
   } else {
     glDisable(GL_BLEND);
   }
-  glDepthFunc(previous_depth_func);
   glBlendFuncSeparate(previous_blend_src_rgb, previous_blend_dst_rgb,
       previous_blend_src_alpha, previous_blend_dst_alpha);
   glClearColor(previous_clear_color[0], previous_clear_color[1],
@@ -203,14 +199,12 @@ void Server::draw_content(const float* vp_mat) {
         const auto cursor_surface =
             this->seat.pointer.get_cursor_surface().lock();
         if (cursor_surface) {
-          glDisable(GL_DEPTH_TEST);
           cursor_surface->upload_texture_if_needed();
           draw_rect(
               this->ray_cursor.cursor_model_mat(cursor_surface->texture_width(),
                   cursor_surface->texture_height()),
               cursor_surface->texture());
           cursor_surface->finish_rendering();
-          glEnable(GL_DEPTH_TEST);
         }
       });
   this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),

@@ -29,7 +29,7 @@ void ImplicitPointerGrab::move_relative(float dx, float dy) {
     server::get().seat.pointer.end_grab();
     return;
   }
-  auto      geom_mat          = scene_node->geometry().model_mat();
+  auto      geom_mat          = scene_node->model_mat();
   glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
   glm::vec3 vert_right_bottom = geom_mat * glm::vec4(+0.5F, -0.5F, 0.F, 1.F);
   glm::vec3 vert_left_top     = geom_mat * glm::vec4(-0.5F, +0.5F, 0.F, 1.F);

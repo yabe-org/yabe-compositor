@@ -16,7 +16,8 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   explicit SceneNode(const Geometry& geometry);
   virtual ~SceneNode() = default;
 
-  void draw(render::DrawRectFunc& draw_rect);
+  void draw(render::DrawRectFunc& draw_rect, const SceneNode* parent,
+      const glm::mat4& parent_world_transform);
 
   void add_child(std::shared_ptr<SceneNode> child);
   /// @return true if the child was erased
@@ -28,20 +29,32 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   void look_at_camera();
 
   [[nodiscard]] std::optional<SceneIntersection> check_intersection(
-      const glm::vec3& origin, const glm::vec3& direction);
+      const glm::vec3& origin, const glm::vec3& direction,
+      const SceneNode* parent, const glm::mat4& parent_world_transform);
 
   [[nodiscard]] Geometry& geometry() {
     return this->geometry_;
   }
+  [[nodiscard]] const Geometry& geometry() const {
+    return this->geometry_;
+  }
+  [[nodiscard]] glm::mat4 world_transform() const;
 
  protected:
-  virtual void draw_self(render::DrawRectFunc& draw_rect) = 0;
+  // A node may need to determine its geometry before its world transform is
+  // resolved, as SurfaceNode does by uploading a texture to obtain its size.
+  virtual void prepare_for_draw() = 0;
+  virtual void draw_self(
+      render::DrawRectFunc& draw_rect, const glm::mat4& world_transform) = 0;
   [[nodiscard]] virtual std::optional<SceneIntersection>
-  check_intersection_self(
-      const glm::vec3& origin, const glm::vec3& direction) = 0;
+  check_intersection_self(const glm::vec3& origin, const glm::vec3& direction,
+      const glm::mat4& world_transform) = 0;
+  [[nodiscard]] virtual glm::mat4 resolve_world_transform(
+      const SceneNode* parent, const glm::mat4& parent_world_transform) const;
 
  private:
   Geometry                              geometry_;
   std::list<std::shared_ptr<SceneNode>> children_;
+  std::weak_ptr<SceneNode>              parent_;
 };
 }  // namespace yabe::core::scene

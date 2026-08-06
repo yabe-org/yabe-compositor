@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 
 #include "common/common.hpp"
@@ -16,22 +17,35 @@ constexpr float kSurfaceDistance = 0.7F;
 // Surface owns this and erases this from Scene on destruction
 class SurfaceNode : public SceneNode {
  public:
+  enum class Anchor : uint8_t {
+    CENTER,
+    TOP_LEFT,
+  };
+
   DISABLE_MOVE_AND_COPY(SurfaceNode);
-  explicit SurfaceNode(std::weak_ptr<core::Surface>&& surface);
+  explicit SurfaceNode(
+      std::weak_ptr<core::Surface>&& surface, Anchor anchor = Anchor::CENTER);
   ~SurfaceNode() override = default;
 
   [[nodiscard]] std::shared_ptr<Surface> surface() const {
     return this->surface_.lock();
   }
+  [[nodiscard]] glm::mat4 model_mat() const;
 
  private:
-  void draw_self(render::DrawRectFunc& draw_rect) override;
+  void prepare_for_draw() override;
+  void draw_self(render::DrawRectFunc& draw_rect,
+      const glm::mat4&                 world_transform) override;
   [[nodiscard]] std::optional<SceneIntersection> check_intersection_self(
-      const glm::vec3& origin, const glm::vec3& direction) override;
+      const glm::vec3& origin, const glm::vec3& direction,
+      const glm::mat4& world_transform) override;
+  [[nodiscard]] glm::mat4 resolve_world_transform(const SceneNode* parent,
+      const glm::mat4& parent_world_transform) const override;
 
   // weak reference to avoid circular reference
   // Surface always valid while SurfaceNode exists
   // (note that Surface owner is Server::surface_map)
   std::weak_ptr<core::Surface> surface_;
+  Anchor                       anchor_;
 };
 }  // namespace yabe::core::scene

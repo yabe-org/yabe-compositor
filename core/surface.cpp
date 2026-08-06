@@ -136,12 +136,13 @@ void Surface::finish_rendering() {
   });
 }
 
-void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent) {
+void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,
+    scene::SurfaceNode::Anchor                                     anchor) {
   if (this->surface_node_.has_value()) {
     return;
   }
   this->surface_node_ =
-      std::make_shared<scene::SurfaceNode>(this->shared_from_this());
+      std::make_shared<scene::SurfaceNode>(this->shared_from_this(), anchor);
   if (this->current_.buffer.has_value()) {
     auto& scale = this->surface_node_.value()->geometry().scale();
     scale.x     = *this->texture_width_.to_world_unit();

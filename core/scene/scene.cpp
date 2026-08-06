@@ -41,7 +41,7 @@ void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
 void Scene::draw(render::DrawRectFunc& draw_rect) {
   const std::lock_guard<std::mutex> lock(this->mutex_);
   for (const auto& node : this->nodes_) {
-    node->draw(draw_rect);
+    node->draw(draw_rect, nullptr, glm::mat4(1.F));
   }
 }
 
@@ -50,7 +50,8 @@ std::optional<SceneIntersection> Scene::get_nearest_intersection(
   const std::lock_guard<std::mutex> lock(this->mutex_);
   std::optional<SceneIntersection>  nearest;
   for (const auto& node : this->nodes_) {
-    const auto intersection = node->check_intersection(origin, direction);
+    const auto intersection =
+        node->check_intersection(origin, direction, nullptr, glm::mat4(1.F));
     if (!intersection.has_value()) {
       continue;
     }

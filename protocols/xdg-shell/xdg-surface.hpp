@@ -29,6 +29,12 @@ class XdgSurface {
   [[nodiscard]] core::unit::Pixel height() const {
     return this->height_;
   }
+  [[nodiscard]] core::unit::Pixel x() const {
+    return this->x_;
+  }
+  [[nodiscard]] core::unit::Pixel y() const {
+    return this->y_;
+  }
 
  private:
   core::unit::Pixel            x_{0};

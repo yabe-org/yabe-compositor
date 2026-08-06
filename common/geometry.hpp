@@ -19,13 +19,23 @@ class Geometry {
   [[nodiscard]] glm::vec3& pos() {
     return this->cartesian_.pos;
   }
+  [[nodiscard]] const glm::vec3& pos() const {
+    return this->cartesian_.pos;
+  }
   [[nodiscard]] glm::quat& rotation() {
+    return this->rotation_;
+  }
+  [[nodiscard]] const glm::quat& rotation() const {
     return this->rotation_;
   }
   [[nodiscard]] glm::vec3& scale() {
     return this->scale_;
   }
-  [[nodiscard]] glm::mat4 model_mat();
+  [[nodiscard]] const glm::vec3& scale() const {
+    return this->scale_;
+  }
+  [[nodiscard]] glm::mat4 transform_mat() const;
+  [[nodiscard]] glm::mat4 model_mat() const;
 
   void move_absolute(const glm::vec3& new_cartesian);
   void move_absolute(float new_theta, float new_phi, float new_radius);

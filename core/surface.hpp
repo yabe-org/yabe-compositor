@@ -45,7 +45,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
 
   /// Create SurfaceNode and insert it into Scene
   void map(
-      std::optional<std::shared_ptr<scene::SceneNode>> parent = std::nullopt);
+      std::optional<std::shared_ptr<scene::SceneNode>> parent = std::nullopt,
+      scene::SurfaceNode::Anchor anchor = scene::SurfaceNode::Anchor::CENTER);
   void unmap();
 
   void focus();

@@ -2,8 +2,6 @@
 
 #include <optional>
 
-#include "common/common.hpp"
-#include "common/geometry.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
@@ -29,7 +27,8 @@ XdgPopup::XdgPopup(wl_resource*               resource,
   }
   // popup surface (weak_ptr) is validated in create() function
   const auto popup_wl_surface = popup_surface->wl_surface().lock();
-  popup_wl_surface->map(parent_surface_node.value());
+  popup_wl_surface->map(
+      parent_surface_node.value(), core::scene::SurfaceNode::Anchor::TOP_LEFT);
 
   this->reposition(std::nullopt);
 }
@@ -53,6 +52,7 @@ void XdgPopup::replace_positioner(xdg_positioner::XdgPositioner* positioner) {
   this->positioner_ =
       std::make_unique<xdg_positioner::XdgPositioner>(positioner);
 }
+
 void XdgPopup::reposition(std::optional<uint32_t> token) {
   const auto popup_surface = this->popup_surface_.lock();
   if (!popup_surface) {
@@ -80,35 +80,13 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
     return;
   }
 
-  auto       positioner_result = this->positioner_->calculate_pos();
-  const auto parent_pos =
-      parent_surface_node.value()->geometry().cartesian().pos;
-  const auto parent_top_left =
-      parent_pos - glm::vec3{
-                       *parent_surface->width().to_world_unit() / 2.F,
-                       *parent_surface->height().to_world_unit() / 2.F * -1.F,
-                       0.F,
-                   };
-  const auto popup_top_left =
-      parent_top_left + glm::vec3{
-                            *positioner_result.x.to_world_unit(),
-                            *positioner_result.y.to_world_unit() * -1.F,
-                            0.F,
-                        };
-  auto popup_new_pos =
-      popup_top_left + glm::vec3{
-                           +(*positioner_result.width.to_world_unit() / 2.F),
-                           -(*positioner_result.height.to_world_unit() / 2.F),
-                           0.F,
-                       };
-
-  // move popup little align with parent's normal vector to avoid z-fighting
-  // maybe SurfaceNode should treat parent position?
-  // if so, it should set anchor (default center but top-left for popup) (TODO)
-  const auto parent_normal = glm::normalize(
-      glm::vec3{parent_surface_node.value()->geometry().model_mat()[2]});
-  popup_new_pos += parent_normal * 0.01F;
-  popup_surface_node.value()->move_absolute(popup_new_pos);
+  const auto positioner_result = this->positioner_->calculate_pos();
+  const auto relative_x =
+      parent_surface->x() + positioner_result.x - popup_surface->x();
+  const auto relative_y =
+      parent_surface->y() + positioner_result.y - popup_surface->y();
+  popup_surface_node.value()->move_absolute(glm::vec3{
+      *relative_x.to_world_unit(), -*relative_y.to_world_unit(), 0.01F});
 
   xdg_popup_send_configure(this->resource_, *positioner_result.x,
       *positioner_result.y, *positioner_result.width,

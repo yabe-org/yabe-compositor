@@ -14,7 +14,7 @@ class Subsurface : public core::SurfaceRole {
   explicit Subsurface(wl_resource*    resource,
       std::shared_ptr<core::Surface>& surface,
       std::shared_ptr<core::Surface>& parent_surface);
-  ~Subsurface() override = default;
+  ~Subsurface() override;
 
   void commit() override;
   void set_activated(bool is_activated) override;

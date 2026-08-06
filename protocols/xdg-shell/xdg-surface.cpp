@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-popup.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
@@ -14,6 +15,10 @@ namespace yabe::proto::xdg_shell::xdg_surface {
 XdgSurface::XdgSurface(
     wl_resource* resource, std::weak_ptr<core::Surface>&& wl_surface)
     : resource_(resource), wl_surface_(std::move(wl_surface)) {
+  LOG_DBG("xdg_surface#{}: created", wl_resource_get_id(resource));
+}
+XdgSurface::~XdgSurface() {
+  LOG_DBG("xdg_surface#{}: destroyed", wl_resource_get_id(this->resource_));
 }
 
 void XdgSurface::configure() {

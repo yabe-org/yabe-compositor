@@ -19,7 +19,7 @@ class XdgPopup : public core::SurfaceRole {
       std::shared_ptr<xdg_surface::XdgSurface>& popup_surface,
       std::shared_ptr<xdg_surface::XdgSurface>& parent_surface,
       xdg_positioner::XdgPositioner*            positioner);
-  ~XdgPopup() override = default;
+  ~XdgPopup() override;
 
   void commit() override;
   void set_activated(bool is_activated) override;

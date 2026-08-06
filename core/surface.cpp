@@ -12,11 +12,11 @@
 
 namespace yabe::core {
 Surface::Surface(wl_resource* resource) : resource_(resource) {
-  LOG_DBG("new wl_surface#{}", wl_resource_get_id(resource));
+  LOG_DBG("wl_surface#{}: created", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
   this->unmap();
-  LOG_DBG("surface#{} deleted", wl_resource_get_id(this->resource_));
+  LOG_DBG("wl_surface#{}: destroyed", wl_resource_get_id(this->resource_));
 }
 
 void Surface::set_frame_callback(wl_resource* resource) {

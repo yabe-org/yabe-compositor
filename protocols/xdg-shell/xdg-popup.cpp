@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
@@ -15,6 +16,7 @@ XdgPopup::XdgPopup(wl_resource*               resource,
     , popup_surface_(popup_surface)
     , parent_surface_(parent_surface)
     , positioner_(std::make_unique<xdg_positioner::XdgPositioner>(positioner)) {
+  LOG_DBG("xdg_popup#{}: created", wl_resource_get_id(resource));
   const auto parent_wl_surface = parent_surface->wl_surface().lock();
   if (!parent_wl_surface) {
     wl_client_post_implementation_error(wl_resource_get_client(resource),
@@ -31,6 +33,9 @@ XdgPopup::XdgPopup(wl_resource*               resource,
       parent_surface_node.value(), core::scene::SurfaceNode::Anchor::TOP_LEFT);
 
   this->reposition(std::nullopt);
+}
+XdgPopup::~XdgPopup() {
+  LOG_DBG("xdg_popup#{}: destroyed", wl_resource_get_id(this->resource_));
 }
 
 void XdgPopup::commit() {

@@ -10,7 +10,7 @@ class XdgSurface {
  public:
   DISABLE_MOVE_AND_COPY(XdgSurface);
   XdgSurface(wl_resource* resource, std::weak_ptr<core::Surface>&& wl_surface);
-  ~XdgSurface() = default;
+  ~XdgSurface();
 
   void configure();
   void set_window_geometry(core::unit::Pixel x, core::unit::Pixel y,

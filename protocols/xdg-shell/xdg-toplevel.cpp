@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "common/common.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
@@ -15,9 +16,11 @@ namespace yabe::proto::xdg_shell::xdg_toplevel {
 XdgToplevel::XdgToplevel(
     wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface)
     : resource_(resource), xdg_surface_(std::move(surface)) {
+  LOG_DBG("xdg_toplevel#{}: created", wl_resource_get_id(resource));
   this->xdg_surface_.lock()->wl_surface().lock()->map();
 }
 XdgToplevel::~XdgToplevel() {
+  LOG_DBG("xdg_toplevel#{}: destroyed", wl_resource_get_id(this->resource_));
   const auto xdg_surface = this->xdg_surface_.lock();
   if (!xdg_surface) {
     return;

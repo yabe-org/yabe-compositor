@@ -2,6 +2,7 @@
 
 #include <wayland-server-protocol-core.h>
 
+#include "common/common.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
 
@@ -10,6 +11,10 @@ Subsurface::Subsurface(wl_resource* resource,
     std::shared_ptr<core::Surface>& surface,
     std::shared_ptr<core::Surface>& parent_surface)
     : resource_(resource), surface_(surface), parent_surface_(parent_surface) {
+  LOG_DBG("wl_subsurface#{}: created", wl_resource_get_id(resource));
+}
+Subsurface::~Subsurface() {
+  LOG_DBG("wl_subsurface#{}: destroyed", wl_resource_get_id(this->resource_));
 }
 
 void Subsurface::commit() {

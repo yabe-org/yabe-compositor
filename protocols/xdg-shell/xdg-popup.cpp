@@ -5,6 +5,7 @@
 #include "common/common.hpp"
 #include "common/geometry.hpp"
 #include "core/server.hpp"
+#include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_popup {
@@ -48,6 +49,10 @@ void XdgPopup::set_activated(bool /*is_activated*/) {
   // todo?
 }
 
+void XdgPopup::replace_positioner(xdg_positioner::XdgPositioner* positioner) {
+  this->positioner_ =
+      std::make_unique<xdg_positioner::XdgPositioner>(positioner);
+}
 void XdgPopup::reposition(std::optional<uint32_t> token) {
   const auto popup_surface = this->popup_surface_.lock();
   if (!popup_surface) {
@@ -123,15 +128,22 @@ void grab(wl_client* /*client*/, wl_resource* /*resource*/,
     wl_resource* /*seat*/, uint32_t /*serial*/) {
   // TODO
 }
-void reposition(wl_client* /*client*/, wl_resource* /*resource*/,
-    wl_resource* /*positioner*/, uint32_t /*token*/) {
-  // TODO
+void reposition(wl_client* /*client*/, wl_resource* resource,
+    wl_resource* positioner_resource, uint32_t token) {
+  const auto& self       = core::server::get().xdg_popup_map.at(resource);
+  auto*       positioner = xdg_positioner::get(positioner_resource);
+  self->replace_positioner(positioner);
+  self->reposition(token);
 }
 constexpr struct xdg_popup_interface kImpl = {
     .destroy    = destroy,
     .grab       = grab,
     .reposition = reposition,
 };
+
+void destroy(wl_resource* resource) {
+  core::server::get().xdg_popup_map.erase(resource);
+}
 }  // namespace
 
 void create(wl_client* client, uint32_t id,
@@ -150,7 +162,7 @@ void create(wl_client* client, uint32_t id,
         "xdg_popup requested for unknown popup surface");
     return;
   }
-  wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
 
   auto popup = std::make_shared<XdgPopup>(
       resource, popup_surface, parent_surface, positioner);

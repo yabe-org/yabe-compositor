@@ -24,6 +24,7 @@ class XdgPopup : public core::SurfaceRole {
   void commit() override;
   void set_activated(bool is_activated) override;
 
+  void replace_positioner(xdg_positioner::XdgPositioner* positioner);
   /// @param token pass value if it is called via protocol,
   /// otherwise (e.g. initialization) pass std::nullopt
   void reposition(std::optional<uint32_t> token);

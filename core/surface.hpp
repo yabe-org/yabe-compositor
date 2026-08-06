@@ -72,6 +72,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
     return this->texture_height_;
   }
 
+  [[nodiscard]] bool has_buffer() const {
+    return this->current_.buffer.has_value();
+  }
+
  private:
   unit::Pixel texture_width_{0}, texture_height_{0};
 

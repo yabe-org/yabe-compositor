@@ -88,11 +88,11 @@ void Surface::upload_texture_if_needed() {
   if (!shm_buffer) {
     return;
   }
-  this->texture_width_.value  = wl_shm_buffer_get_width(shm_buffer);
-  this->texture_height_.value = wl_shm_buffer_get_height(shm_buffer);
-  auto* data                  = wl_shm_buffer_get_data(shm_buffer);
-  auto  format                = wl_shm_buffer_get_format(shm_buffer);
-  auto  stride                = wl_shm_buffer_get_stride(shm_buffer);
+  this->texture_width_  = wl_shm_buffer_get_width(shm_buffer);
+  this->texture_height_ = wl_shm_buffer_get_height(shm_buffer);
+  auto* data            = wl_shm_buffer_get_data(shm_buffer);
+  auto  format          = wl_shm_buffer_get_format(shm_buffer);
+  auto  stride          = wl_shm_buffer_get_stride(shm_buffer);
   wl_shm_buffer_begin_access(shm_buffer);
   this->texture_.upload(
       data, format, this->texture_width_, this->texture_height_, stride);

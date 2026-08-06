@@ -14,6 +14,7 @@
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/surface.hpp"
+#include "protocols/wayland/subcompositor/subsurface.hpp"
 #include "protocols/xdg-shell/xdg-popup.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "protocols/xdg-shell/xdg-toplevel.hpp"
@@ -41,6 +42,9 @@ class Server {
 
   std::unordered_map<wl_client*, wl_resource*>               output_map;
   std::unordered_map<wl_resource*, std::shared_ptr<Surface>> surface_map;
+  std::unordered_map<wl_resource*,
+      std::shared_ptr<proto::wayland::subcompositor::subsurface::Subsurface>>
+      subsurface_map;
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::xdg_shell::xdg_surface::XdgSurface>>
       xdg_surface_map;

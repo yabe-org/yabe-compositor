@@ -37,6 +37,11 @@ struct Pixel {
   Pixel operator-(const Pixel& other) const {
     return Pixel{this->value - other.value};
   }
+  Pixel& operator=(const Pixel& other) = default;
+  Pixel& operator=(int32_t value) {
+    this->value = value;
+    return *this;
+  }
   void operator+=(const Pixel& other) {
     this->value += other.value;
   }

@@ -2,6 +2,8 @@
 
 #include <wayland-server.h>
 
+#include "core/server.hpp"
+
 namespace yabe::proto::wayland::output {
 namespace {
 void release(wl_client* /*client*/, wl_resource* resource) {
@@ -10,6 +12,9 @@ void release(wl_client* /*client*/, wl_resource* resource) {
 constexpr struct wl_output_interface kImpl = {
     .release = release,
 };
+void destroy(wl_resource* resource) {
+  core::server::get().output_map.erase(wl_resource_get_client(resource));
+}
 }  // namespace
 
 void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
@@ -19,7 +24,8 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
+  core::server::get().output_map.emplace(client, resource);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
   wl_output_send_geometry(resource, 0, 0, 0, 0, WL_OUTPUT_SUBPIXEL_UNKNOWN,
       "yabe-compositor", "output", WL_OUTPUT_TRANSFORM_NORMAL);
   // TODO: make resolution configurable by somehow

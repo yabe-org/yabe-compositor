@@ -39,6 +39,7 @@ class Server {
   uint32_t       next_serial();
   wl_event_loop* loop();
 
+  std::unordered_map<wl_client*, wl_resource*>               output_map;
   std::unordered_map<wl_resource*, std::shared_ptr<Surface>> surface_map;
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::xdg_shell::xdg_surface::XdgSurface>>

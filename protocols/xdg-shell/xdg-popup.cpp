@@ -36,6 +36,15 @@ XdgPopup::XdgPopup(wl_resource*               resource,
 }
 XdgPopup::~XdgPopup() {
   LOG_DBG("xdg_popup#{}: destroyed", wl_resource_get_id(this->resource_));
+  const auto popup_surface = this->popup_surface_.lock();
+  if (!popup_surface) {
+    return;
+  }
+  const auto popup_wl_surface = popup_surface->wl_surface().lock();
+  if (!popup_wl_surface) {
+    return;
+  }
+  popup_wl_surface->unmap();
 }
 
 void XdgPopup::commit() {
@@ -74,14 +83,6 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
 
   const auto parent_surface = this->parent_surface_.lock();
   if (!parent_surface) {
-    return;
-  }
-  const auto parent_wl_surface = parent_surface->wl_surface().lock();
-  if (!parent_wl_surface) {
-    return;
-  }
-  const auto parent_surface_node = parent_wl_surface->surface_node();
-  if (!parent_surface_node.has_value()) {
     return;
   }
 

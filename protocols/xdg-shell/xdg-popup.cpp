@@ -31,8 +31,6 @@ XdgPopup::XdgPopup(wl_resource*               resource,
   const auto popup_wl_surface = popup_surface->wl_surface().lock();
   popup_wl_surface->map(
       parent_surface_node.value(), core::scene::SurfaceNode::Anchor::TOP_LEFT);
-
-  this->reposition(std::nullopt);
 }
 XdgPopup::~XdgPopup() {
   LOG_DBG("xdg_popup#{}: destroyed", wl_resource_get_id(this->resource_));
@@ -53,11 +51,18 @@ void XdgPopup::commit() {
     return;
   }
   xdg_surface->commit();
-  if (this->is_initial_commit_sent_) {
-    return;
+  switch (this->state_) {
+    case State::INITIAL:
+      xdg_surface->configure();
+      this->state_ = State::COMMITTED;
+      break;
+    case State::COMMITTED:
+      this->reposition(std::nullopt);
+      this->state_ = State::CONFIGURED;
+      break;
+    case State::CONFIGURED:
+      break;
   }
-  this->is_initial_commit_sent_ = true;
-  xdg_surface->configure();
 }
 void XdgPopup::set_activated(bool /*is_activated*/) {
   // todo?
@@ -88,12 +93,12 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
   }
 
   const auto positioner_result = this->positioner_->calculate_pos();
-  const auto relative_x =
+  const auto display_x =
       parent_surface->x() + positioner_result.x - popup_surface->x();
-  const auto relative_y =
+  const auto display_y =
       parent_surface->y() + positioner_result.y - popup_surface->y();
   popup_surface_node.value()->move_absolute(glm::vec3{
-      *relative_x.to_world_unit(), -*relative_y.to_world_unit(), 0.01F});
+      *display_x.to_world_unit(), -(*display_y.to_world_unit()), 0.01F});
 
   xdg_popup_send_configure(this->resource_, *positioner_result.x,
       *positioner_result.y, *positioner_result.width,

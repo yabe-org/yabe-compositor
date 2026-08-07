@@ -5,6 +5,7 @@
 
 #include <cassert>
 
+#include "common/common.hpp"
 #include "wayland-server-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_positioner {

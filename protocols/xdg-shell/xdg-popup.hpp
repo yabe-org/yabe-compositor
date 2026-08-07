@@ -45,7 +45,11 @@ class XdgPopup : public core::SurfaceRole {
   std::weak_ptr<xdg_surface::XdgSurface>         parent_surface_;
   std::unique_ptr<xdg_positioner::XdgPositioner> positioner_;
 
-  bool is_initial_commit_sent_ = false;
+  enum class State : uint8_t {
+    INITIAL,
+    COMMITTED,
+    CONFIGURED,
+  } state_ = State::INITIAL;
 };
 
 void create(wl_client* client, uint32_t id,

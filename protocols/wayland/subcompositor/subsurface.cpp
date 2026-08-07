@@ -71,7 +71,7 @@ void Subsurface::update_position() {
     return;
   }
   surface_node.value()->move_absolute(
-      {*this->x_.to_world_unit(), -*this->y_.to_world_unit(), 0.01F});
+      {*this->x_.to_world_unit(), -*this->y_.to_world_unit(), 0.F});
 }
 
 namespace {

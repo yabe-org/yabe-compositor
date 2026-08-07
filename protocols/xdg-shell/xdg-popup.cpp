@@ -98,7 +98,7 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
   const auto display_y =
       parent_surface->y() + positioner_result.y - popup_surface->y();
   popup_surface_node.value()->move_absolute(glm::vec3{
-      *display_x.to_world_unit(), -(*display_y.to_world_unit()), 0.01F});
+      *display_x.to_world_unit(), -(*display_y.to_world_unit()), 0.F});
 
   xdg_popup_send_configure(this->resource_, *positioner_result.x,
       *positioner_result.y, *positioner_result.width,

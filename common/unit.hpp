@@ -31,13 +31,20 @@ struct WorldUnit {
 struct Pixel {
   int32_t value;
 
+  explicit Pixel(int32_t value) : value(value) {
+  }
+  ~Pixel()                             = default;
+  Pixel(const Pixel&)                  = default;
+  Pixel(Pixel&&)                       = default;
+  Pixel& operator=(const Pixel& other) = default;
+  Pixel& operator=(Pixel&&)            = default;
+
   Pixel operator+(const Pixel& other) const {
     return Pixel{this->value + other.value};
   }
   Pixel operator-(const Pixel& other) const {
     return Pixel{this->value - other.value};
   }
-  Pixel& operator=(const Pixel& other) = default;
   Pixel& operator=(int32_t value) {
     this->value = value;
     return *this;

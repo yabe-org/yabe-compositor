@@ -12,9 +12,9 @@ class XdgSurface {
   XdgSurface(wl_resource* resource, std::weak_ptr<core::Surface>&& wl_surface);
   ~XdgSurface();
 
+  void commit();
   void configure();
-  void set_window_geometry(core::unit::Pixel x, core::unit::Pixel y,
-      core::unit::Pixel width, core::unit::Pixel height);
+  void set_window_geometry(int32_t x, int32_t y, int32_t width, int32_t height);
 
   [[nodiscard]] wl_resource* resource() const {
     return this->resource_;
@@ -24,23 +24,25 @@ class XdgSurface {
   }
 
   [[nodiscard]] core::unit::Pixel width() const {
-    return this->width_;
+    return this->current_.width;
   }
   [[nodiscard]] core::unit::Pixel height() const {
-    return this->height_;
+    return this->current_.height;
   }
   [[nodiscard]] core::unit::Pixel x() const {
-    return this->x_;
+    return this->current_.x;
   }
   [[nodiscard]] core::unit::Pixel y() const {
-    return this->y_;
+    return this->current_.y;
   }
 
  private:
-  core::unit::Pixel            x_{0};
-  core::unit::Pixel            y_{0};
-  core::unit::Pixel            width_{0};
-  core::unit::Pixel            height_{0};
+  struct {
+    core::unit::Pixel x{0};
+    core::unit::Pixel y{0};
+    core::unit::Pixel width{0};
+    core::unit::Pixel height{0};
+  } pending_, current_;
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> wl_surface_;
 };

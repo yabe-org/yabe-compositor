@@ -33,11 +33,12 @@ XdgToplevel::~XdgToplevel() {
 }
 
 void XdgToplevel::commit() {
-  if (this->is_initial_commit_sent_) {
-    return;
-  }
   const auto xdg_surface = this->xdg_surface_.lock();
   if (!xdg_surface) {
+    return;
+  }
+  xdg_surface->commit();
+  if (this->is_initial_commit_sent_) {
     return;
   }
   this->is_initial_commit_sent_ = true;

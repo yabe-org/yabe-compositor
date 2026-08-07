@@ -48,11 +48,12 @@ XdgPopup::~XdgPopup() {
 }
 
 void XdgPopup::commit() {
-  if (this->is_initial_commit_sent_) {
-    return;
-  }
   const auto xdg_surface = this->popup_surface_.lock();
   if (!xdg_surface) {
+    return;
+  }
+  xdg_surface->commit();
+  if (this->is_initial_commit_sent_) {
     return;
   }
   this->is_initial_commit_sent_ = true;

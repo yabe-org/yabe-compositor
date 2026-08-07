@@ -28,6 +28,7 @@ class XdgPopup : public core::SurfaceRole {
   /// @param token pass value if it is called via protocol,
   /// otherwise (e.g. initialization) pass std::nullopt
   void reposition(std::optional<uint32_t> token);
+  void start_grab();
 
   [[nodiscard]] wl_resource* resource() const {
     return this->resource_;

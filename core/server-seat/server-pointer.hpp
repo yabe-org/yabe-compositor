@@ -32,8 +32,11 @@ class ServerPointer {
     return this->cursor_surface_;
   }
 
-  void start_grab(pointer_grab::PointerGrab* grab);
-  void end_grab();
+  void               start_grab(pointer_grab::PointerGrab* grab);
+  void               end_grab();
+  [[nodiscard]] bool is_active_grab(pointer_grab::PointerGrab* grab) const {
+    return this->grab_ == grab;
+  }
 
   void handle_pointer_move_relative(float dx, float dy);
   void handle_pointer_button(uint32_t button, bool is_pressed);

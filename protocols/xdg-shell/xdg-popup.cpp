@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "common/common.hpp"
+#include "core/server-seat/pointer-grab/popup.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
@@ -34,6 +35,10 @@ XdgPopup::XdgPopup(wl_resource*               resource,
 }
 XdgPopup::~XdgPopup() {
   LOG_DBG("xdg_popup#{}: destroyed", wl_resource_get_id(this->resource_));
+  if (core::server_seat::pointer_grab::PopupPointerGrab::is_active(this)) {
+    core::server::get().seat.pointer.end_grab();
+  }
+
   const auto popup_surface = this->popup_surface_.lock();
   if (!popup_surface) {
     return;
@@ -110,13 +115,18 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
   }
 }
 
+void XdgPopup::start_grab() {
+  core::server::get().seat.pointer.start_grab(
+      core::server_seat::pointer_grab::PopupPointerGrab::start(this));
+}
+
 namespace {
 void destroy(wl_client* /*client*/, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
-void grab(wl_client* /*client*/, wl_resource* /*resource*/,
-    wl_resource* /*seat*/, uint32_t /*serial*/) {
-  // TODO
+void grab(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
+    uint32_t /*serial*/) {
+  core::server::get().xdg_popup_map.at(resource)->start_grab();
 }
 void reposition(wl_client* /*client*/, wl_resource* resource,
     wl_resource* positioner_resource, uint32_t token) {

@@ -1,0 +1,45 @@
+#include "popup.hpp"
+
+#include <memory>
+
+#include "core/server.hpp"
+
+namespace yabe::core::server_seat::pointer_grab {
+PopupPointerGrab PopupPointerGrab::instance;
+
+PopupPointerGrab* PopupPointerGrab::start(
+    proto::xdg_shell::xdg_popup::XdgPopup* popup) {
+  instance.popup_ = popup;
+  return &instance;
+}
+
+void PopupPointerGrab::cleanup() {
+}
+
+void PopupPointerGrab::move_relative(float dx, float dy) {
+  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().seat.pointer.focus_pointed_surface();
+}
+
+void PopupPointerGrab::button(uint32_t button, bool is_pressed) {
+  const auto pointer_focused_surface_node =
+      server::get().seat.pointer.get_focused_surface_node().lock();
+  if (!pointer_focused_surface_node) {
+    return;
+  }
+  // do not call seat.keyboard.set_focused_surface!
+
+  const auto& client_seat =
+      server::get().seat.pointer.get_focused_client_seat();
+  if (!client_seat) {
+    return;
+  }
+  client_seat.value()->pointer.send_button(button, is_pressed);
+  client_seat.value()->pointer.send_frame();
+}
+
+bool PopupPointerGrab::is_active(proto::xdg_shell::xdg_popup::XdgPopup* popup) {
+  return server::get().seat.pointer.is_active_grab(&instance) &&
+         instance.popup_ == popup;
+}
+}  // namespace yabe::core::server_seat::pointer_grab

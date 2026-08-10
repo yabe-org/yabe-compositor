@@ -16,7 +16,7 @@ ExternalProject_Add(
     CONFIGURE_COMMAND meson setup <BINARY_DIR> <SOURCE_DIR>
     BUILD_COMMAND meson compile -C <BINARY_DIR>
     INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS <BINARY_DIR>/libcompositor_core.a
+    BUILD_BYPRODUCTS <BINARY_DIR>/libyabe_compositor.a
 )
 ExternalProject_Get_Property(yabe_compositor BINARY_DIR)
 set(MESON_BUILD_DIR ${BINARY_DIR})

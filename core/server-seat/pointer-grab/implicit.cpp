@@ -11,6 +11,7 @@ ImplicitPointerGrab* ImplicitPointerGrab::start(
     const std::shared_ptr<scene::SurfaceNode>& focused_surface_node,
     uint32_t                                   button) {
   static ImplicitPointerGrab instance;
+  instance.pressed_buttons_.clear();
   instance.pressed_buttons_.insert(button);
   instance.focused_surface_node_ = focused_surface_node;
   return &instance;

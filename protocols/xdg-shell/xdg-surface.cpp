@@ -58,7 +58,6 @@ void get_popup(wl_client* client, wl_resource* resource, uint32_t id,
 }
 void set_window_geometry(wl_client* /* client */, wl_resource* resource,
     int32_t x, int32_t y, int32_t width, int32_t height) {
-  // TODO
   auto self = core::server::get().xdg_surface_map.at(resource);
   self->set_window_geometry(x, y, width, height);
 }

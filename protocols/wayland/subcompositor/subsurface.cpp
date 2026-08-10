@@ -50,6 +50,13 @@ void Subsurface::commit() {
 void Subsurface::set_activated(bool /*is_activated*/) {
   // todo?
 }
+std::shared_ptr<core::Surface> Subsurface::get_toplevel() {
+  auto parent_surface = this->parent_surface_.lock();
+  if (!parent_surface) {
+    return nullptr;
+  }
+  return parent_surface->get_toplevel();
+}
 
 void Subsurface::set_position(int32_t x, int32_t y) {
   this->x_ = x;

@@ -21,6 +21,7 @@ class XdgToplevel : public core::SurfaceRole,
 
   void commit() override;
   void set_activated(bool is_activated) override;
+  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
 
   void start_move();
   void start_resize(uint32_t edges);

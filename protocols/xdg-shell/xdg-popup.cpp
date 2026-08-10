@@ -72,6 +72,18 @@ void XdgPopup::commit() {
 void XdgPopup::set_activated(bool /*is_activated*/) {
   // todo?
 }
+std::shared_ptr<core::Surface> XdgPopup::get_toplevel() {
+  auto parent_surface = this->parent_surface_.lock();
+  if (!parent_surface) {
+    return nullptr;
+  }
+  auto parent_wl_surface = parent_surface->wl_surface().lock();
+  if (!parent_wl_surface) {
+    return nullptr;
+  }
+  // do not return parent_wl_surface itself because it may be also a xdg_popup
+  return parent_wl_surface->get_toplevel();
+}
 
 void XdgPopup::replace_positioner(xdg_positioner::XdgPositioner* positioner) {
   this->positioner_ =

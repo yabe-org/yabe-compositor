@@ -14,12 +14,14 @@
 #include "core/scene/surface-node.hpp"
 
 namespace yabe::core {
+class Surface;
 class SurfaceRole {
  public:
   DISABLE_MOVE_AND_COPY(SurfaceRole);
-  virtual ~SurfaceRole()                        = default;
-  virtual void commit()                         = 0;
-  virtual void set_activated(bool is_activated) = 0;
+  virtual ~SurfaceRole()                                        = default;
+  virtual void commit()                                         = 0;
+  virtual void set_activated(bool is_activated)                 = 0;
+  [[nodiscard]] virtual std::shared_ptr<Surface> get_toplevel() = 0;
 
  protected:
   SurfaceRole() = default;
@@ -70,6 +72,12 @@ class Surface : public std::enable_shared_from_this<Surface> {
   }
   [[nodiscard]] const unit::Pixel& texture_height() const {
     return this->texture_height_;
+  }
+  [[nodiscard]] std::shared_ptr<Surface> get_toplevel() {
+    if (const auto role = this->role_.lock()) {
+      return role->get_toplevel();
+    }
+    return this->shared_from_this();
   }
 
   [[nodiscard]] bool has_buffer() const {

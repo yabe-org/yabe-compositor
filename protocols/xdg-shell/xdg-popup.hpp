@@ -23,6 +23,7 @@ class XdgPopup : public core::SurfaceRole {
 
   void commit() override;
   void set_activated(bool is_activated) override;
+  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
 
   void replace_positioner(xdg_positioner::XdgPositioner* positioner);
   /// @param token pass value if it is called via protocol,

@@ -9,6 +9,9 @@ PopupPointerGrab PopupPointerGrab::instance;
 
 PopupPointerGrab* PopupPointerGrab::start(
     proto::xdg_shell::xdg_popup::XdgPopup* popup) {
+  const auto popup_surface    = popup->popup_surface().lock();
+  const auto popup_wl_surface = popup_surface->wl_surface().lock();
+  server::get().seat.keyboard.set_focused_surface(popup_wl_surface);
   instance.popup_ = popup;
   return &instance;
 }

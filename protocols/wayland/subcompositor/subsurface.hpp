@@ -18,6 +18,7 @@ class Subsurface : public core::SurfaceRole {
 
   void commit() override;
   void set_activated(bool is_activated) override;
+  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
 
   void set_position(int32_t x, int32_t y);
 

@@ -49,6 +49,9 @@ void XdgToplevel::set_activated(bool is_activated) {
   this->is_activated_ = is_activated;
   this->send_configure(0, 0);
 }
+std::shared_ptr<core::Surface> XdgToplevel::get_toplevel() {
+  return this->xdg_surface_.lock()->wl_surface().lock();
+}
 
 void XdgToplevel::start_move() {
   const auto xdg_surface = this->xdg_surface_.lock();

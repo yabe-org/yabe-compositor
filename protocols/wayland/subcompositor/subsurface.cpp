@@ -15,6 +15,10 @@ Subsurface::Subsurface(wl_resource* resource,
 }
 Subsurface::~Subsurface() {
   LOG_DBG("wl_subsurface#{}: destroyed", wl_resource_get_id(this->resource_));
+  const auto surface = this->surface_.lock();
+  if (surface) {
+    surface->unmap();
+  }
 }
 
 void Subsurface::commit() {

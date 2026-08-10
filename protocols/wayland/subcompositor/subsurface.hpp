@@ -6,6 +6,7 @@
 
 #include "common/common.hpp"
 #include "core/surface.hpp"
+#include "core/toplevel.hpp"
 
 namespace yabe::proto::wayland::subcompositor::subsurface {
 class Subsurface : public core::SurfaceRole {
@@ -16,9 +17,8 @@ class Subsurface : public core::SurfaceRole {
       std::shared_ptr<core::Surface>& parent_surface);
   ~Subsurface() override;
 
-  void commit() override;
-  void set_activated(bool is_activated) override;
-  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
+  void                                          commit() override;
+  [[nodiscard]] std::shared_ptr<core::Toplevel> get_toplevel() override;
 
   void set_position(int32_t x, int32_t y);
 

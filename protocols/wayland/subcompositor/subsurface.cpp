@@ -5,6 +5,7 @@
 #include "common/common.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
+#include "core/toplevel.hpp"
 
 namespace yabe::proto::wayland::subcompositor::subsurface {
 Subsurface::Subsurface(wl_resource* resource,
@@ -47,10 +48,7 @@ void Subsurface::commit() {
   }
   this->update_position();
 }
-void Subsurface::set_activated(bool /*is_activated*/) {
-  // todo?
-}
-std::shared_ptr<core::Surface> Subsurface::get_toplevel() {
+std::shared_ptr<core::Toplevel> Subsurface::get_toplevel() {
   auto parent_surface = this->parent_surface_.lock();
   if (!parent_surface) {
     return nullptr;

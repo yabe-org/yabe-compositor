@@ -169,18 +169,4 @@ void Surface::unmap() {
     wl_surface_send_leave(this->resource_, output->second);
   }
 }
-
-void Surface::focus() {
-  if (this->surface_node_.has_value()) {
-    server::get().scene.raise_to_front(this->surface_node_.value());
-  }
-  if (const auto role = this->role_.lock()) {
-    role->set_activated(true);
-  }
-}
-void Surface::unfocus() {
-  if (const auto role = this->role_.lock()) {
-    role->set_activated(false);
-  }
-}
 }  // namespace yabe::core

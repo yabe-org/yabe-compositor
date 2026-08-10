@@ -8,6 +8,7 @@
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
+#include "core/toplevel.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "wayland-server-core.h"
 #include "xdg-shell-protocol.h"
@@ -49,8 +50,16 @@ void XdgToplevel::set_activated(bool is_activated) {
   this->is_activated_ = is_activated;
   this->send_configure(0, 0);
 }
-std::shared_ptr<core::Surface> XdgToplevel::get_toplevel() {
-  return this->xdg_surface_.lock()->wl_surface().lock();
+std::shared_ptr<core::Toplevel> XdgToplevel::get_toplevel() {
+  return this->shared_from_this();
+}
+
+std::weak_ptr<core::Surface> XdgToplevel::surface() {
+  const auto xdg_surface = this->xdg_surface_.lock();
+  if (!xdg_surface) {
+    return {};
+  }
+  return xdg_surface->wl_surface();
 }
 
 void XdgToplevel::start_move() {

@@ -8,10 +8,12 @@
 #include "common/common.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/surface.hpp"
+#include "core/toplevel.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 
 namespace yabe::proto::xdg_shell::xdg_toplevel {
 class XdgToplevel : public core::SurfaceRole,
+                    public core::Toplevel,
                     public std::enable_shared_from_this<XdgToplevel> {
  public:
   DISABLE_MOVE_AND_COPY(XdgToplevel);
@@ -19,9 +21,11 @@ class XdgToplevel : public core::SurfaceRole,
       wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface);
   ~XdgToplevel() override;
 
-  void commit() override;
+  void                                          commit() override;
+  [[nodiscard]] std::shared_ptr<core::Toplevel> get_toplevel() override;
+
   void set_activated(bool is_activated) override;
-  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
+  [[nodiscard]] std::weak_ptr<core::Surface> surface() override;
 
   void start_move();
   void start_resize(uint32_t edges);

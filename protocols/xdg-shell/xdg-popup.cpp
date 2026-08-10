@@ -5,6 +5,7 @@
 #include "common/common.hpp"
 #include "core/server-seat/pointer-grab/popup.hpp"
 #include "core/server.hpp"
+#include "core/toplevel.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
 
@@ -69,10 +70,7 @@ void XdgPopup::commit() {
       break;
   }
 }
-void XdgPopup::set_activated(bool /*is_activated*/) {
-  // todo?
-}
-std::shared_ptr<core::Surface> XdgPopup::get_toplevel() {
+std::shared_ptr<core::Toplevel> XdgPopup::get_toplevel() {
   auto parent_surface = this->parent_surface_.lock();
   if (!parent_surface) {
     return nullptr;

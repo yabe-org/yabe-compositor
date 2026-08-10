@@ -114,7 +114,6 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
     return false;
   }
   if (auto focused_surface = this->focused_surface_.lock()) {
-    focused_surface->unfocus();
     const auto& client_seat =
         server::get().seat.get_client_seat(focused_surface->client());
     if (client_seat) {
@@ -123,7 +122,6 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
   }
   this->focused_surface_ = surface;
   if (auto focused_surface = this->focused_surface_.lock()) {
-    focused_surface->focus();
     const auto& client_seat =
         server::get().seat.get_client_seat(focused_surface->client());
     if (client_seat) {

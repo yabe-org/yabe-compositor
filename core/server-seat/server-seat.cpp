@@ -1,7 +1,5 @@
 #include "server-seat.hpp"
 
-#include "core/server-seat/pointer-grab/default.hpp"
-
 namespace yabe::core::server_seat {
 client_seat::ClientSeat* ServerSeat ::create_client_seat(wl_client* client) {
   auto  client_seat = std::make_unique<client_seat::ClientSeat>();
@@ -13,5 +11,17 @@ client_seat::ClientSeat* ServerSeat ::create_client_seat(wl_client* client) {
 void ServerSeat::remove_client_seat(wl_client* client) {
   LOG_DBG("remove client_seat for client");
   this->client_seats_.erase(client);
+}
+
+void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel>& toplevel) {
+  const auto current_focused_toplevel = this->active_toplevel_.lock();
+  if (current_focused_toplevel == toplevel) {
+    return;
+  }
+  if (current_focused_toplevel) {
+    current_focused_toplevel->set_activated(false);
+  }
+  this->active_toplevel_ = toplevel;
+  toplevel->set_activated(true);
 }
 }  // namespace yabe::core::server_seat

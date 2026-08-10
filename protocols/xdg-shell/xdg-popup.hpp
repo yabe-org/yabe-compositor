@@ -7,6 +7,7 @@
 
 #include "common/common.hpp"
 #include "core/surface.hpp"
+#include "core/toplevel.hpp"
 #include "protocols/xdg-shell/xdg-positioner.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "xdg-shell-protocol.h"
@@ -21,9 +22,8 @@ class XdgPopup : public core::SurfaceRole {
       xdg_positioner::XdgPositioner*            positioner);
   ~XdgPopup() override;
 
-  void commit() override;
-  void set_activated(bool is_activated) override;
-  [[nodiscard]] std::shared_ptr<core::Surface> get_toplevel() override;
+  void                                          commit() override;
+  [[nodiscard]] std::shared_ptr<core::Toplevel> get_toplevel() override;
 
   void replace_positioner(xdg_positioner::XdgPositioner* positioner);
   /// @param token pass value if it is called via protocol,

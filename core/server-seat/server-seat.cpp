@@ -1,5 +1,7 @@
 #include "server-seat.hpp"
 
+#include <utility>
+
 #include "common/common.hpp"
 
 namespace yabe::core::server_seat {
@@ -15,7 +17,10 @@ void ServerSeat::remove_client_seat(wl_client* client) {
   this->client_seats_.erase(client);
 }
 
-void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel>& toplevel) {
+// NOLINTBEGIN(performance-unnecessary-value-param): without this,
+// even if caller wants to set current active toplevel inactive,
+// it must create an empty shared_ptr but it is cumbersome
+void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel> toplevel) {
   const auto current_focused_toplevel = this->active_toplevel_.lock();
   if (current_focused_toplevel == toplevel) {
     return;
@@ -24,17 +29,20 @@ void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel>& toplevel) {
     current_focused_toplevel->set_activated(false);
   }
   this->active_toplevel_ = toplevel;
-  toplevel->set_activated(true);
+  if (toplevel) {
+    toplevel->set_activated(true);
+  }
 }
+// NOLINTEND(performance-unnecessary-value-param)
 
 void ServerSeat::try_active_mapped_toplevel(
-    std::shared_ptr<Toplevel>& toplevel) {
+    std::shared_ptr<Toplevel> toplevel) {
   if (this->active_toplevel_.lock()) {
     return;
   }
   if (this->keyboard.get_focused_surface().lock()) {
     return;
   }
-  this->set_active_toplevel(toplevel);
+  this->set_active_toplevel(std::move(toplevel));
 }
 }  // namespace yabe::core::server_seat

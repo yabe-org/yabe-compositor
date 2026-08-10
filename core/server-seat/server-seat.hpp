@@ -38,6 +38,7 @@ class ServerSeat {
   }
 
   void set_active_toplevel(std::shared_ptr<Toplevel>& toplevel);
+  void try_active_mapped_toplevel(std::shared_ptr<Toplevel>& toplevel);
 
   ServerKeyboard keyboard;
   ServerPointer  pointer;

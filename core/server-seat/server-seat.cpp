@@ -1,5 +1,7 @@
 #include "server-seat.hpp"
 
+#include "common/common.hpp"
+
 namespace yabe::core::server_seat {
 client_seat::ClientSeat* ServerSeat ::create_client_seat(wl_client* client) {
   auto  client_seat = std::make_unique<client_seat::ClientSeat>();
@@ -23,5 +25,16 @@ void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel>& toplevel) {
   }
   this->active_toplevel_ = toplevel;
   toplevel->set_activated(true);
+}
+
+void ServerSeat::try_active_mapped_toplevel(
+    std::shared_ptr<Toplevel>& toplevel) {
+  if (this->active_toplevel_.lock()) {
+    return;
+  }
+  if (this->keyboard.get_focused_surface().lock()) {
+    return;
+  }
+  this->set_active_toplevel(toplevel);
 }
 }  // namespace yabe::core::server_seat

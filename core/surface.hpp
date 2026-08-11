@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <vector>
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
@@ -91,7 +92,7 @@ class Surface : public std::enable_shared_from_this<Surface> {
     // in order to distinguish between "attach() is not called"
     // and "null buffer is attached (the content is removed)"
     std::optional<wl_resource*> buffer;
-    std::optional<wl_resource*> frame_callback;
+    std::vector<wl_resource*>   frame_callbacks;
     std::optional<wl_resource*> release_callback;
   } pending_, current_;
   render::Texture             texture_;

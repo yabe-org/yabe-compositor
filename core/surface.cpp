@@ -4,6 +4,7 @@
 #include <wayland-server.h>
 
 #include <glm/ext.hpp>
+#include <vector>
 
 #include "common/common.hpp"
 #include "common/time.hpp"
@@ -21,7 +22,7 @@ Surface::~Surface() {
 
 void Surface::set_frame_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
-  this->pending_.frame_callback = resource;
+  this->pending_.frame_callbacks.emplace_back(resource);
 }
 void Surface::set_release_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
@@ -51,10 +52,10 @@ void Surface::commit() {
       this->pending_.buffer      = std::nullopt;
     }
 
-    if (this->pending_.frame_callback.has_value()) {
-      this->current_.frame_callback = this->pending_.frame_callback;
-      this->pending_.frame_callback = std::nullopt;
-    }
+    this->current_.frame_callbacks.insert(this->current_.frame_callbacks.end(),
+        std::move_iterator(this->pending_.frame_callbacks.begin()),
+        std::move_iterator(this->pending_.frame_callbacks.end()));
+    this->pending_.frame_callbacks.clear();
 
     if (this->pending_.release_callback.has_value()) {
       this->current_.release_callback = this->pending_.release_callback;
@@ -101,25 +102,24 @@ void Surface::upload_texture_if_needed() {
 }
 void Surface::finish_rendering() {
   std::optional<wl_resource*> buffer;
-  std::optional<wl_resource*> frame_callback;
+  std::vector<wl_resource*>   frame_callbacks;
   std::optional<wl_resource*> release_callback;
   {
     const std::lock_guard lock(this->buffer_mutex_);
-    buffer                          = this->uploaded_buffer_;
-    this->uploaded_buffer_          = std::nullopt;
-    frame_callback                  = this->current_.frame_callback;
-    this->current_.frame_callback   = std::nullopt;
+    buffer                 = this->uploaded_buffer_;
+    this->uploaded_buffer_ = std::nullopt;
+    frame_callbacks.swap(this->current_.frame_callbacks);
     release_callback                = this->current_.release_callback;
     this->current_.release_callback = std::nullopt;
   }
-  if (!buffer.has_value() && !frame_callback.has_value() &&
+  if (!buffer.has_value() && frame_callbacks.empty() &&
       !release_callback.has_value()) {
     return;
   }
 
   const auto weak_surface = this->weak_from_this();
   server::get().enqueue(
-      [weak_surface, buffer, frame_callback, release_callback]() {
+      [weak_surface, buffer, frame_callbacks, release_callback]() {
         const auto surface = weak_surface.lock();
         if (!surface) {
           return;
@@ -127,9 +127,9 @@ void Surface::finish_rendering() {
         if (buffer.has_value()) {
           wl_buffer_send_release(buffer.value());
         }
-        if (frame_callback.has_value()) {
-          wl_callback_send_done(frame_callback.value(), common::now_msec());
-          wl_resource_destroy(frame_callback.value());
+        for (auto* frame_callback : frame_callbacks) {
+          wl_callback_send_done(frame_callback, common::now_msec());
+          wl_resource_destroy(frame_callback);
         }
         if (release_callback.has_value()) {
           wl_callback_send_done(release_callback.value(), 0);

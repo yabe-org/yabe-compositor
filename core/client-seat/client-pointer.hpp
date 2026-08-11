@@ -16,6 +16,8 @@ class ClientPointer {
   void add_pointer(wl_resource* resource);
   void remove_pointer(wl_resource* resource);
 
+  // FIXME: accept Surface, not wl_resource*,
+  // to avoid confusion with other resources
   void send_enter(wl_resource* surface_resource, float x, float y);
   void send_leave(wl_resource* surface_resource);
   void send_motion(float x, float y);

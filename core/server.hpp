@@ -8,6 +8,9 @@
 #include <vector>
 
 #include "common/common.hpp"
+#include "core/data-device/data-device.hpp"
+#include "core/data-device/data-offer.hpp"
+#include "core/data-device/data-source.hpp"
 #include "core/ray-cursor.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
@@ -45,6 +48,17 @@ class Server {
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::wayland::subcompositor::subsurface::Subsurface>>
       subsurface_map;
+
+  std::unordered_map<wl_resource*,
+      std::shared_ptr<core::data_device::DataDevice>>
+      data_device_map;
+  std::unordered_map<wl_resource*,
+      std::shared_ptr<core::data_device::DataSource>>
+      data_source_map;
+  std::unordered_map<wl_resource*,
+      std::shared_ptr<core::data_device::DataOffer>>
+      data_offer_map;
+
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::xdg_shell::xdg_surface::XdgSurface>>
       xdg_surface_map;

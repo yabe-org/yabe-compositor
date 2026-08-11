@@ -28,8 +28,11 @@ void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
     return;
   }
   if (is_pressed) {
-    auto toplevel = pointer_focused_surface_node->surface()->get_toplevel();
+    const auto surface  = pointer_focused_surface_node->surface();
+    auto       toplevel = surface->get_toplevel();
     if (toplevel) {
+      // data_device.selection must be sent immediately before keyboard focus
+      server::get().seat.data_device.send_selection(surface->client());
       server::get().seat.keyboard.set_focused_surface(toplevel->surface());
       server::get().seat.set_active_toplevel(toplevel);
     }

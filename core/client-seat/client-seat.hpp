@@ -5,6 +5,7 @@
 #include "client-keyboard.hpp"
 #include "client-pointer.hpp"
 #include "common/common.hpp"
+#include "core/client-seat/client-data-device.hpp"
 
 namespace yabe::core::client_seat {
 class ClientSeat {
@@ -13,7 +14,8 @@ class ClientSeat {
   explicit ClientSeat() = default;
   ~ClientSeat()         = default;
 
-  ClientKeyboard keyboard;
-  ClientPointer  pointer;
+  ClientKeyboard   keyboard;
+  ClientPointer    pointer;
+  ClientDataDevice data_device;
 };
 }  // namespace yabe::core::client_seat

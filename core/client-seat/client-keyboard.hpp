@@ -17,6 +17,8 @@ class ClientKeyboard {
   void remove_keyboard(wl_resource* resource);
 
   void send_keymap(uint32_t format, int32_t fd, uint32_t size);
+  // FIXME: accept Surface, not wl_resource*,
+  // to avoid confusion with other resources
   void send_enter(wl_resource* surface_resource, wl_array* keys);
   void send_leave(wl_resource* surface_resource);
   void send_key(uint32_t key, uint32_t state);

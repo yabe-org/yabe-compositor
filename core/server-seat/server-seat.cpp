@@ -43,6 +43,8 @@ void ServerSeat::try_active_mapped_toplevel(
   if (this->keyboard.get_focused_surface().lock()) {
     return;
   }
+  this->data_device.send_selection(toplevel->surface().lock()->client());
+  this->keyboard.set_focused_surface(toplevel->surface());
   this->set_active_toplevel(std::move(toplevel));
 }
 }  // namespace yabe::core::server_seat

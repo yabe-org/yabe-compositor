@@ -3,18 +3,23 @@
 #include <wayland-server-core.h>
 #include <wayland-server-protocol-core.h>
 
+#include <memory>
+
+#include "core/data-device/data-offer.hpp"
+#include "core/server.hpp"
+
 namespace yabe::proto::wayland::data_device_manager::data_offer {
 namespace {
-void accept(wl_client* /*client*/, wl_resource* /*resource*/,
-    uint32_t /*serial*/, const char* /*mime_type*/) {
-  // TODO
+void accept(wl_client* /*client*/, wl_resource* resource, uint32_t /*serial*/,
+    const char* mime_type) {
+  core::server::get().data_offer_map.at(resource)->accept(mime_type);
 }
-void receive(wl_client* /*client*/, wl_resource* /*resource*/,
-    const char* /*mime_type*/, int32_t /*fd*/) {
-  // TODO
+void receive(wl_client* /*client*/, wl_resource* resource,
+    const char* mime_type, int32_t fd) {
+  core::server::get().data_offer_map.at(resource)->receive(mime_type, fd);
 }
-void destroy(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
+void destroy(wl_client* /*client*/, wl_resource* resource) {
+  wl_resource_destroy(resource);
 }
 void finish(wl_client* /*client*/, wl_resource* /*resource*/) {
   // TODO
@@ -30,15 +35,23 @@ constexpr struct wl_data_offer_interface kImpl = {
     .finish      = finish,
     .set_actions = set_actions,
 };
+void destroy(wl_resource* resource) {
+  core::server::get().data_offer_map.erase(resource);
+}
 }  // namespace
 
-void create(wl_client* client, uint32_t id) {
+std::shared_ptr<core::data_device::DataOffer> create(
+    wl_client* client, std::shared_ptr<core::data_device::DataSource> source) {
   wl_resource* resource = wl_resource_create(
-      client, &wl_data_offer_interface, wl_data_offer_interface.version, id);
+      client, &wl_data_offer_interface, wl_data_offer_interface.version, 0);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
-    return;
+    return {};
   }
-  wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
+  const auto self =
+      std::make_shared<core::data_device::DataOffer>(resource, source);
+  core::server::get().data_offer_map.emplace(resource, self);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  return self;
 }
 }  // namespace yabe::proto::wayland::data_device_manager::data_offer

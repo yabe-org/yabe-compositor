@@ -18,6 +18,7 @@ class RayCursor {
   void move_relative(float polar, float azimuth);
   void set_length(float length);
   void set_cursor_hotspot(int32_t x, int32_t y);
+  void set_cursor_rotation(glm::quat rotation);
 
   [[nodiscard]] glm::mat4 cursor_model_mat(
       unit::Pixel width, unit::Pixel height) const;
@@ -45,6 +46,7 @@ class RayCursor {
   float     polar_   = std::numbers::pi / 2.F;  // [0, pi]
   float     azimuth_ = std::numbers::pi;        // x-z plane, [0, 2pi]
 
+  glm::mat4   cursor_rotation_mat_ = glm::mat4(1.F);
   unit::Pixel cursor_hotspot_x_{0};
   unit::Pixel cursor_hotspot_y_{0};
 };

@@ -32,6 +32,8 @@ void ServerPointer::focus_pointed_surface() {
   }
   server::get().ray_cursor.set_length(
       intersection.value().intersect_info.distance);
+  server::get().ray_cursor.set_cursor_rotation(
+      intersection.value().node->geometry().rotation());
 
   const auto& client_seat =
       server::get().seat.get_client_seat(surface_node->surface()->client());

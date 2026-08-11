@@ -18,14 +18,13 @@ void RayCursor::set_cursor_hotspot(int32_t x, int32_t y) {
   this->cursor_hotspot_x_ = unit::Pixel(x);
   this->cursor_hotspot_y_ = unit::Pixel(y);
 }
+void RayCursor::set_cursor_rotation(glm::quat rotation) {
+  this->cursor_rotation_mat_ = glm::mat4_cast(rotation);
+}
 
 glm::mat4 RayCursor::cursor_model_mat(
     unit::Pixel width, unit::Pixel height) const {
-  const auto pos = this->origin_ + this->direction() * this->length_;
-  const auto orientation =
-      this->rotation() *
-      glm::angleAxis(std::numbers::pi_v<float>, glm::vec3(0.F, 1.F, 0.F));
-
+  const auto pos      = this->origin_ + this->direction() * this->length_;
   // In 2D, surface position is calculated by $pos - hotspot$
   // but yabe uses OpenGL, so Y axis should be inverted
   // and the surface position should be the center of the surface
@@ -36,7 +35,7 @@ glm::mat4 RayCursor::cursor_model_mat(
       glm::vec3(*offset_x.to_world_unit(), *offset_y.to_world_unit(), 0.F);
 
   return glm::translate(glm::mat4(1.F), pos + hotspot_offset) *
-         glm::mat4_cast(orientation) *
+         this->cursor_rotation_mat_ *
          glm::scale(glm::mat4(1.F),
              glm::vec3(*width.to_world_unit(), *height.to_world_unit(), 0.F));
 }

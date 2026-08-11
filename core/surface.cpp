@@ -64,12 +64,6 @@ void Surface::commit() {
 
   if (buffer_to_release.has_value()) {
     wl_buffer_send_release(buffer_to_release.value());
-    if (this->current_.release_callback.has_value()) {
-      wl_callback_send_done(
-          this->current_.release_callback.value(), common::now_msec());
-      wl_resource_destroy(this->current_.release_callback.value());
-      this->current_.release_callback = std::nullopt;
-    }
   }
 
   if (const auto role = this->role_.lock()) {
@@ -107,33 +101,41 @@ void Surface::upload_texture_if_needed() {
 }
 void Surface::finish_rendering() {
   std::optional<wl_resource*> buffer;
-  std::optional<wl_resource*> callback;
+  std::optional<wl_resource*> frame_callback;
+  std::optional<wl_resource*> release_callback;
   {
     const std::lock_guard lock(this->buffer_mutex_);
-    buffer                        = this->uploaded_buffer_;
-    this->uploaded_buffer_        = std::nullopt;
-    callback                      = this->current_.frame_callback;
-    this->current_.frame_callback = std::nullopt;
+    buffer                          = this->uploaded_buffer_;
+    this->uploaded_buffer_          = std::nullopt;
+    frame_callback                  = this->current_.frame_callback;
+    this->current_.frame_callback   = std::nullopt;
+    release_callback                = this->current_.release_callback;
+    this->current_.release_callback = std::nullopt;
   }
-  if (!buffer.has_value() && !callback.has_value()) {
+  if (!buffer.has_value() && !frame_callback.has_value() &&
+      !release_callback.has_value()) {
     return;
   }
 
   const auto weak_surface = this->weak_from_this();
-  server::get().enqueue([weak_surface, buffer, callback]() {
-    const auto surface = weak_surface.lock();
-    if (!surface) {
-      return;
-    }
-    if (buffer.has_value()) {
-      wl_buffer_send_release(buffer.value());
-    }
-    if (!callback.has_value()) {
-      return;
-    }
-    wl_callback_send_done(callback.value(), common::now_msec());
-    wl_resource_destroy(callback.value());
-  });
+  server::get().enqueue(
+      [weak_surface, buffer, frame_callback, release_callback]() {
+        const auto surface = weak_surface.lock();
+        if (!surface) {
+          return;
+        }
+        if (buffer.has_value()) {
+          wl_buffer_send_release(buffer.value());
+        }
+        if (frame_callback.has_value()) {
+          wl_callback_send_done(frame_callback.value(), common::now_msec());
+          wl_resource_destroy(frame_callback.value());
+        }
+        if (release_callback.has_value()) {
+          wl_callback_send_done(release_callback.value(), 0);
+          wl_resource_destroy(release_callback.value());
+        }
+      });
 }
 
 void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,

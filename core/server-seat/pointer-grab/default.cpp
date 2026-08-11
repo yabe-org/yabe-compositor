@@ -24,6 +24,7 @@ void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
       server::get().seat.pointer.get_focused_surface_node().lock();
   if (!pointer_focused_surface_node) {
     server::get().seat.set_active_toplevel({});
+    server::get().seat.keyboard.set_focused_surface({});
     return;
   }
   if (is_pressed) {

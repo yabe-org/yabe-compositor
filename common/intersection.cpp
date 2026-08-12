@@ -1,6 +1,8 @@
 #include "intersection.hpp"
 
+#include <cmath>
 #include <glm/ext.hpp>
+#include <limits>
 #include <optional>
 
 namespace yabe::common::intersection {
@@ -8,6 +10,9 @@ namespace yabe::common::intersection {
 std::optional<SurfaceInfo> with_surface(const glm::vec3& o,
     const glm::vec3& dir, const glm::vec3& v0, const glm::vec3& v1,
     const glm::vec3& v2) {
+  if (glm::dot(dir, dir) <= std::numeric_limits<float>::epsilon()) {
+    return std::nullopt;
+  }
   const glm::vec3 d   = glm::normalize(dir);
   // Vectors that express the 'E'dges of the plane
   const glm::vec3 e1  = v1 - v0;
@@ -21,7 +26,10 @@ std::optional<SurfaceInfo> with_surface(const glm::vec3& o,
   const glm::vec3 p   = glm::cross(d, e2);
   const glm::vec3 q   = glm::cross(w, e1);
   const float     det = glm::dot(p, e1);
-  const float     t   = glm::dot(q, e2) / det;
+  if (std::abs(det) <= std::numeric_limits<float>::epsilon()) {
+    return std::nullopt;
+  }
+  const float t = glm::dot(q, e2) / det;
   if (t < 0) {
     return std::nullopt;
   }

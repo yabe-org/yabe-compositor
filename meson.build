@@ -34,3 +34,7 @@ yabe_compositor_lib = static_library('yabe_compositor',
     libffi_sp.get_variable('ffi_lib'),
   ],
 )
+
+if get_option('tests')
+  subdir('tests')
+endif

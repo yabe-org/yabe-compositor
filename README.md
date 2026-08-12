@@ -24,7 +24,7 @@ add_library(yabe_compositor STATIC IMPORTED)
 set_target_properties(yabe_compositor $PROPERTIES
     IMPORTED_LOCATION ${MESON_BUILD_DIR}/libyabe_compositor.a
 )
-add_dependencies(${PROJECT_NAME} meson_compositor)
+add_dependencies(${PROJECT_NAME} yabe_compositor_project)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${MESON_BUILD_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE yabe_compositor)
@@ -55,6 +55,7 @@ int main() {
     std::array<float, 16> vp_mat = /* update */;
     yabe_compositor_draw(vp_mat.data());
   }
+  yabe_compositor_terminate();
   thread.join();
   return 0;
 }

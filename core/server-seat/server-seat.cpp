@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "common/common.hpp"
+#include "core/server.hpp"
 
 namespace yabe::core::server_seat {
 client_seat::ClientSeat* ServerSeat ::create_client_seat(wl_client* client) {
@@ -31,6 +32,11 @@ void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel> toplevel) {
   this->active_toplevel_ = toplevel;
   if (toplevel) {
     toplevel->set_activated(true);
+    auto node = toplevel->surface().lock()->surface_node();
+    if (node.has_value()) {
+      server::get().scene.raise_to_front(
+          toplevel->surface().lock()->surface_node().value());
+    }
   }
 }
 // NOLINTEND(performance-unnecessary-value-param)

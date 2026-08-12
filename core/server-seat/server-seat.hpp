@@ -38,6 +38,9 @@ class ServerSeat {
     }
   }
 
+  /// this does not change keyboard focus nor send selection.
+  /// e.g. xdg_popup.grab requires keyboard focus to popup surface,
+  ///      keeping xdg_toplevel active
   void set_active_toplevel(std::shared_ptr<Toplevel> toplevel);
   void try_active_mapped_toplevel(std::shared_ptr<Toplevel> toplevel);
 

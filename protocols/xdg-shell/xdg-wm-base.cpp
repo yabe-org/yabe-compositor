@@ -9,26 +9,25 @@
 
 namespace yabe::proto::xdg_shell::xdg_wm_base {
 namespace {
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void create_positioner(
-    wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-  xdg_positioner::create(client, id);
-}
-void get_xdg_surface(wl_client* client, wl_resource* /*resource*/, uint32_t id,
-    wl_resource* surface_resource) {
-  xdg_surface::create(client, id, surface_resource);
-}
-void pong(
-    wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*serial*/) {
-  // TODO
-}
 constexpr struct xdg_wm_base_interface kImpl = {
-    .destroy           = destroy,
-    .create_positioner = create_positioner,
-    .get_xdg_surface   = get_xdg_surface,
-    .pong              = pong,
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .create_positioner =
+        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
+          xdg_positioner::create(client, id);
+        },
+    .get_xdg_surface =
+        [](wl_client* client, wl_resource* /*resource*/, uint32_t id,
+            wl_resource* surface_resource) {
+          xdg_surface::create(client, id, surface_resource);
+        },
+    .pong =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            uint32_t /*serial*/) {
+          // TODO
+        },
 };
 }  // namespace
 

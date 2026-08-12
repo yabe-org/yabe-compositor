@@ -10,32 +10,33 @@
 
 namespace yabe::proto::wayland::data_device_manager::data_offer {
 namespace {
-void accept(wl_client* /*client*/, wl_resource* resource, uint32_t /*serial*/,
-    const char* mime_type) {
-  core::server::get().data_offer_map.at(resource)->accept(mime_type);
-}
-void receive(wl_client* /*client*/, wl_resource* resource,
-    const char* mime_type, int32_t fd) {
-  core::server::get().data_offer_map.at(resource)->receive(mime_type, fd);
-}
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void finish(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-void set_actions(wl_client* /*client*/, wl_resource* /*resource*/,
-    uint32_t /*dnd_actions*/, uint32_t /*preferred_action*/) {
-  // TODO
-}
 constexpr struct wl_data_offer_interface kImpl = {
-    .accept      = accept,
-    .receive     = receive,
-    .destroy     = destroy,
-    .finish      = finish,
-    .set_actions = set_actions,
+    .accept =
+        [](wl_client* /*client*/, wl_resource* resource, uint32_t /*serial*/,
+            const char* mime_type) {
+          core::server::get().data_offer_map.at(resource)->accept(mime_type);
+        },
+    .receive =
+        [](wl_client* /*client*/, wl_resource* resource, const char* mime_type,
+            int32_t fd) {
+          core::server::get().data_offer_map.at(resource)->receive(
+              mime_type, fd);
+        },
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .finish =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .set_actions =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            uint32_t /*dnd_actions*/, uint32_t /*preferred_action*/) {
+          // TODO
+        },
 };
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   core::server::get().data_offer_map.erase(resource);
 }
 }  // namespace
@@ -51,7 +52,7 @@ std::shared_ptr<core::data_device::DataOffer> create(
   const auto self =
       std::make_shared<core::data_device::DataOffer>(resource, source);
   core::server::get().data_offer_map.emplace(resource, self);
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return self;
 }
 }  // namespace yabe::proto::wayland::data_device_manager::data_offer

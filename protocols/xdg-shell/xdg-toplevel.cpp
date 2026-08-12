@@ -126,76 +126,77 @@ std::weak_ptr<core::scene::SurfaceNode> XdgToplevel::surface_node() {
 }
 
 namespace {
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void set_parent(
-    wl_client* /*client*/, wl_resource* /*resource*/, wl_resource* /*parent*/) {
-  // TODO
-}
-void set_title(
-    wl_client* /*client*/, wl_resource* /*resource*/, const char* /*title*/) {
-  // TODO
-}
-void set_app_id(
-    wl_client* /*client*/, wl_resource* /*resource*/, const char* /*app_id*/) {
-  // TODO
-}
-void show_window_menu(wl_client* /*client*/, wl_resource* /*resource*/,
-    wl_resource* /*seat*/, uint32_t /*serial*/, int32_t /*x*/, int32_t /*y*/) {
-  // TODO
-}
-void move(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
-    uint32_t /*serial*/) {
-  core::server::get().xdg_toplevel_map.at(resource)->start_move();
-}
-void resize(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
-    uint32_t /*serial*/, uint32_t               edges) {
-  core::server::get().xdg_toplevel_map.at(resource)->start_resize(edges);
-}
-void set_max_size(wl_client* /*client*/, wl_resource* /*resource*/,
-    int32_t /*width*/, int32_t /*height*/) {
-  // TODO
-}
-void set_min_size(wl_client* /*client*/, wl_resource* /*resource*/,
-    int32_t /*width*/, int32_t /*height*/) {
-  // TODO
-}
-void set_maximized(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-void unset_maximized(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-void set_fullscreen(
-    wl_client* /*client*/, wl_resource* /*resource*/, wl_resource* /*output*/) {
-  // TODO
-}
-void unset_fullscreen(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-void set_minimized(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-
 constexpr struct xdg_toplevel_interface kImpl = {
-    .destroy          = destroy,
-    .set_parent       = set_parent,
-    .set_title        = set_title,
-    .set_app_id       = set_app_id,
-    .show_window_menu = show_window_menu,
-    .move             = move,
-    .resize           = resize,
-    .set_max_size     = set_max_size,
-    .set_min_size     = set_min_size,
-    .set_maximized    = set_maximized,
-    .unset_maximized  = unset_maximized,
-    .set_fullscreen   = set_fullscreen,
-    .unset_fullscreen = unset_fullscreen,
-    .set_minimized    = set_minimized,
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .set_parent =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            wl_resource* /*parent*/) {
+          // TODO
+        },
+    .set_title =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            const char* /*title*/) {
+          // TODO
+        },
+    .set_app_id =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            const char* /*app_id*/) {
+          // TODO
+        },
+    .show_window_menu =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            wl_resource* /*seat*/, uint32_t /*serial*/, int32_t /*x*/,
+            int32_t /*y*/) {
+          // TODO
+        },
+    .move =
+        [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
+            uint32_t /*serial*/) {
+          core::server::get().xdg_toplevel_map.at(resource)->start_move();
+        },
+    .resize =
+        [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
+            uint32_t /*serial*/, uint32_t      edges) {
+          core::server::get().xdg_toplevel_map.at(resource)->start_resize(
+              edges);
+        },
+    .set_max_size =
+        [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*width*/,
+            int32_t /*height*/) {
+          // TODO
+        },
+    .set_min_size =
+        [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*width*/,
+            int32_t /*height*/) {
+          // TODO
+        },
+    .set_maximized =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .unset_maximized =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .set_fullscreen =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            wl_resource* /*output*/) {
+          // TODO
+        },
+    .unset_fullscreen =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .set_minimized =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
 };
 
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   core::server::get().xdg_toplevel_map.erase(resource);
 }
 }  // namespace
@@ -221,7 +222,7 @@ wl_resource* create(wl_client* client, uint32_t id,
   core::server::get().seat.try_active_mapped_toplevel(toplevel);
   core::server::get().xdg_toplevel_map.emplace(resource, self);
   surface->set_role(self);
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return resource;
 }
 }  // namespace yabe::proto::xdg_shell::xdg_toplevel

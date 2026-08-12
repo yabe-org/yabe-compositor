@@ -131,27 +131,27 @@ void XdgPopup::start_grab() {
 }
 
 namespace {
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void grab(wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
-    uint32_t /*serial*/) {
-  core::server::get().xdg_popup_map.at(resource)->start_grab();
-}
-void reposition(wl_client* /*client*/, wl_resource* resource,
-    wl_resource* positioner_resource, uint32_t token) {
-  const auto& self       = core::server::get().xdg_popup_map.at(resource);
-  auto*       positioner = xdg_positioner::get(positioner_resource);
-  self->replace_positioner(positioner);
-  self->reposition(token);
-}
 constexpr struct xdg_popup_interface kImpl = {
-    .destroy    = destroy,
-    .grab       = grab,
-    .reposition = reposition,
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .grab =
+        [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
+            uint32_t /*serial*/) {
+          core::server::get().xdg_popup_map.at(resource)->start_grab();
+        },
+    .reposition =
+        [](wl_client* /*client*/, wl_resource* resource,
+            wl_resource* positioner_resource, uint32_t token) {
+          const auto& self = core::server::get().xdg_popup_map.at(resource);
+          auto*       positioner = xdg_positioner::get(positioner_resource);
+          self->replace_positioner(positioner);
+          self->reposition(token);
+        },
 };
 
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   core::server::get().xdg_popup_map.erase(resource);
 }
 }  // namespace
@@ -172,7 +172,7 @@ void create(wl_client* client, uint32_t id,
         "xdg_popup requested for unknown popup surface");
     return;
   }
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 
   auto popup = std::make_shared<XdgPopup>(
       resource, popup_surface, parent_surface, positioner);

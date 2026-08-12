@@ -165,56 +165,55 @@ PopupPosition XdgPositioner::calculate_pos() {
 }
 
 namespace {
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void set_size(wl_client* /*client*/, wl_resource* resource, int32_t width,
-    int32_t height) {
-  get(resource)->set_size(width, height);
-}
-void set_anchor_rect(wl_client* /*client*/, wl_resource* resource, int32_t x,
-    int32_t y, int32_t width, int32_t height) {
-  get(resource)->set_anchor_rect(x, y, width, height);
-}
-void set_anchor(wl_client* /*client*/, wl_resource* resource, uint32_t anchor) {
-  get(resource)->set_anchor(static_cast<xdg_positioner_anchor>(anchor));
-}
-void set_gravity(
-    wl_client* /*client*/, wl_resource* resource, uint32_t gravity) {
-  get(resource)->set_gravity(static_cast<xdg_positioner_gravity>(gravity));
-}
-void set_constraint_adjustment(wl_client* /*client*/, wl_resource* resource,
-    uint32_t constraint_adjustment) {
-  get(resource)->set_constraint_adjustment(constraint_adjustment);
-}
-void set_offset(
-    wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y) {
-  get(resource)->set_offset(x, y);
-}
-void set_reactive(wl_client* /*client*/, wl_resource* /*resource*/) {
-  // TODO
-}
-void set_parent_size(wl_client* /*client*/, wl_resource* resource,
-    int32_t width, int32_t height) {
-  get(resource)->set_parent_size(width, height);
-}
-void set_parent_configure(
-    wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*serial*/) {
-  // TODO
-}
 constexpr struct xdg_positioner_interface kImpl = {
-    .destroy                   = destroy,
-    .set_size                  = set_size,
-    .set_anchor_rect           = set_anchor_rect,
-    .set_anchor                = set_anchor,
-    .set_gravity               = set_gravity,
-    .set_constraint_adjustment = set_constraint_adjustment,
-    .set_offset                = set_offset,
-    .set_reactive              = set_reactive,
-    .set_parent_size           = set_parent_size,
-    .set_parent_configure      = set_parent_configure,
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .set_size =
+        [](wl_client* /*client*/, wl_resource* resource, int32_t width,
+            int32_t height) {
+          get(resource)->set_size(width, height);
+        },
+    .set_anchor_rect =
+        [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
+            int32_t width, int32_t height) {
+          get(resource)->set_anchor_rect(x, y, width, height);
+        },
+    .set_anchor =
+        [](wl_client* /*client*/, wl_resource* resource, uint32_t anchor) {
+          get(resource)->set_anchor(static_cast<xdg_positioner_anchor>(anchor));
+        },
+    .set_gravity =
+        [](wl_client* /*client*/, wl_resource* resource, uint32_t gravity) {
+          get(resource)->set_gravity(
+              static_cast<xdg_positioner_gravity>(gravity));
+        },
+    .set_constraint_adjustment =
+        [](wl_client* /*client*/, wl_resource* resource,
+            uint32_t constraint_adjustment) {
+          get(resource)->set_constraint_adjustment(constraint_adjustment);
+        },
+    .set_offset =
+        [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y) {
+          get(resource)->set_offset(x, y);
+        },
+    .set_reactive =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .set_parent_size =
+        [](wl_client* /*client*/, wl_resource* resource, int32_t width,
+            int32_t height) {
+          get(resource)->set_parent_size(width, height);
+        },
+    .set_parent_configure =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            uint32_t /*serial*/) {
+          // TODO
+        },
 };
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   delete get(resource);
 }
 }  // namespace
@@ -227,7 +226,7 @@ void create(wl_client* client, uint32_t id) {
     return;
   }
   auto* self = new XdgPositioner(resource);
-  wl_resource_set_implementation(resource, &kImpl, self, destroy);
+  wl_resource_set_implementation(resource, &kImpl, self, handle_destruction);
 }
 XdgPositioner* get(wl_resource* resource) {
   auto* self = wl_resource_get_user_data(resource);

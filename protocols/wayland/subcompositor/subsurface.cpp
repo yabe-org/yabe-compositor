@@ -84,37 +84,35 @@ void Subsurface::update_position() {
 }
 
 namespace {
-void destroy(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
-void set_position(
-    wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y) {
-  core::server::get().subsurface_map.at(resource)->set_position(x, y);
-}
-void place_above(struct wl_client* /*client*/, struct wl_resource* /*resource*/,
-    struct wl_resource* /*sibling*/) {
-  // TODO
-}
-void place_below(struct wl_client* /*client*/, struct wl_resource* /*resource*/,
-    struct wl_resource* /*sibling*/) {
-  // TODO
-}
-void set_sync(struct wl_client* /*client*/, struct wl_resource* /*resource*/) {
-  // TODO
-}
-void set_desync(
-    struct wl_client* /*client*/, struct wl_resource* /*resource*/) {
-  // TODO
-}
 constexpr struct wl_subsurface_interface kImpl = {
-    .destroy      = destroy,
-    .set_position = set_position,
-    .place_above  = place_above,
-    .place_below  = place_below,
-    .set_sync     = set_sync,
-    .set_desync   = set_desync,
+    .destroy =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
+    .set_position =
+        [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y) {
+          core::server::get().subsurface_map.at(resource)->set_position(x, y);
+        },
+    .place_above =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            wl_resource* /*sibling*/) {
+          // TODO
+        },
+    .place_below =
+        [](wl_client* /*client*/, wl_resource* /*resource*/,
+            wl_resource* /*sibling*/) {
+          // TODO
+        },
+    .set_sync =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
+    .set_desync =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
 };
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   core::server::get().subsurface_map.erase(resource);
 }
 }  // namespace
@@ -132,6 +130,6 @@ void create(wl_client* client, uint32_t id,
       std::make_shared<Subsurface>(resource, surface, parent_surface);
   surface->set_role(subsurface);
   core::server::get().subsurface_map.emplace(resource, std::move(subsurface));
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 }
 }  // namespace yabe::proto::wayland::subcompositor::subsurface

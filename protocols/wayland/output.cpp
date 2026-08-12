@@ -6,13 +6,13 @@
 
 namespace yabe::proto::wayland::output {
 namespace {
-void release(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
 constexpr struct wl_output_interface kImpl = {
-    .release = release,
+    .release =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
 };
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   core::server::get().output_map.erase(wl_resource_get_client(resource));
 }
 }  // namespace
@@ -25,7 +25,7 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
     return;
   }
   core::server::get().output_map.emplace(client, resource);
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   wl_output_send_geometry(resource, 0, 0, 0, 0, WL_OUTPUT_SUBPIXEL_UNKNOWN,
       "yabe-compositor", "output", WL_OUTPUT_TRANSFORM_NORMAL);
   // TODO: make resolution configurable by somehow

@@ -8,21 +8,20 @@
 
 namespace yabe::proto::wayland::data_device_manager {
 namespace {
-void create_data_source(
-    wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-  data_source::create(client, id);
-}
-void get_data_device(wl_client* client, wl_resource* /*resource*/, uint32_t id,
-    wl_resource* /*seat*/) {
-  data_device::create(client, id);
-}
-void release(struct wl_client* /*client*/, struct wl_resource* /*resource*/) {
-  // TODO
-}
 constexpr struct wl_data_device_manager_interface kImpl = {
-    .create_data_source = create_data_source,
-    .get_data_device    = get_data_device,
-    .release            = release,
+    .create_data_source =
+        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
+          data_source::create(client, id);
+        },
+    .get_data_device =
+        [](wl_client* client, wl_resource* /*resource*/, uint32_t id,
+            wl_resource* /*seat*/) {
+          data_device::create(client, id);
+        },
+    .release =
+        [](wl_client* /*client*/, wl_resource* /*resource*/) {
+          // TODO
+        },
 };
 }  // namespace
 

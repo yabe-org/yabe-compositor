@@ -6,14 +6,14 @@
 
 namespace yabe::proto::wayland::seat::keyboard {
 namespace {
-void release(wl_client* /*client*/, wl_resource* resource) {
-  wl_resource_destroy(resource);
-}
 constexpr struct wl_keyboard_interface kImpl = {
-    .release = release,
+    .release =
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
+        },
 };
 
-void destroy(wl_resource* resource) {
+void handle_destruction(wl_resource* resource) {
   auto*      client      = wl_resource_get_client(resource);
   const auto client_seat = core::server::get().seat.get_client_seat(client);
   if (!client_seat) {
@@ -31,7 +31,7 @@ void create(wl_client* client, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  wl_resource_set_implementation(resource, &kImpl, nullptr, destroy);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   const auto client_seat = core::server::get().seat.get_client_seat(client);
   if (!client_seat) {
     LOG_ERR("client_seat not found on wl_keyboard.create");

@@ -11,6 +11,7 @@
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
+#include "core/region.hpp"
 #include "core/render/texture.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/toplevel.hpp"
@@ -34,6 +35,7 @@ class Surface : public std::enable_shared_from_this<Surface> {
   ~Surface();
 
   void set_frame_callback(wl_resource* resource);
+  void set_input_region(std::optional<Region> region);
   void set_release_callback(wl_resource* resource);
   void attach(wl_resource* resource);
   void commit();
@@ -73,6 +75,9 @@ class Surface : public std::enable_shared_from_this<Surface> {
   [[nodiscard]] const unit::Pixel& texture_height() const {
     return this->texture_height_;
   }
+  [[nodiscard]] const std::optional<Region>& input_region() const {
+    return this->current_.input_region;
+  }
   [[nodiscard]] std::shared_ptr<Toplevel> get_toplevel() {
     if (const auto role = this->role_.lock()) {
       return role->get_toplevel();
@@ -92,9 +97,14 @@ class Surface : public std::enable_shared_from_this<Surface> {
     // in order to distinguish between "attach() is not called"
     // and "null buffer is attached (the content is removed)"
     std::optional<wl_resource*> buffer;
+    // if pending_.input_region is nullopt and:
+    //   - has_pending_input_region_ == true  : the input region is cleared
+    //   - has_pending_input_region_ == false : the input region is not changed
+    std::optional<Region>       input_region;
     std::vector<wl_resource*>   frame_callbacks;
     std::optional<wl_resource*> release_callback;
   } pending_, current_;
+  bool                        has_pending_input_region_ = false;
   render::Texture             texture_;
   bool                        is_texture_uploaded_ = false;
   std::optional<wl_resource*> uploaded_buffer_;

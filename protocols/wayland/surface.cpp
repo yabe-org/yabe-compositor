@@ -3,6 +3,8 @@
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
 
+#include <optional>
+
 #include "core/server.hpp"
 #include "core/surface.hpp"
 
@@ -33,9 +35,15 @@ void set_opaque_region(wl_client* /*client*/, wl_resource* /*resource*/,
     wl_resource* /*region_resource*/) {
   // TODO
 }
-void set_input_region(wl_client* /*client*/, wl_resource* /*resource*/,
-    wl_resource* /*region_resource*/) {
-  // TODO
+void set_input_region(wl_client* /*client*/, wl_resource* resource,
+    wl_resource* region_resource) {
+  const auto& self      = core::server::get().surface_map.at(resource);
+  auto        region_it = core::server::get().region_map.find(region_resource);
+  if (region_it == core::server::get().region_map.end()) {
+    self->set_input_region(std::nullopt);
+  } else {
+    self->set_input_region(*region_it->second);
+  }
 }
 void commit(wl_client* /*client*/, wl_resource* resource) {
   core::server::get().surface_map.at(resource)->commit();

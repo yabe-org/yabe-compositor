@@ -1,5 +1,6 @@
 srcs += [
   'core/ray-cursor.cpp',
+  'core/region.cpp',
   'core/server.cpp',
   'core/surface.cpp',
 

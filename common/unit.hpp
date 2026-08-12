@@ -1,5 +1,6 @@
 #pragma once
 
+#include <compare>
 #include <cstdint>
 
 namespace yabe::core::unit {
@@ -33,11 +34,8 @@ struct Pixel {
 
   explicit Pixel(int32_t value) : value(value) {
   }
-  ~Pixel()                             = default;
-  Pixel(const Pixel&)                  = default;
-  Pixel(Pixel&&)                       = default;
-  Pixel& operator=(const Pixel& other) = default;
-  Pixel& operator=(Pixel&&)            = default;
+
+  auto operator<=>(const Pixel& other) const = default;
 
   Pixel operator+(const Pixel& other) const {
     return Pixel{this->value + other.value};

@@ -24,6 +24,10 @@ void Surface::set_frame_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
   this->pending_.frame_callbacks.emplace_back(resource);
 }
+void Surface::set_input_region(std::optional<Region> region) {
+  this->has_pending_input_region_ = true;
+  this->pending_.input_region     = region;
+}
 void Surface::set_release_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
   this->pending_.release_callback = resource;
@@ -60,6 +64,12 @@ void Surface::commit() {
     if (this->pending_.release_callback.has_value()) {
       this->current_.release_callback = this->pending_.release_callback;
       this->pending_.release_callback = std::nullopt;
+    }
+
+    if (this->has_pending_input_region_) {
+      this->has_pending_input_region_ = false;
+      this->current_.input_region     = this->pending_.input_region;
+      this->pending_.input_region     = std::nullopt;
     }
   }
 

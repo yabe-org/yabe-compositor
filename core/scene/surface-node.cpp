@@ -74,15 +74,21 @@ std::optional<SceneIntersection> SurfaceNode::check_intersection_self(
   }
   const auto x =
       static_cast<float>(*this->surface()->texture_width()) * result->u;
-  const auto y = static_cast<float>(*this->surface()->texture_height()) *
-                 (1.F - result->v);
-  const common::intersection::IntersectInfo info{
-      .distance = result->distance,
-      .pos      = {x, y, 0.F},
-  };
-  return SceneIntersection{
+  const auto        y = static_cast<float>(*this->surface()->texture_height()) *
+                        (1.F - result->v);
+  SceneIntersection intersection{
       .node           = this->shared_from_this(),
-      .intersect_info = info,
+      .intersect_info = {.distance = result->distance,
+                         .pos                     = glm::vec3{x, y, 0.F}},
   };
+  const auto region = this->surface()->input_region();
+  if (!region.has_value()) {
+    return intersection;
+  }
+  if (region.value().contains(unit::Pixel(static_cast<int32_t>(x)),
+          unit::Pixel(static_cast<int32_t>(y)))) {
+    return intersection;
+  }
+  return std::nullopt;
 }
 }  // namespace yabe::core::scene

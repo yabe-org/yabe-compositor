@@ -12,6 +12,7 @@
 #include "core/data-device/data-offer.hpp"
 #include "core/data-device/data-source.hpp"
 #include "core/ray-cursor.hpp"
+#include "core/region.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/scene/scene.hpp"
@@ -44,6 +45,7 @@ class Server {
   wl_event_loop* loop();
 
   std::unordered_map<wl_client*, wl_resource*>               output_map;
+  std::unordered_map<wl_resource*, std::unique_ptr<Region>>  region_map;
   std::unordered_map<wl_resource*, std::shared_ptr<Surface>> surface_map;
   std::unordered_map<wl_resource*,
       std::shared_ptr<proto::wayland::subcompositor::subsurface::Subsurface>>

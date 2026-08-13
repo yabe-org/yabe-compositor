@@ -4,19 +4,24 @@ scanner             = find_program(wayland_scanner_dep.get_variable('wayland_sca
 wayland_protocols_dep      = dependency('wayland-protocols')
 wayland_protocols_base_dir = wayland_protocols_dep.get_variable('pkgdatadir')
 
-xdg_shell_xml        = join_paths(wayland_protocols_base_dir, 'stable', 'xdg-shell', 'xdg-shell.xml')
-xdg_shell_protocol_h = custom_target(
-  'xdg-shell-protocol.h',
-  output: 'xdg-shell-protocol.h',
-  input: xdg_shell_xml,
-  command: [scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
-)
-xdg_shell_protocol_c = custom_target(
-  'xdg-shell-protocol.c',
-  output: 'xdg-shell-protocol.c',
-  input: xdg_shell_xml,
-  command: [scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
-)
+foreach name, path : {
+  'xdg-shell'      : join_paths(wayland_protocols_base_dir, 'stable/xdg-shell/xdg-shell.xml'),
+  'wlr-layer-shell': join_paths(meson.project_source_root(), '3rdparty/wlr-protocols/unstable/wlr-layer-shell-unstable-v1.xml'),
+}
+  filename = name + '-protocol'
+  srcs += custom_target(
+    filename + '.h',
+    output: filename + '.h',
+    input: path,
+    command: [scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
+  )
+  srcs += custom_target(
+    filename + '.c',
+    output: filename + '.c',
+    input: path,
+    command: [scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
+  )
+endforeach
 
 srcs += files(
   'protocols.cpp',
@@ -43,8 +48,3 @@ srcs += files(
   'xdg-shell/xdg-toplevel.cpp',
   'xdg-shell/xdg-wm-base.cpp',
 )
-
-srcs += [
-  xdg_shell_protocol_h,
-  xdg_shell_protocol_c,
-]

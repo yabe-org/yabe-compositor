@@ -1,6 +1,11 @@
 #include "ray-cursor.hpp"
 
 #include <glm/ext.hpp>
+#include <memory>
+
+#include "common/common.hpp"
+#include "core/render/rect-renderer.hpp"
+#include "core/surface.hpp"
 
 namespace yabe::core {
 void RayCursor::move_relative(float polar, float azimuth) {
@@ -14,7 +19,9 @@ void RayCursor::move_relative(float polar, float azimuth) {
 void RayCursor::set_length(float length) {
   this->length_ = length;
 }
-void RayCursor::set_cursor_hotspot(int32_t x, int32_t y) {
+void RayCursor::set_cursor(
+    std::weak_ptr<Surface>&& surface, int32_t x, int32_t y) {
+  this->cursor_surface_   = std::move(surface);
   this->cursor_hotspot_x_ = unit::Pixel(x);
   this->cursor_hotspot_y_ = unit::Pixel(y);
 }
@@ -22,8 +29,14 @@ void RayCursor::set_cursor_rotation(glm::quat rotation) {
   this->cursor_rotation_mat_ = glm::mat4_cast(rotation);
 }
 
-glm::mat4 RayCursor::cursor_model_mat(
-    unit::Pixel width, unit::Pixel height) const {
+glm::quat RayCursor::rotation() const {
+  return glm::angleAxis(this->azimuth_, glm::vec3{0.F, 1.F, 0.F}) *
+         glm::angleAxis((std::numbers::pi_v<float> / 2.F) - this->polar_,
+             glm::vec3{-1.F, 0.F, 0.F});
+}
+glm::mat4 RayCursor::cursor_model_mat() const {
+  const auto width    = this->cursor_surface_.lock()->texture_width();
+  const auto height   = this->cursor_surface_.lock()->texture_height();
   const auto pos      = this->origin_ + this->direction() * this->length_;
   // In 2D, surface position is calculated by $pos - hotspot$
   // but yabe uses OpenGL, so Y axis should be inverted

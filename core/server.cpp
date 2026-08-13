@@ -196,14 +196,12 @@ void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](render::DrawRectFunc draw_rect) {
         this->scene.draw(draw_rect);
-        const auto cursor_surface =
-            this->seat.pointer.get_cursor_surface().lock();
+
+        const auto cursor_surface = this->ray_cursor.cursor_surface().lock();
         if (cursor_surface) {
           cursor_surface->upload_texture_if_needed();
           draw_rect(
-              this->ray_cursor.cursor_model_mat(cursor_surface->texture_width(),
-                  cursor_surface->texture_height()),
-              cursor_surface->texture());
+              this->ray_cursor.cursor_model_mat(), cursor_surface->texture());
           cursor_surface->finish_rendering();
         }
       });

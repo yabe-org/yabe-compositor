@@ -54,21 +54,6 @@ void ServerPointer::focus_pointed_surface() {
   client_seat.value()->pointer.send_frame();
 }
 
-void ServerPointer::set_surface_as_cursor(
-    wl_resource* surface, int32_t hotspot_x, int32_t hotspot_y) {
-  if (surface == nullptr) {
-    this->cursor_surface_ = std::weak_ptr<Surface>();
-    return;
-  }
-  auto cursor_surface = server::get().surface_map.find(surface);
-  if (cursor_surface == server::get().surface_map.end()) {
-    LOG_ERR("cursor surface not found");
-    return;
-  }
-  server::get().ray_cursor.set_cursor_hotspot(hotspot_x, hotspot_y);
-  this->cursor_surface_ = cursor_surface->second;
-}
-
 void ServerPointer::start_grab(pointer_grab::PointerGrab* grab) {
   assert(grab);
   this->grab_ = grab;

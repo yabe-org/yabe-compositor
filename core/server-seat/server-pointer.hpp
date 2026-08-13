@@ -8,7 +8,6 @@
 #include "core/client-seat/client-seat.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
-#include "core/surface.hpp"
 
 namespace yabe::core::server_seat {
 class ServerPointer {
@@ -25,12 +24,6 @@ class ServerPointer {
   }
   void unfocus_surface();
   void focus_pointed_surface();
-  /// @param surface nullable
-  void set_surface_as_cursor(
-      wl_resource* surface, int32_t hotspot_x, int32_t hotspot_y);
-  [[nodiscard]] const std::weak_ptr<Surface>& get_cursor_surface() const {
-    return this->cursor_surface_;
-  }
 
   void               start_grab(pointer_grab::PointerGrab* grab);
   void               end_grab();
@@ -47,8 +40,6 @@ class ServerPointer {
   bool set_focused_surface_node(std::weak_ptr<scene::SurfaceNode> surface_node);
 
   std::weak_ptr<scene::SurfaceNode> focused_surface_node_;
-  std::weak_ptr<Surface>            cursor_surface_;
-
-  pointer_grab::PointerGrab* grab_;
+  pointer_grab::PointerGrab*        grab_;
 };
 }  // namespace yabe::core::server_seat

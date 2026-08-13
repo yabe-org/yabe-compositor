@@ -10,7 +10,7 @@
 
 namespace yabe::core::render {
 using DrawRectFunc =
-    std::function<void(glm::mat4 /*model_mat*/, const Texture&)>;
+    const std::function<void(glm::mat4 /*model_mat*/, const Texture&)>&;
 
 class RectRenderer {
  public:

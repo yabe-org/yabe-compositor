@@ -2,6 +2,7 @@
 
 #include <wayland-server-core.h>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wayland::seat::pointer {
@@ -11,8 +12,12 @@ constexpr struct wl_pointer_interface kImpl = {
         [](wl_client* /*client*/, wl_resource* /*resource*/,
             uint32_t /*serial*/, wl_resource* surface_resource,
             int32_t hotspot_x, int32_t hotspot_y) {
-          core::server::get().seat.pointer.set_surface_as_cursor(
-              surface_resource, hotspot_x, hotspot_y);
+          std::shared_ptr<core::Surface> surface;
+          if (surface_resource) {
+            surface = core::server::get().surface_map.at(surface_resource);
+          }
+          core::server::get().ray_cursor.set_cursor(
+              surface, hotspot_x, hotspot_y);
         },
     .release =
         [](wl_client* /*client*/, wl_resource* resource) {

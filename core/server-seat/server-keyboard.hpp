@@ -9,6 +9,7 @@
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"
 #include "core/surface.hpp"
+#include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat {
 class ServerKeyboard {
@@ -35,6 +36,11 @@ class ServerKeyboard {
     return this->focused_surface_;
   }
 
+  [[nodiscard]]
+  const std::vector<wl_data_device_manager_dnd_action>& dnd_action() const {
+    return this->dnd_action_;
+  }
+
  private:
   std::vector<uint32_t> pressed_keys_;
 
@@ -53,5 +59,8 @@ class ServerKeyboard {
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
                          get_focused_client_seat() const;
   std::weak_ptr<Surface> focused_surface_;
+
+  /// backmost action is the most prioritized one
+  std::vector<wl_data_device_manager_dnd_action> dnd_action_;
 };
 }  // namespace yabe::core::server_seat

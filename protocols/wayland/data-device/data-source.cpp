@@ -19,9 +19,9 @@ constexpr struct wl_data_source_interface kImpl = {
           wl_resource_destroy(resource);
         },
     .set_actions =
-        [](wl_client* /*client*/, wl_resource* /*resource*/,
-            uint32_t /*dnd_actions*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource, uint32_t dnd_actions) {
+          core::server::get().data_source_map.at(resource)->set_actions(
+              dnd_actions);
         },
 };
 void handle_destruction(wl_resource* resource) {

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "common/common.hpp"
 #include "core/data-device/data-source.hpp"
+#include "core/surface.hpp"
+#include "wayland-server-protocol.h"
 #include "wayland-server.h"
 
 namespace yabe::core::data_device {
@@ -13,6 +16,8 @@ class DataDevice : public std::enable_shared_from_this<DataDevice> {
   explicit DataDevice(wl_resource* resource);
   ~DataDevice() = default;
 
+  void start_drag(std::optional<std::shared_ptr<DataSource>> source,
+      std::optional<std::weak_ptr<Surface>>                  icon_surface);
   void set_selection(std::shared_ptr<DataSource> source);
 
   [[nodiscard]] wl_resource* resource() const {

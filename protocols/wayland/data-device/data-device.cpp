@@ -6,16 +6,26 @@
 #include <memory>
 
 #include "core/data-device/data-device.hpp"
+#include "core/data-device/data-source.hpp"
 #include "core/server.hpp"
+#include "core/surface.hpp"
 
 namespace yabe::proto::wayland::data_device_manager::data_device {
 namespace {
 constexpr struct wl_data_device_interface kImpl = {
     .start_drag =
-        [](wl_client* /*client*/, wl_resource* /*resource*/,
-            wl_resource* /*source*/, wl_resource* /*origin*/,
-            wl_resource* /*icon*/, uint32_t /*serial*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource, wl_resource* source,
+            wl_resource* /*origin*/, wl_resource* icon, uint32_t /*serial*/) {
+          std::shared_ptr<core::Surface> icon_surface;
+          if (icon) {
+            icon_surface = core::server::get().surface_map.at(icon);
+          }
+          std::shared_ptr<core::data_device::DataSource> data_source;
+          if (source) {
+            data_source = core::server::get().data_source_map.at(source);
+          }
+          core::server::get().data_device_map.at(resource)->start_drag(
+              data_source, icon_surface);
         },
     .set_selection =
         [](wl_client* /*client*/, wl_resource* resource,

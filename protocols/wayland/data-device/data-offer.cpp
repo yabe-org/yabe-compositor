@@ -7,6 +7,7 @@
 
 #include "core/data-device/data-offer.hpp"
 #include "core/server.hpp"
+#include "wayland-server-protocol.h"
 
 namespace yabe::proto::wayland::data_device_manager::data_offer {
 namespace {
@@ -27,13 +28,21 @@ constexpr struct wl_data_offer_interface kImpl = {
           wl_resource_destroy(resource);
         },
     .finish =
-        [](wl_client* /*client*/, wl_resource* /*resource*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource) {
+          core::server::get().data_offer_map.at(resource)->finish_dnd();
         },
     .set_actions =
-        [](wl_client* /*client*/, wl_resource* /*resource*/,
-            uint32_t /*dnd_actions*/, uint32_t /*preferred_action*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource, uint32_t dnd_actions,
+            uint32_t preferred_action) {
+          if (!wl_data_device_manager_dnd_action_is_valid(
+                  preferred_action, wl_resource_get_version(resource))) {
+            wl_resource_post_error(
+                resource, WL_DATA_OFFER_ERROR_INVALID_ACTION, "");
+            return;
+          }
+          core::server::get().data_offer_map.at(resource)->set_actions(
+              dnd_actions,
+              static_cast<wl_data_device_manager_dnd_action>(preferred_action));
         },
 };
 void handle_destruction(wl_resource* resource) {

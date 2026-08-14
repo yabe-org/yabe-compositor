@@ -1,22 +1,57 @@
 #include "server-keyboard.hpp"
 
+#include <linux/input-event-codes.h>
 #include <unistd.h>
 
 #include <optional>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
+#include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat {
 void ServerKeyboard::handle_keyboard_key(uint32_t key, bool is_pressed) {
-  if (is_pressed) {
-    if (std::find(this->pressed_keys_.begin(), this->pressed_keys_.end(),
-            key) == this->pressed_keys_.end()) {
-      this->pressed_keys_.push_back(key);
+  this->dnd_action_.clear();
+  auto found_key_iterator = this->pressed_keys_.end();
+  // pressed key is added via push_back(), so
+  // the later pressed the key is, the closer to the end() of pressed_keys it is
+  // Current impl prioritizes the latest pressed key
+  // to decide which dnd action should be performed
+  for (auto it = this->pressed_keys_.begin(); it != this->pressed_keys_.end();
+      ++it) {
+    if (*it == key) {
+      found_key_iterator = it;
+      // if the key is leaving, it will be removed,
+      // so continue here to skip changing dnd_action
+      if (!is_pressed) {
+        continue;
+      }
     }
-  } else {
-    this->pressed_keys_.erase(std::remove(this->pressed_keys_.begin(),
-                                  this->pressed_keys_.end(), key),
-        this->pressed_keys_.end());
+    if (*it == KEY_LEFTSHIFT || *it == KEY_RIGHTSHIFT) {
+      this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE);
+    } else if (*it == KEY_LEFTCTRL || *it == KEY_RIGHTCTRL) {
+      this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
+    } else if (*it == KEY_Q) {
+      this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK);
+    }
+  }
+
+  if (is_pressed && (key == KEY_LEFTSHIFT || key == KEY_RIGHTSHIFT)) {
+    this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE);
+  }
+  if (is_pressed && (key == KEY_LEFTCTRL || key == KEY_RIGHTCTRL)) {
+    this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
+  }
+  if (is_pressed && key == KEY_Q) {
+    this->dnd_action_.emplace_back(WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK);
+  }
+
+  if (is_pressed) {
+    if (found_key_iterator == this->pressed_keys_.end()) {
+      this->pressed_keys_.emplace_back(key);
+    }
+  } else if (found_key_iterator != this->pressed_keys_.end()) {
+    this->pressed_keys_.erase(found_key_iterator);
   }
   const auto& client_seat = this->get_focused_client_seat();
   if (client_seat) {

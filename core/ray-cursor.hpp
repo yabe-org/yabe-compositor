@@ -19,12 +19,16 @@ class RayCursor {
 
   void move_relative(float polar, float azimuth);
   void set_length(float length);
+  void set_drag_and_drop_icon(std::weak_ptr<Surface>&& surface);
   void set_cursor(
       std::weak_ptr<Surface>&& surface, int32_t hotspot_x, int32_t hotspot_y);
   void set_cursor_rotation(glm::quat rotation);
 
   [[nodiscard]] const std::weak_ptr<Surface>& cursor_surface() {
     return this->cursor_surface_;
+  }
+  [[nodiscard]] const std::weak_ptr<Surface>& drag_and_drop_icon_surface() {
+    return this->drag_and_drop_icon_surface_;
   }
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;
@@ -36,6 +40,7 @@ class RayCursor {
     return glm::rotate(this->rotation(), kBaseDirection);
   }
   [[nodiscard]] glm::mat4 cursor_model_mat() const;
+  [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
  private:
   [[nodiscard]] glm::quat rotation() const;
@@ -51,5 +56,7 @@ class RayCursor {
   glm::mat4              cursor_rotation_mat_ = glm::mat4(1.F);
   unit::Pixel            cursor_hotspot_x_{0};
   unit::Pixel            cursor_hotspot_y_{0};
+
+  std::weak_ptr<Surface> drag_and_drop_icon_surface_;
 };
 }  // namespace yabe::core

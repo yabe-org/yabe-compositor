@@ -19,8 +19,8 @@ constexpr struct wl_data_device_manager_interface kImpl = {
           data_device::create(client, id);
         },
     .release =
-        [](wl_client* /*client*/, wl_resource* /*resource*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource) {
+          wl_resource_destroy(resource);
         },
 };
 }  // namespace

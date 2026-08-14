@@ -3,8 +3,6 @@
 #include <glm/ext.hpp>
 #include <memory>
 
-#include "common/common.hpp"
-#include "core/render/rect-renderer.hpp"
 #include "core/surface.hpp"
 
 namespace yabe::core {
@@ -18,6 +16,9 @@ void RayCursor::move_relative(float polar, float azimuth) {
 
 void RayCursor::set_length(float length) {
   this->length_ = length;
+}
+void RayCursor::set_drag_and_drop_icon(std::weak_ptr<Surface>&& surface) {
+  this->drag_and_drop_icon_surface_ = std::move(surface);
 }
 void RayCursor::set_cursor(
     std::weak_ptr<Surface>&& surface, int32_t x, int32_t y) {
@@ -51,5 +52,23 @@ glm::mat4 RayCursor::cursor_model_mat() const {
          this->cursor_rotation_mat_ *
          glm::scale(glm::mat4(1.F),
              glm::vec3(*width.to_world_unit(), *height.to_world_unit(), 0.F));
+}
+glm::mat4 RayCursor::drag_and_drop_icon_model_mat() const {
+  const auto surface = this->drag_and_drop_icon_surface_.lock();
+  const auto pos     = this->origin_ + this->direction() * this->length_;
+  const auto offset  = glm::vec3{
+      +(*surface->texture_width().to_world_unit()),
+      -(*surface->texture_height().to_world_unit()),
+      0.F,
+  };
+
+  return glm::translate(glm::mat4(1.F), pos + offset) *
+         this->cursor_rotation_mat_ *
+         glm::scale(
+             glm::mat4(1.F), glm::vec3{
+                                 *surface->texture_width().to_world_unit(),
+                                 *surface->texture_height().to_world_unit(),
+                                 0.F,
+                             });
 }
 }  // namespace yabe::core

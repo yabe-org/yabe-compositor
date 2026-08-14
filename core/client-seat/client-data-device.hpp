@@ -4,9 +4,11 @@
 
 #include <list>
 #include <memory>
+#include <optional>
 
 #include "common/common.hpp"
 #include "core/data-device/data-offer.hpp"
+#include "core/surface.hpp"
 
 namespace yabe::core::client_seat {
 class ClientDataDevice {
@@ -20,6 +22,11 @@ class ClientDataDevice {
 
   void send_data_offer(
       const std::shared_ptr<data_device::DataOffer>& data_offer);
+  void send_enter(const std::shared_ptr<Surface>& surface, float x, float y,
+      std::optional<std::shared_ptr<data_device::DataOffer>> data_offer);
+  void send_leave();
+  void send_motion(float x, float y);
+  void send_drop();
   void send_selection(
       const std::optional<std::shared_ptr<data_device::DataOffer>>& data_offer);
 

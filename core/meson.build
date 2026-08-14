@@ -27,6 +27,7 @@ srcs += [
   'core/server-seat/server-seat.cpp',
 
   'core/server-seat/pointer-grab/default.cpp',
+  'core/server-seat/pointer-grab/drag-and-drop.cpp',
   'core/server-seat/pointer-grab/implicit.cpp',
   'core/server-seat/pointer-grab/move.cpp',
   'core/server-seat/pointer-grab/popup.cpp',

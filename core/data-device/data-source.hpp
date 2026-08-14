@@ -20,6 +20,7 @@ class DataSource {
 
   void send_target(const char* mime);
   void send_send(const char* mime, int32_t fd);
+  void send_cancelled();
   void send_dnd_drop_performed();
   void send_dnd_finished();
   void send_action(uint32_t dnd_action);

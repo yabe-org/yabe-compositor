@@ -35,9 +35,13 @@ class DataOffer {
   [[nodiscard]] wl_data_device_manager_dnd_action preferred_action() const {
     return this->preferred_action_;
   }
+  [[nodiscard]] bool did_accept_mime() const {
+    return this->did_accept_mime_;
+  }
 
  private:
-  uint32_t dnd_actions_ = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
+  bool     did_accept_mime_ = false;
+  uint32_t dnd_actions_     = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
   wl_data_device_manager_dnd_action preferred_action_ =
       WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
   std::vector<std::string>  mimes_;

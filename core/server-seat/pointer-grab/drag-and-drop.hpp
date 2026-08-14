@@ -25,6 +25,8 @@ class DragAndDropPointerGrab final : public PointerGrab {
   explicit DragAndDropPointerGrab() = default;
   ~DragAndDropPointerGrab()         = default;
 
+  void send_cancel_if_needed();
+
   void enter_pointed_surface();
   bool set_entered_surface(std::weak_ptr<Surface> surface);
 

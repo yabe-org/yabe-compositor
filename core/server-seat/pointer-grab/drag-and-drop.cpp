@@ -7,17 +7,25 @@
 #include <optional>
 #include <ranges>
 
+#include "common/common.hpp"
 #include "core/data-device/data-offer.hpp"
 #include "core/data-device/data-source.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/data-device/data-offer.hpp"
+#include "wayland-server-core.h"
 #include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat::pointer_grab {
 DragAndDropPointerGrab* DragAndDropPointerGrab::start(
     std::weak_ptr<data_device::DataSource>&& data_source) {
   static DragAndDropPointerGrab instance;
+  // if drag-and-drop is already in progress and the data_source is changed,
+  // send wl_data_source.canceled for the previous one
+  if (server::get().seat.pointer.is_active_grab(&instance) &&
+      instance.data_source_.lock() != data_source.lock()) {
+    instance.data_source_.lock()->send_cancelled();
+  }
   server::get().seat.pointer.unfocus_surface();
   instance.selected_action_    = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
   instance.prev_action_        = WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
@@ -39,12 +47,39 @@ void DragAndDropPointerGrab::cleanup() {
   if (this->data_source_.lock()) {
     this->data_source_.lock()->send_dnd_drop_performed();
   }
+  this->send_cancel_if_needed();
   if (client_seat) {
     client_seat.value()->data_device.send_leave();
   }
 
   server::get().ray_cursor.set_drag_and_drop_icon({});
   server::get().seat.pointer.focus_pointed_surface();
+}
+void DragAndDropPointerGrab::send_cancel_if_needed() {
+  const auto source = this->data_source_.lock();
+  if (!source) {
+    return;
+  }
+  // for objects of version <= 2,
+  // send cancel only if the data source is replaced
+  if (wl_resource_get_version(source->resource()) <= 2) {
+    return;
+  }
+  // for objects of version > 2, send cancel if:
+  // drop destination did not accept any of the mime,
+  const auto offer = this->current_data_offer_.lock();
+  if (offer && !offer->did_accept_mime()) {
+    return;
+  }
+  // drop destination did not select any action,
+  if (this->selected_action_ != WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE) {
+    return;
+  }
+  // or drop operation did not happen over a surface
+  if (this->entered_surface_.lock()) {
+    return;
+  }
+  source->send_cancelled();
 }
 
 void DragAndDropPointerGrab::move_relative(float dx, float dy) {

@@ -17,6 +17,9 @@ void DataSource::send_target(const char* mime) {
 void DataSource::send_send(const char* mime, int32_t fd) {
   wl_data_source_send_send(this->resource_, mime, fd);
 }
+void DataSource::send_cancelled() {
+  wl_data_source_send_cancelled(this->resource_);
+}
 void DataSource::send_dnd_drop_performed() {
   if (wl_resource_get_version(this->resource_) <
       WL_DATA_SOURCE_DND_DROP_PERFORMED_SINCE_VERSION) {

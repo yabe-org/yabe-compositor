@@ -9,7 +9,8 @@ DataOffer::DataOffer(wl_resource* resource, std::shared_ptr<DataSource>& source)
 }
 
 void DataOffer::accept(const char* mime) {
-  const auto source = data_source_.lock();
+  this->did_accept_mime_ = mime != nullptr;
+  const auto source      = data_source_.lock();
   if (!source) {
     return;
   }

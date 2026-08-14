@@ -1,10 +1,7 @@
 #include "data-offer.hpp"
 
 #include <unistd.h>
-
-#include "wayland-server-core.h"
-#include "wayland-server-protocol-core.h"
-#include "wayland-server-protocol.h"
+#include <wayland-server-protocol.h>
 
 namespace yabe::core::data_device {
 DataOffer::DataOffer(wl_resource* resource, std::shared_ptr<DataSource>& source)
@@ -49,6 +46,10 @@ void DataOffer::send_source_actions(uint32_t actions) {
   wl_data_offer_send_source_actions(this->resource_, actions);
 }
 void DataOffer::send_action(uint32_t action) {
+  if (wl_resource_get_version(this->resource_) <
+      WL_DATA_OFFER_ACTION_SINCE_VERSION) {
+    return;
+  }
   wl_data_offer_send_action(this->resource_, action);
 }
 }  // namespace yabe::core::data_device

@@ -58,7 +58,9 @@ void ClientPointer::send_axis(uint32_t axis, float value) {
 
 void ClientPointer::send_frame() {
   for (auto* resource : this->pointers_) {
-    wl_pointer_send_frame(resource);
+    if (wl_resource_get_version(resource) >= WL_POINTER_FRAME_SINCE_VERSION) {
+      wl_pointer_send_frame(resource);
+    }
   }
 }
 }  // namespace yabe::core::client_seat

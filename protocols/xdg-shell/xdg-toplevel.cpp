@@ -201,7 +201,7 @@ void handle_destruction(wl_resource* resource) {
 }
 }  // namespace
 
-wl_resource* create(wl_client* client, uint32_t id,
+wl_resource* create(wl_client* client, int version, uint32_t id,
     std::weak_ptr<xdg_surface::XdgSurface> xdg_surface) {
   const auto locked_xdg_surface = xdg_surface.lock();
   if (!locked_xdg_surface) {
@@ -211,8 +211,8 @@ wl_resource* create(wl_client* client, uint32_t id,
   if (!surface) {
     return nullptr;
   }
-  wl_resource* resource = wl_resource_create(
-      client, &xdg_toplevel_interface, xdg_toplevel_interface.version, id);
+  wl_resource* resource =
+      wl_resource_create(client, &xdg_toplevel_interface, version, id);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
     return nullptr;

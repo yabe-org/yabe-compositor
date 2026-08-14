@@ -24,9 +24,9 @@ void handle_destruction(wl_resource* resource) {
 }
 }  // namespace
 
-void create(wl_client* client, uint32_t id) {
-  wl_resource* resource = wl_resource_create(
-      client, &wl_keyboard_interface, wl_keyboard_interface.version, id);
+void create(wl_client* client, int version, uint32_t id) {
+  wl_resource* resource =
+      wl_resource_create(client, &wl_keyboard_interface, version, id);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
     return;

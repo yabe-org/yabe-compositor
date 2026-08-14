@@ -36,7 +36,7 @@ class Subsurface : public core::SurfaceRole {
   std::weak_ptr<core::Surface> parent_surface_;
 };
 
-void create(wl_client* client, uint32_t id,
+void create(wl_client* client, int version, uint32_t id,
     std::shared_ptr<core::Surface>& surface,
     std::shared_ptr<core::Surface>& parent_surface);
 }  // namespace yabe::proto::wayland::subcompositor::subsurface

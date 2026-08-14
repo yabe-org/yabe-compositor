@@ -54,7 +54,7 @@ class XdgPopup : public core::SurfaceRole {
   } state_ = State::INITIAL;
 };
 
-void create(wl_client* client, uint32_t id,
+void create(wl_client* client, int version, uint32_t id,
     std::shared_ptr<xdg_surface::XdgSurface>& popup_surface,
     std::shared_ptr<xdg_surface::XdgSurface>& parent_surface,
     xdg_positioner::XdgPositioner*            positioner);

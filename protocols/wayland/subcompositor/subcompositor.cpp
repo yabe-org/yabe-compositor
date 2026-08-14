@@ -5,6 +5,7 @@
 
 #include "core/server.hpp"
 #include "subsurface.hpp"
+#include "wayland-server-core.h"
 
 namespace yabe::proto::wayland::subcompositor {
 namespace {
@@ -24,7 +25,8 @@ constexpr struct wl_subcompositor_interface kImpl = {
             return;
           }
           auto wl_surface = core::server::get().surface_map.at(surface);
-          subsurface::create(client, id, wl_surface, parent_surface->second);
+          subsurface::create(client, wl_resource_get_version(resource), id,
+              wl_surface, parent_surface->second);
         },
 };
 }  // namespace

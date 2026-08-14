@@ -15,13 +15,14 @@ constexpr struct xdg_wm_base_interface kImpl = {
           wl_resource_destroy(resource);
         },
     .create_positioner =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-          xdg_positioner::create(client, id);
+        [](wl_client* client, wl_resource* resource, uint32_t id) {
+          xdg_positioner::create(client, wl_resource_get_version(resource), id);
         },
     .get_xdg_surface =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id,
+        [](wl_client* client, wl_resource* resource, uint32_t id,
             wl_resource* surface_resource) {
-          xdg_surface::create(client, id, surface_resource);
+          xdg_surface::create(
+              client, wl_resource_get_version(resource), id, surface_resource);
         },
     .pong =
         [](wl_client* /*client*/, wl_resource* /*resource*/,

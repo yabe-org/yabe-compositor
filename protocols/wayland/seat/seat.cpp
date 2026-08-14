@@ -5,17 +5,18 @@
 #include "core/server.hpp"
 #include "keyboard.hpp"
 #include "pointer.hpp"
+#include "wayland-server-core.h"
 
 namespace yabe::proto::wayland::seat {
 namespace {
 constexpr struct wl_seat_interface kImpl = {
     .get_pointer =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-          pointer::create(client, id);
+        [](wl_client* client, wl_resource* resource, uint32_t id) {
+          pointer::create(client, wl_resource_get_version(resource), id);
         },
     .get_keyboard =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-          keyboard::create(client, id);
+        [](wl_client* client, wl_resource* resource, uint32_t id) {
+          keyboard::create(client, wl_resource_get_version(resource), id);
         },
     .get_touch =
         [](wl_client* client, wl_resource* /*resource*/, uint32_t /*id*/) {

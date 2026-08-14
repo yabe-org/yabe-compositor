@@ -83,6 +83,6 @@ class XdgPositioner {
   wl_resource* resource_;
 };
 
-void           create(wl_client* client, uint32_t id);
+void           create(wl_client* client, int version, uint32_t id);
 XdgPositioner* get(wl_resource* resource);
 }  // namespace yabe::proto::xdg_shell::xdg_positioner

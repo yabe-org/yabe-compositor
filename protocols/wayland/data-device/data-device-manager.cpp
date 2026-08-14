@@ -10,13 +10,13 @@ namespace yabe::proto::wayland::data_device_manager {
 namespace {
 constexpr struct wl_data_device_manager_interface kImpl = {
     .create_data_source =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id) {
-          data_source::create(client, id);
+        [](wl_client* client, wl_resource* resource, uint32_t id) {
+          data_source::create(client, wl_resource_get_version(resource), id);
         },
     .get_data_device =
-        [](wl_client* client, wl_resource* /*resource*/, uint32_t id,
+        [](wl_client* client, wl_resource* resource, uint32_t id,
             wl_resource* /*seat*/) {
-          data_device::create(client, id);
+          data_device::create(client, wl_resource_get_version(resource), id);
         },
     .release =
         [](wl_client* /*client*/, wl_resource* resource) {

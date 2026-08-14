@@ -45,7 +45,8 @@ constexpr struct xdg_surface_interface kImpl = {
     .get_toplevel =
         [](wl_client* client, wl_resource* resource, uint32_t id) {
           auto self = core::server::get().xdg_surface_map.at(resource);
-          xdg_toplevel::create(client, id, self);
+          xdg_toplevel::create(
+              client, wl_resource_get_version(resource), id, self);
         },
     .get_popup =
         [](wl_client* client, wl_resource* resource, uint32_t id,
@@ -59,8 +60,8 @@ constexpr struct xdg_surface_interface kImpl = {
             return;
           }
           auto self = core::server::get().xdg_surface_map.at(resource);
-          xdg_popup::create(client, id, self, parent_surface->second,
-              xdg_positioner::get(positioner));
+          xdg_popup::create(client, wl_resource_get_version(resource), id, self,
+              parent_surface->second, xdg_positioner::get(positioner));
         },
     .set_window_geometry =
         [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
@@ -80,7 +81,8 @@ void handle_destruction(wl_resource* resource) {
 }
 }  // namespace
 
-void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
+void create(
+    wl_client* client, int version, uint32_t id, wl_resource* wl_surface) {
   auto surface = core::server::get().surface_map.find(wl_surface);
   if (surface == core::server::get().surface_map.end()) {
     wl_client_post_implementation_error(
@@ -88,7 +90,7 @@ void create(wl_client* client, uint32_t id, wl_resource* wl_surface) {
     return;
   }
   wl_resource* resource =
-      wl_resource_create(client, &xdg_surface_interface, 7, id);
+      wl_resource_create(client, &xdg_surface_interface, version, id);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
     return;

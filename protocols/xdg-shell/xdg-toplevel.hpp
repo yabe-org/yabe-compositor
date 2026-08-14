@@ -45,6 +45,6 @@ class XdgToplevel : public core::SurfaceRole,
   bool                                   is_activated_           = false;
 };
 
-wl_resource* create(wl_client* client, uint32_t id,
+wl_resource* create(wl_client* client, int version, uint32_t id,
     std::weak_ptr<xdg_surface::XdgSurface> xdg_surface);
 }  // namespace yabe::proto::xdg_shell::xdg_toplevel

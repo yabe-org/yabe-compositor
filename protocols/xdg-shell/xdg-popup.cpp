@@ -120,7 +120,8 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
       *positioner_result.height);
   popup_surface->configure();
 
-  if (token.has_value()) {
+  if (token.has_value() && wl_resource_get_version(this->resource_) >=
+                               XDG_POPUP_REPOSITIONED_SINCE_VERSION) {
     xdg_popup_send_repositioned(this->resource_, token.value());
   }
 }
@@ -156,12 +157,12 @@ void handle_destruction(wl_resource* resource) {
 }
 }  // namespace
 
-void create(wl_client* client, uint32_t id,
+void create(wl_client* client, int version, uint32_t id,
     std::shared_ptr<xdg_surface::XdgSurface>& popup_surface,
     std::shared_ptr<xdg_surface::XdgSurface>& parent_surface,
     xdg_positioner::XdgPositioner*            positioner) {
-  wl_resource* resource = wl_resource_create(
-      client, &xdg_popup_interface, xdg_popup_interface.version, id);
+  wl_resource* resource =
+      wl_resource_create(client, &xdg_popup_interface, version, id);
   if (resource == nullptr) {
     wl_client_post_no_memory(client);
     return;

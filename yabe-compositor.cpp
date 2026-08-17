@@ -8,11 +8,18 @@
 #include "core/server.hpp"
 
 extern "C" {
-void yabe_compositor_init(void (*print_log)(const char*)) {
+void yabe_compositor_init(void (*print_log)(const char*),
+    const char* (*create_keymap)(const char* rules, const char* model,
+        const char* layout, const char* variant, const char* options)) {
+  if (create_keymap == nullptr) {
+    throw std::invalid_argument("create_keymap function pointer is null");
+  }
   if (print_log != nullptr) {
     yabe::print_log = print_log;
   }
   try {
+    yabe::core::server::get().seat.keyboard.set_create_keymap_func(
+        create_keymap);
     yabe::core::server::get().init();
   } catch (std::exception& e) {
     LOG_ERR("Exception in yabe_compositor_init: {}", e.what());
@@ -61,33 +68,10 @@ void yabe_compositor_axis(uint32_t axis, float value) {
   });
 }
 
-void yabe_compositor_keymap(uint32_t format, int32_t fd, uint32_t size) {
-  const int duplicated_fd = fd >= 0 ? dup(fd) : -1;
-  yabe::core::server::get().enqueue([format, duplicated_fd, size]() {
-    yabe::core::server::get().seat.keyboard.set_keymap(
-        format, duplicated_fd, size);
-    if (duplicated_fd >= 0) {
-      close(duplicated_fd);
-    }
-  });
-}
-void yabe_compositor_repeat_info(int32_t rate, int32_t delay) {
-  yabe::core::server::get().enqueue([rate, delay]() {
-    yabe::core::server::get().seat.keyboard.set_repeat_info(rate, delay);
-  });
-}
 void yabe_compositor_key(uint32_t key, bool is_pressed) {
   yabe::core::server::get().enqueue([key, is_pressed]() {
     yabe::core::server::get().seat.keyboard.handle_keyboard_key(
         key, is_pressed);
   });
-}
-void yabe_compositor_modifiers(uint32_t mods_depressed, uint32_t mods_latched,
-    uint32_t mods_locked, uint32_t group) {
-  yabe::core::server::get().enqueue(
-      [mods_depressed, mods_latched, mods_locked, group]() {
-        yabe::core::server::get().seat.keyboard.set_modifiers(
-            mods_depressed, mods_latched, mods_locked, group);
-      });
 }
 }

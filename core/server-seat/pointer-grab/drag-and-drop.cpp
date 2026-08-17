@@ -2,14 +2,14 @@
 
 #include <linux/input-event-codes.h>
 #include <sys/types.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
 
 #include <memory>
 #include <optional>
-#include <ranges>
 
-#include "common/common.hpp"
 #include "core/data-device/data-offer.hpp"
 #include "core/data-device/data-source.hpp"
+#include "core/server-seat/server-keyboard.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/data-device/data-offer.hpp"
@@ -183,6 +183,21 @@ void DragAndDropPointerGrab::renew_action() {
     this->current_data_offer_.lock()->send_action(this->selected_action_);
   }
 }
+
+namespace {
+wl_data_device_manager_dnd_action get_action_selected_by_keyboard() {
+  if (server::get().seat.keyboard.is_mod_pressed(ModKeys::SHIFT)) {
+    return WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE;
+  }
+  if (server::get().seat.keyboard.is_mod_pressed(ModKeys::CTRL)) {
+    return WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY;
+  }
+  if (server::get().seat.keyboard.is_key_pressed(XKB_KEY_Q)) {
+    return WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK;
+  }
+  return WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;
+}
+}  // namespace
 wl_data_device_manager_dnd_action DragAndDropPointerGrab::select_action() {
   const auto source          = this->data_source_.lock();
   const auto current_offer   = this->current_data_offer_.lock();
@@ -193,11 +208,9 @@ wl_data_device_manager_dnd_action DragAndDropPointerGrab::select_action() {
   const auto available_actions =
       source->dnd_actions() & current_offer->dnd_actions();
   // prioritize an action selected based on key press
-  for (const auto& action :
-      server::get().seat.keyboard.dnd_action() | std::views::reverse) {
-    if (available_actions & action) {
-      return action;
-    }
+  const auto keyboard_selected_action = get_action_selected_by_keyboard();
+  if (available_actions & keyboard_selected_action) {
+    return keyboard_selected_action;
   }
   // next, use preferred_action if it is requested by data_offer
   if (available_actions & current_offer->preferred_action()) {

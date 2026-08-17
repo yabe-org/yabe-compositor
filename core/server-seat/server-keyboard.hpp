@@ -1,6 +1,8 @@
 #pragma once
 
 #include <wayland-server-core.h>
+#include <xkbcommon/xkbcommon-names.h>
+#include <xkbcommon/xkbcommon.h>
 
 #include <memory>
 #include <optional>
@@ -12,21 +14,33 @@
 #include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat {
+enum class ModKeys : uint8_t {
+  CTRL,
+  ALT,  // Mod 1
+  SHIFT,
+  SUPER,  // Mod 4, aka Logo
+  CAPS,
+  NUM,  // Mod 2
+  MOD3,
+  MOD5
+};
+
 class ServerKeyboard {
  public:
   DISABLE_MOVE_AND_COPY(ServerKeyboard);
-  explicit ServerKeyboard() = default;
+  explicit ServerKeyboard();
   ~ServerKeyboard();
 
-  void                   handle_keyboard_key(uint32_t key, bool is_pressed);
-  /// @return a wl_array whose buffer is owned by std::vector,
-  ///         so the caller must not release it
-  [[nodiscard]] wl_array get_pressed_keys() const;
-
-  void set_keymap(uint32_t format, int32_t fd, uint32_t size);
-  void set_modifiers(uint32_t mods_depressed, uint32_t mods_latched,
-      uint32_t mods_locked, uint32_t group);
+  void set_create_keymap_func(
+      const char* (*create_keymap)(const char* rules, const char* model,
+          const char* layout, const char* variant, const char* options)) {
+    this->create_keymap_ = create_keymap;
+  }
+  void init_keymap(const char* rules, const char* model, const char* layout,
+      const char* variant, const char* options);
   void set_repeat_info(int32_t rate, int32_t delay);
+
+  void handle_keyboard_key(uint32_t key, bool is_pressed);
 
   void send_init_events(wl_resource* resource);
 
@@ -35,18 +49,25 @@ class ServerKeyboard {
   [[nodiscard]] const std::weak_ptr<Surface>& get_focused_surface() const {
     return this->focused_surface_;
   }
-
-  [[nodiscard]]
-  const std::vector<wl_data_device_manager_dnd_action>& dnd_action() const {
-    return this->dnd_action_;
-  }
+  /// @param keysym e.g. XKB_KEY_A, not XKB_KEY_a nor KEY_A
+  [[nodiscard]] bool is_key_pressed(xkb_keysym_t keysym) const;
+  [[nodiscard]] bool is_mod_pressed(ModKeys mod) const;
 
  private:
-  std::vector<uint32_t> pressed_keys_;
+  const char* (*create_keymap_)(const char* rules, const char* model,
+      const char* layout, const char* variant, const char* options);
 
-  uint32_t keymap_format_ = 0;
-  int32_t  keymap_fd_     = -1;
-  uint32_t keymap_size_   = 0;
+  /// @return a wl_array whose buffer is owned by std::vector,
+  ///         so the caller must not release it
+  [[nodiscard]] wl_array get_pressed_keys() const;
+  void                   update_modifiers();
+
+  xkb_context* xkb_context_ = nullptr;
+  xkb_keymap*  xkb_keymap_  = nullptr;
+  xkb_state*   xkb_state_   = nullptr;
+
+  int32_t  keymap_fd_   = -1;
+  uint32_t keymap_size_ = 0;
 
   uint32_t mods_depressed_ = 0;
   uint32_t mods_latched_   = 0;
@@ -56,11 +77,10 @@ class ServerKeyboard {
   int32_t repeat_rate_  = 33;
   int32_t repeat_delay_ = 500;
 
+  std::vector<uint32_t> pressed_keys_;
+
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
                          get_focused_client_seat() const;
   std::weak_ptr<Surface> focused_surface_;
-
-  /// backmost action is the most prioritized one
-  std::vector<wl_data_device_manager_dnd_action> dnd_action_;
 };
 }  // namespace yabe::core::server_seat

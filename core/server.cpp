@@ -8,6 +8,7 @@
 #include <wayland-server-core.h>
 
 #include "common/common.hpp"
+#include "core/server-seat/server-keyboard.hpp"
 #include "protocols/protocols.hpp"
 
 namespace yabe::core::server {
@@ -23,6 +24,9 @@ void Server::init() {
   if (!proto::init(this->wl_display_)) {
     throw std::runtime_error("Failed to initialize Wayland protocols");
   }
+
+  // TODO: use setting value
+  this->seat.keyboard.init_keymap("", "", "us", "", "");
 
   this->task_dispatch_event_fd_ = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
   if (this->task_dispatch_event_fd_ < 0) {

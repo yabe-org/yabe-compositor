@@ -15,6 +15,7 @@ libffi_sp            = subproject('libffi', default_options: ['tests=false'])
 wayland_sp           = subproject('wayland', default_options: ['tests=false', 'documentation=false', 'scanner=false', 'dtd_validation=false', 'default_library=static'])
 wayland_protocols_sp = subproject('wayland-protocols', default_options: ['tests=false'])
 glm_sp               = subproject('glm')
+xkbcommon_sp         = subproject('libxkbcommon', default_options: ['enable-tools=false', 'enable-x11=false', 'enable-docs=false', 'enable-xkbregistry=false', 'enable-bash-completion=false', 'default_library=static'])
 
 srcs = [
   'yabe-compositor.cpp',
@@ -28,10 +29,12 @@ yabe_compositor_lib = static_library('yabe_compositor',
   dependencies: [
     dependency('wayland-server', static: true),
     dependency('glm', static: true),
+    dependency('xkbcommon', static: true),
   ],
   link_whole: [
     wayland_sp.get_variable('wayland_server'),
     libffi_sp.get_variable('ffi_lib'),
+    xkbcommon_sp.get_variable('libxkbcommon'),
   ],
 )
 

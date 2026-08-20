@@ -17,6 +17,7 @@
 #include "core/render/rect-renderer.hpp"
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
+#include "core/setting/setting.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/subcompositor/subsurface.hpp"
 #include "protocols/xdg-shell/xdg-popup.hpp"
@@ -31,13 +32,13 @@ class Server {
     return instance;
   }
 
-  void init();
-  void set_socket_fd(std::optional<int> fd);
-  void start();
-  void terminate();
-  void add_client_fd(int fd);
-  void enqueue(std::function<void()> task);
-  void draw(const float* vp_mat);
+  void     init();
+  uint32_t set_socket_fd(std::optional<int> fd);
+  void     start();
+  void     terminate();
+  void     add_client_fd(int fd);
+  void     enqueue(std::function<void()> task);
+  void     draw(const float* vp_mat);
 
   void consume_queued_tasks();
 
@@ -71,6 +72,7 @@ class Server {
       std::shared_ptr<proto::xdg_shell::xdg_popup::XdgPopup>>
       xdg_popup_map;
 
+  setting::Setting        setting;
   server_seat::ServerSeat seat;
   RayCursor               ray_cursor;
   scene::Scene            scene;

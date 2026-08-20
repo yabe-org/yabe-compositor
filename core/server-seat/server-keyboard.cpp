@@ -180,6 +180,12 @@ void ServerKeyboard::handle_keyboard_key(uint32_t key, bool is_pressed) {
     this->pressed_keys_.erase(it);
   }
 
+  const auto keysym = xkb_state_key_get_one_sym(this->xkb_state_, key + 8);
+  if (server::get().setting.keybinds.handle_key(
+          keysym, is_pressed, this->current_mod_mask())) {
+    return;
+  }
+
   const auto& client_seat = this->get_focused_client_seat();
   if (client_seat) {
     client_seat.value()->keyboard.send_key(key, is_pressed);
@@ -315,6 +321,27 @@ bool ServerKeyboard::is_mod_pressed(ModKeys mod) const {
   return xkb_state_mod_name_is_active(
              this->xkb_state_, name, XKB_STATE_MODS_EFFECTIVE) == 1;
 }
+xkb_mod_mask_t ServerKeyboard::try_convert_to_mod_mask(
+    const char* mod_name) const {
+  if (!this->xkb_keymap_) {
+    return 0;
+  }
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): `return` cannot be replaced with lambda function
+#define CASE(str, mod_def)                                                     \
+  if (strcasecmp(mod_name, str) == 0) {                                        \
+    return xkb_keymap_mod_get_mask(this->xkb_keymap_, mod_def);                \
+  }
+  CASE("ctrl", XKB_MOD_NAME_CTRL)
+  CASE("alt", XKB_MOD_NAME_ALT)
+  CASE("shift", XKB_MOD_NAME_SHIFT)
+  CASE("super", XKB_MOD_NAME_LOGO)
+  CASE("caps", XKB_MOD_NAME_CAPS)
+  CASE("num", XKB_MOD_NAME_MOD2)
+  CASE("mod3", XKB_MOD_NAME_MOD3)
+  CASE("mod5", XKB_MOD_NAME_MOD5)
+#undef CASE
+  return 0;
+}  // namespace yabe::core::server_seat
 
 wl_array ServerKeyboard::get_pressed_keys() const {
   return wl_array{

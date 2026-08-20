@@ -3,6 +3,7 @@ Language:        Cpp
 BasedOnStyle:  Google
 Standard:        Auto
 ColumnLimit:     80
+CommentPragmas: '^ NOLINT'
 
 ##  Align
 # do not guess alignment of {&,*} by analyzing

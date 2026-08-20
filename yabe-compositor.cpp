@@ -3,16 +3,21 @@
 #include <unistd.h>
 
 #include <exception>
+#include <stdexcept>
 
 #include "common/common.hpp"
 #include "core/server.hpp"
 
 extern "C" {
 void yabe_compositor_init(void (*print_log)(const char*),
-    const char* (*create_keymap)(const char* rules, const char* model,
-        const char* layout, const char* variant, const char* options)) {
+    const char* (*create_keymap)(
+        const char*, const char*, const char*, const char*, const char*),
+    int (*execvp)(const char* const *)) {
   if (create_keymap == nullptr) {
     throw std::invalid_argument("create_keymap function pointer is null");
+  }
+  if (execvp == nullptr) {
+    throw std::invalid_argument("execvp function pointer cannot be null");
   }
   if (print_log != nullptr) {
     yabe::print_log = print_log;
@@ -20,15 +25,20 @@ void yabe_compositor_init(void (*print_log)(const char*),
   try {
     yabe::core::server::get().seat.keyboard.set_create_keymap_func(
         create_keymap);
+    yabe::core::server::get().setting.dispatchers.set_executer(execvp);
     yabe::core::server::get().init();
   } catch (std::exception& e) {
     LOG_ERR("Exception in yabe_compositor_init: {}", e.what());
   }
 }
 
-void yabe_compositor_register_socket_fd(int fd) {
+void yabe_compositor_load_config(const char* config_contents) {
+  yabe::core::server::get().setting.load_config(config_contents);
+}
+
+uint32_t yabe_compositor_register_socket_fd(int fd) {
   auto fd_opt = (fd == -1) ? std::nullopt : std::optional<int>(fd);
-  yabe::core::server::get().set_socket_fd(fd_opt);
+  return yabe::core::server::get().set_socket_fd(fd_opt);
 }
 
 void yabe_compositor_start() {

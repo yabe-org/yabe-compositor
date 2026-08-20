@@ -8,18 +8,22 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-void yabe_compositor_init(void (*print_log)(const char*),
+void     yabe_compositor_init(void (*print_log)(const char*),
     /// @retval nullptr if failed, otherwise keymap string in
     /// XKB_KEYMAP_FORMAT_TEXT_V1, which pointer should alive longer until the
     /// next call of this function, and the memory is owned by the caller
     const char* (*create_keymap)(const char* rules, const char* model,
-        const char* layout, const char* variant, const char* options));
+        const char* layout, const char* variant, const char* options),
+    int /*pid*/ (*execvp)(const char* const * /* NULL-terminated argv */));
+void     yabe_compositor_load_config(const char* config_contents);
 /// @param fd if fd is -1, the compositor will create a socket
-void yabe_compositor_register_socket_fd(int fd);
-void yabe_compositor_start();
-void yabe_compositor_terminate();
-void yabe_compositor_add_client_fd(int fd);
-void yabe_compositor_draw(const float* vp_mat);
+/// @return zero if fd != -1, otherwise index of socket name `wayland-%u`
+/// (e.g. if it creates `wayland-1`, return 1)
+uint32_t yabe_compositor_register_socket_fd(int fd);
+void     yabe_compositor_start();
+void     yabe_compositor_terminate();
+void     yabe_compositor_add_client_fd(int fd);
+void     yabe_compositor_draw(const float* vp_mat);
 
 /// @param dx right is positive
 /// @param dy up is positive

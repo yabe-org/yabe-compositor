@@ -50,8 +50,13 @@ class ServerKeyboard {
     return this->focused_surface_;
   }
   /// @param keysym e.g. XKB_KEY_A, not XKB_KEY_a nor KEY_A
-  [[nodiscard]] bool is_key_pressed(xkb_keysym_t keysym) const;
-  [[nodiscard]] bool is_mod_pressed(ModKeys mod) const;
+  [[nodiscard]] bool           is_key_pressed(xkb_keysym_t keysym) const;
+  [[nodiscard]] bool           is_mod_pressed(ModKeys mod) const;
+  [[nodiscard]] xkb_mod_mask_t try_convert_to_mod_mask(
+      const char* mod_name) const;
+  [[nodiscard]] xkb_mod_mask_t current_mod_mask() const {
+    return this->mods_depressed_;
+  }
 
  private:
   const char* (*create_keymap_)(const char* rules, const char* model,

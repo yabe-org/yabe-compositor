@@ -8,6 +8,12 @@ srcs += [
   'core/client-seat/client-keyboard.cpp',
   'core/client-seat/client-pointer.cpp',
 
+  'core/setting/engine.cpp',
+  'core/setting/setting.cpp',
+  'core/setting/fields/config.cpp',
+  'core/setting/fields/dispatchers.cpp',
+  'core/setting/fields/keybinds.cpp',
+
   'core/data-device/data-device.cpp',
   'core/data-device/data-offer.cpp',
   'core/data-device/data-source.cpp',

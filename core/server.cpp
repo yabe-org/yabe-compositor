@@ -25,7 +25,6 @@ void Server::init() {
     throw std::runtime_error("Failed to initialize Wayland protocols");
   }
 
-  // TODO: use setting value
   this->seat.keyboard.init_keymap("", "", "us", "", "");
 
   this->task_dispatch_event_fd_ = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
@@ -51,15 +50,15 @@ void Server::init() {
   this->is_initialized_ = true;
 }
 
-void Server::set_socket_fd(std::optional<int> fd) {
+uint32_t Server::set_socket_fd(std::optional<int> fd) {
   if (fd.has_value()) {
     if (wl_display_add_socket_fd(this->wl_display_, *fd) == 0) {
       throw std::runtime_error("Failed to add socket fd to Wayland display");
     }
-    return;
+    return 0;
   }
   constexpr int kMaxDisplayId = 32;
-  int           display_id    = 1;
+  uint32_t      display_id    = 1;
   for (; display_id < kMaxDisplayId; ++display_id) {
     const auto socket_name = std::format("wayland-{}", display_id);
     if (wl_display_add_socket(this->wl_display_, socket_name.c_str()) == 0) {
@@ -70,6 +69,7 @@ void Server::set_socket_fd(std::optional<int> fd) {
   if (display_id == kMaxDisplayId) {
     throw std::runtime_error("Failed to add socket to Wayland display");
   }
+  return display_id;
 }
 
 void Server::start() {

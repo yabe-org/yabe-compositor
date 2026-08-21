@@ -8,7 +8,7 @@
 namespace yabe::core::render {
 namespace {
 struct GlFormat {
-  GLenum format;
+  GLint  format;
   GLenum type;
   int    bytes_per_pixel;
   GLint  swizzle_r;

@@ -4,6 +4,8 @@
 #include <wayland-server.h>
 
 #include <glm/ext.hpp>
+#include <optional>
+#include <utility>
 #include <vector>
 
 #include "common/common.hpp"
@@ -26,7 +28,7 @@ void Surface::set_frame_callback(wl_resource* resource) {
 }
 void Surface::set_input_region(std::optional<Region> region) {
   this->has_pending_input_region_ = true;
-  this->pending_.input_region     = region;
+  this->pending_.input_region     = std::move(region);
 }
 void Surface::set_release_callback(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
@@ -35,19 +37,27 @@ void Surface::set_release_callback(wl_resource* resource) {
 
 void Surface::attach(wl_resource* resource) {
   const std::lock_guard lock(this->buffer_mutex_);
-  this->pending_.buffer = resource;
+  this->pending_.buffer = std::make_optional<Buffer>(resource);
 }
 
 void Surface::commit() {
-  std::optional<wl_resource*> buffer_to_release;
+  const auto is_valid_buffer = [](const std::optional<Buffer>& buffer) {
+    if (!buffer.has_value()) {
+      return false;
+    }
+    if (buffer->resource == nullptr) {
+      return false;
+    }
+    return true;
+  };
+  std::optional<Buffer> buffer_to_release;
   {
     const std::lock_guard lock(this->buffer_mutex_);
     if (this->pending_.buffer.has_value()) {
       // if the current buffer exists, is not uploaded yet, and is different
       // from newly attached buffer, current buffer will no longer be used
-      bool is_current_buffer_valid = this->current_.buffer.has_value() &&
-                                     *this->current_.buffer != nullptr;
-      if (!this->is_texture_uploaded_ && is_current_buffer_valid &&
+      if (is_valid_buffer(this->current_.buffer) &&
+          !this->is_texture_uploaded_ &&
           this->current_.buffer != this->pending_.buffer) {
         buffer_to_release = this->current_.buffer;
       }
@@ -74,7 +84,7 @@ void Surface::commit() {
   }
 
   if (buffer_to_release.has_value()) {
-    wl_buffer_send_release(buffer_to_release.value());
+    wl_buffer_send_release(buffer_to_release->resource);
   }
 
   if (const auto role = this->role_.lock()) {
@@ -87,12 +97,7 @@ void Surface::upload_texture_if_needed() {
   if (!this->current_.buffer.has_value() || this->is_texture_uploaded_) {
     return;
   }
-  this->is_texture_uploaded_       = true;
-  auto*                 buffer     = this->current_.buffer.value();
-  struct wl_shm_buffer* shm_buffer = wl_shm_buffer_get(buffer);
-  if (!shm_buffer) {
-    return;
-  }
+  auto* shm_buffer      = this->current_.buffer->shm_buffer;
   this->texture_width_  = wl_shm_buffer_get_width(shm_buffer);
   this->texture_height_ = wl_shm_buffer_get_height(shm_buffer);
   auto* data            = wl_shm_buffer_get_data(shm_buffer);
@@ -102,7 +107,9 @@ void Surface::upload_texture_if_needed() {
   this->texture_.upload(
       data, format, this->texture_width_, this->texture_height_, stride);
   wl_shm_buffer_end_access(shm_buffer);
-  this->uploaded_buffer_ = buffer;
+  this->current_.buffer->unref_shm_buffer();
+  this->is_texture_uploaded_ = true;
+  this->uploaded_buffer_     = this->current_.buffer;
 
   if (this->surface_node_.has_value()) {
     auto& scale = this->surface_node_.value()->geometry().scale();
@@ -111,7 +118,7 @@ void Surface::upload_texture_if_needed() {
   }
 }
 void Surface::finish_rendering() {
-  std::optional<wl_resource*> buffer;
+  std::optional<Buffer>       buffer;
   std::vector<wl_resource*>   frame_callbacks;
   std::optional<wl_resource*> release_callback;
   {
@@ -134,8 +141,8 @@ void Surface::finish_rendering() {
         if (!surface) {
           return;
         }
-        if (buffer.has_value()) {
-          wl_buffer_send_release(buffer.value());
+        if (buffer.has_value() && buffer->resource) {
+          wl_buffer_send_release(buffer->resource);
         }
         for (auto* frame_callback : frame_callbacks) {
           wl_callback_send_done(frame_callback, common::now_msec());

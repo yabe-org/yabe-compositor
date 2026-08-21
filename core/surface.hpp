@@ -11,6 +11,7 @@
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
+#include "core/buffer.hpp"
 #include "core/region.hpp"
 #include "core/render/texture.hpp"
 #include "core/scene/surface-node.hpp"
@@ -92,11 +93,12 @@ class Surface : public std::enable_shared_from_this<Surface> {
  private:
   unit::Pixel texture_width_{0}, texture_height_{0};
 
+  std::mutex buffer_mutex_;
   struct {
-    // even if the buffer is not nullopt, its pointer is nullable
+    // even if the buffer is not nullopt, Buffer::resource is nullable
     // in order to distinguish between "attach() is not called"
     // and "null buffer is attached (the content is removed)"
-    std::optional<wl_resource*> buffer;
+    std::optional<Buffer>       buffer;
     // if pending_.input_region is nullopt and:
     //   - has_pending_input_region_ == true  : the input region is cleared
     //   - has_pending_input_region_ == false : the input region is not changed
@@ -104,11 +106,11 @@ class Surface : public std::enable_shared_from_this<Surface> {
     std::vector<wl_resource*>   frame_callbacks;
     std::optional<wl_resource*> release_callback;
   } pending_, current_;
-  bool                        has_pending_input_region_ = false;
-  render::Texture             texture_;
-  bool                        is_texture_uploaded_ = false;
-  std::optional<wl_resource*> uploaded_buffer_;
-  std::mutex                  buffer_mutex_;
+  bool has_pending_input_region_ = false;
+
+  render::Texture       texture_;
+  bool                  is_texture_uploaded_ = false;
+  std::optional<Buffer> uploaded_buffer_;
 
   std::weak_ptr<SurfaceRole>                         role_;
   std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =

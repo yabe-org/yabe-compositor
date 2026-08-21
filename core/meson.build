@@ -1,4 +1,5 @@
 srcs += files(
+  'buffer.cpp',
   'ray-cursor.cpp',
   'region.cpp',
   'server.cpp',

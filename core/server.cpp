@@ -200,23 +200,7 @@ void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](render::DrawRectFunc draw_rect) {
         this->scene.draw(draw_rect);
-
-        const auto drag_and_drop_icon_surface =
-            this->ray_cursor.drag_and_drop_icon_surface().lock();
-        if (drag_and_drop_icon_surface) {
-          drag_and_drop_icon_surface->upload_texture_if_needed();
-          draw_rect(this->ray_cursor.cursor_model_mat(),
-              drag_and_drop_icon_surface->texture());
-          drag_and_drop_icon_surface->finish_rendering();
-        }
-
-        const auto cursor_surface = this->ray_cursor.cursor_surface().lock();
-        if (cursor_surface) {
-          cursor_surface->upload_texture_if_needed();
-          draw_rect(
-              this->ray_cursor.cursor_model_mat(), cursor_surface->texture());
-          cursor_surface->finish_rendering();
-        }
+        this->ray_cursor.draw_cursor(draw_rect);
       });
   this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());

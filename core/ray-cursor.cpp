@@ -3,9 +3,49 @@
 #include <glm/ext.hpp>
 #include <memory>
 
+#include "common/common.hpp"
+#include "common/unit.hpp"
+#include "core/render/rect-renderer.hpp"
 #include "core/surface.hpp"
+#include "wayland-server-protocol.h"
 
 namespace yabe::core {
+namespace {
+constexpr int        kDefaultCursorSize    = 32;
+constexpr std::array kDefaultCursorTexture = []() {
+  std::array<uint8_t,
+      static_cast<size_t>(kDefaultCursorSize * kDefaultCursorSize * 4)>
+      data{};
+  for (int y = 0; y < kDefaultCursorSize; ++y) {
+    for (int x = 0; x < kDefaultCursorSize; ++x) {
+      // 0 to 1
+      const auto dx =
+          static_cast<double>(x) / static_cast<double>(kDefaultCursorSize);
+      const auto y0 = (-7.0 * dx) + 0.0;
+      const auto y1 = (-1.1 * dx) + 0.0;
+      const auto y2 =
+          (0.55 * (dx - (1.0 / 7.0))) - 1.0;  // intersects y0 at y = -1
+      // 0 to -1
+      const auto dy =
+          -static_cast<double>(y) / static_cast<double>(kDefaultCursorSize);
+      const int index = ((y * kDefaultCursorSize) + x) * 4;
+      if (dy > y0 && dy < y1 && dy > y2) {
+        data.at(index + 0) = 0xff;  // B
+        data.at(index + 1) = 0xff;  // G
+        data.at(index + 2) = 0xff;  // R
+        data.at(index + 3) = 0xff;  // A
+      } else {
+        data.at(index + 0) = 0x00;  // B
+        data.at(index + 1) = 0x00;  // G
+        data.at(index + 2) = 0x00;  // R
+        data.at(index + 3) = 0x00;  // A
+      }
+    }
+  }
+  return data;
+}();
+}  // namespace
+
 void RayCursor::move_relative(float polar, float azimuth) {
   this->azimuth_ += azimuth;
 
@@ -29,6 +69,40 @@ void RayCursor::set_cursor(
 void RayCursor::set_cursor_rotation(glm::quat rotation) {
   this->cursor_rotation_mat_ = glm::mat4_cast(rotation);
 }
+void RayCursor::reset_cursor() {
+  this->cursor_surface_   = std::nullopt;
+  this->cursor_hotspot_x_ = 0;
+  this->cursor_hotspot_y_ = 0;
+  this->set_length(kDefaultLength);
+}
+
+void RayCursor::draw_cursor(render::DrawRectFunc draw_rect) {
+  const auto drag_and_drop_icon_surface =
+      this->drag_and_drop_icon_surface_.lock();
+  if (drag_and_drop_icon_surface) {
+    drag_and_drop_icon_surface->upload_texture_if_needed();
+    draw_rect(this->cursor_model_mat(), drag_and_drop_icon_surface->texture());
+    drag_and_drop_icon_surface->finish_rendering();
+  }
+
+  if (this->cursor_surface_) {
+    if (auto cursor_surface = this->cursor_surface_.value().lock()) {
+      cursor_surface->upload_texture_if_needed();
+      draw_rect(this->cursor_model_mat(), cursor_surface->texture());
+      cursor_surface->finish_rendering();
+    }
+  } else {
+    if (!this->is_default_cursor_texture_uploaded_) {
+      unit::Pixel size{kDefaultCursorSize};
+      this->default_cursor_texture_.upload(
+          // NOLINTNEXTLINE: (static|const|reinterpret)_cast cannot cast this (why?)
+          (void*)(kDefaultCursorTexture.data()), WL_SHM_FORMAT_ARGB8888, size,
+          size, kDefaultCursorSize * 4);
+      this->is_default_cursor_texture_uploaded_ = true;
+    }
+    draw_rect(this->cursor_model_mat(), this->default_cursor_texture_);
+  }
+}
 
 glm::quat RayCursor::rotation() const {
   return glm::angleAxis(this->azimuth_, glm::vec3{0.F, 1.F, 0.F}) *
@@ -36,8 +110,17 @@ glm::quat RayCursor::rotation() const {
              glm::vec3{-1.F, 0.F, 0.F});
 }
 glm::mat4 RayCursor::cursor_model_mat() const {
-  const auto width    = this->cursor_surface_.lock()->texture_width();
-  const auto height   = this->cursor_surface_.lock()->texture_height();
+  unit::Pixel width{0};
+  unit::Pixel height{0};
+  if (this->cursor_surface_) {
+    if (auto surface = this->cursor_surface_.value().lock()) {
+      width  = surface->texture_width();
+      height = surface->texture_height();
+    }
+  } else {
+    width  = kDefaultCursorSize;
+    height = kDefaultCursorSize;
+  }
   const auto pos      = this->origin_ + this->direction() * this->length_;
   // In 2D, surface position is calculated by $pos - hotspot$
   // but yabe uses OpenGL, so Y axis should be inverted

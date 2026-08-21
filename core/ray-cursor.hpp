@@ -8,6 +8,9 @@
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
+#include "core/render/rect-renderer.hpp"
+#include "core/render/texture.hpp"
+#include "core/scene/surface-node.hpp"
 #include "core/surface.hpp"
 
 namespace yabe::core {
@@ -23,13 +26,10 @@ class RayCursor {
   void set_cursor(
       std::weak_ptr<Surface>&& surface, int32_t hotspot_x, int32_t hotspot_y);
   void set_cursor_rotation(glm::quat rotation);
+  void reset_cursor();
 
-  [[nodiscard]] const std::weak_ptr<Surface>& cursor_surface() {
-    return this->cursor_surface_;
-  }
-  [[nodiscard]] const std::weak_ptr<Surface>& drag_and_drop_icon_surface() {
-    return this->drag_and_drop_icon_surface_;
-  }
+  void draw_cursor(render::DrawRectFunc draw_rect);
+
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;
   }
@@ -39,23 +39,28 @@ class RayCursor {
   [[nodiscard]] glm::vec3 direction() const {
     return glm::rotate(this->rotation(), kBaseDirection);
   }
-  [[nodiscard]] glm::mat4 cursor_model_mat() const;
-  [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
  private:
   [[nodiscard]] glm::quat rotation() const;
+  [[nodiscard]] glm::mat4 cursor_model_mat() const;
+  [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
   constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, 1.F);
+  constexpr static float     kDefaultLength = scene::kSurfaceDistance * 2.F;
 
   glm::vec3 origin_  = {0.F, -0.3F, -0.001F};
-  float     length_  = 5.F;
+  float     length_  = kDefaultLength;
   float     polar_   = std::numbers::pi / 2.F;  // [0, pi]
   float     azimuth_ = std::numbers::pi;        // x-z plane, [0, 2pi]
 
-  std::weak_ptr<Surface> cursor_surface_;
-  glm::mat4              cursor_rotation_mat_ = glm::mat4(1.F);
-  unit::Pixel            cursor_hotspot_x_{0};
-  unit::Pixel            cursor_hotspot_y_{0};
+  bool            is_default_cursor_texture_uploaded_ = false;
+  render::Texture default_cursor_texture_;
+  // nullopt              : uses default cursor texture
+  // has value but nullptr: invisible cursor
+  std::optional<std::weak_ptr<Surface>> cursor_surface_;
+  glm::mat4                             cursor_rotation_mat_ = glm::mat4(1.F);
+  unit::Pixel                           cursor_hotspot_x_{0};
+  unit::Pixel                           cursor_hotspot_y_{0};
 
   std::weak_ptr<Surface> drag_and_drop_icon_surface_;
 };

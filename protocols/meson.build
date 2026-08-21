@@ -18,31 +18,33 @@ xdg_shell_protocol_c = custom_target(
   command: [scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
 )
 
+srcs += files(
+  'protocols.cpp',
+
+  'wayland/compositor.cpp',
+  'wayland/output.cpp',
+  'wayland/region.cpp',
+  'wayland/surface.cpp',
+  'wayland/wayland.cpp',
+  'wayland/data-device/data-device-manager.cpp',
+  'wayland/data-device/data-device.cpp',
+  'wayland/data-device/data-offer.cpp',
+  'wayland/data-device/data-source.cpp',
+  'wayland/seat/seat.cpp',
+  'wayland/seat/pointer.cpp',
+  'wayland/seat/keyboard.cpp',
+  'wayland/subcompositor/subcompositor.cpp',
+  'wayland/subcompositor/subsurface.cpp',
+
+  'xdg-shell/xdg-popup.cpp',
+  'xdg-shell/xdg-positioner.cpp',
+  'xdg-shell/xdg-shell.cpp',
+  'xdg-shell/xdg-surface.cpp',
+  'xdg-shell/xdg-toplevel.cpp',
+  'xdg-shell/xdg-wm-base.cpp',
+)
+
 srcs += [
-  'protocols/protocols.cpp',
-
-  'protocols/wayland/compositor.cpp',
-  'protocols/wayland/output.cpp',
-  'protocols/wayland/region.cpp',
-  'protocols/wayland/surface.cpp',
-  'protocols/wayland/wayland.cpp',
-  'protocols/wayland/data-device/data-device-manager.cpp',
-  'protocols/wayland/data-device/data-device.cpp',
-  'protocols/wayland/data-device/data-offer.cpp',
-  'protocols/wayland/data-device/data-source.cpp',
-  'protocols/wayland/seat/seat.cpp',
-  'protocols/wayland/seat/pointer.cpp',
-  'protocols/wayland/seat/keyboard.cpp',
-  'protocols/wayland/subcompositor/subcompositor.cpp',
-  'protocols/wayland/subcompositor/subsurface.cpp',
-
-  'protocols/xdg-shell/xdg-popup.cpp',
-  'protocols/xdg-shell/xdg-positioner.cpp',
-  'protocols/xdg-shell/xdg-shell.cpp',
-  'protocols/xdg-shell/xdg-surface.cpp',
-  'protocols/xdg-shell/xdg-toplevel.cpp',
-  'protocols/xdg-shell/xdg-wm-base.cpp',
   xdg_shell_protocol_h,
   xdg_shell_protocol_c,
 ]
-

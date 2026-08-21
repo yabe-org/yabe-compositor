@@ -17,6 +17,10 @@ void Dispatchers::initialize(Engine* engine) {
   engine->create_table("dispatchers", [this](Engine* engine) {
     engine->create_field("exec",
         schema::FunctionEntry<int(std::string)>::create(
+            {
+                .description     = "Execute a shell command via `sh -c`",
+                .parameter_names = {"command"},
+            },
             [this](std::string command) {
               LOG_DBG("dispatchers.exec: {}", command);
               this->dispatchers_.emplace_back([this, command = command]() {

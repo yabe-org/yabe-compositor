@@ -3,12 +3,31 @@
 #include <functional>
 #include <lua.hpp>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "common/common.hpp"
 #include "core/setting/engine.hpp"
 #include "core/setting/schema/table.hpp"
 
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+#include "core/setting/schema/metafile.hpp"
+
 namespace yabe::core::setting::schema {
+struct FunctionMetafileText {
+  std::string type;
+  std::string definitions;
+  std::string description;
+};
+}  // namespace yabe::core::setting::schema
+#endif
+
+namespace yabe::core::setting::schema {
+struct FunctionMetadata {
+  std::string              description;
+  std::vector<std::string> parameter_names;
+};
+
 // to store any signature of function into std::vector in Engine
 class FunctionEntryBase {
  public:
@@ -16,6 +35,10 @@ class FunctionEntryBase {
   explicit FunctionEntryBase()             = default;
   virtual ~FunctionEntryBase()             = default;
   virtual int invoke(Engine* engine) const = 0;
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  virtual FunctionMetafileText generate_metafile_text(
+      std::string_view class_name) const = 0;
+#endif
 };
 
 template <typename>
@@ -27,13 +50,15 @@ class FunctionEntry<ReturnType(Args...)> : public FunctionEntryBase {
   using FunctionType = std::function<ReturnType(Args...)>;
 
   DISABLE_MOVE_AND_COPY(FunctionEntry);
-  explicit FunctionEntry(FunctionType func) : func_(std::move(func)) {
+  explicit FunctionEntry(FunctionMetadata metadata, FunctionType func)
+      : metadata_(std::move(metadata)), func_(std::move(func)) {
   }
   ~FunctionEntry() override = default;
 
-  static std::unique_ptr<FunctionEntryBase> create(FunctionType func) {
+  static std::unique_ptr<FunctionEntryBase> create(
+      FunctionMetadata metadata, FunctionType func) {
     return std::make_unique<FunctionEntry<ReturnType(Args...)>>(
-        std::move(func));
+        std::move(metadata), std::move(func));
   }
 
   int invoke(Engine* engine) const override {
@@ -70,8 +95,35 @@ class FunctionEntry<ReturnType(Args...)> : public FunctionEntryBase {
     }
   }
 
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  FunctionMetafileText generate_metafile_text(
+      std::string_view /*class_name*/) const override {
+    std::stringstream type;
+    type << "fun(";
+    std::size_t index          = 0;
+    auto        write_argument = [this, &type, &index]<typename Argument>() {
+      if (index != 0) {
+        type << ", ";
+      }
+      const auto name = index < this->metadata_.parameter_names.size() ?
+                            this->metadata_.parameter_names[index] :
+                            "arg" + std::to_string(index + 1);
+      type << name << ": " << metafile_type_name<Argument>();
+      ++index;
+    };
+    (write_argument.template operator()<Args>(), ...);
+    type << "): " << metafile_type_name<ReturnType>();
+    return {
+        .type        = type.str(),
+        .definitions = {},
+        .description = this->metadata_.description,
+    };
+  }
+#endif
+
  private:
-  FunctionType func_;
+  FunctionMetadata metadata_;
+  FunctionType     func_;
 };
 
 template <typename ReturnType, typename... Fields>
@@ -82,15 +134,18 @@ class FunctionEntry<ReturnType(Table<Fields...>)> : public FunctionEntryBase {
   using FunctionType = std::function<ReturnType(ArgumentType)>;
 
   DISABLE_MOVE_AND_COPY(FunctionEntry);
-  explicit FunctionEntry(const Schema& schema, FunctionType func)
-      : schema_(schema), func_(std::move(func)) {
+  explicit FunctionEntry(
+      const Schema& schema, FunctionMetadata metadata, FunctionType func)
+      : schema_(schema)
+      , metadata_(std::move(metadata))
+      , func_(std::move(func)) {
   }
   ~FunctionEntry() override = default;
 
   static std::unique_ptr<FunctionEntryBase> create(
-      const Schema& schema, FunctionType func) {
+      const Schema& schema, FunctionMetadata metadata, FunctionType func) {
     return std::make_unique<FunctionEntry<ReturnType(Schema)>>(
-        schema, std::move(func));
+        schema, std::move(metadata), std::move(func));
   }
 
   int invoke(Engine* engine) const override {
@@ -110,8 +165,25 @@ class FunctionEntry<ReturnType(Table<Fields...>)> : public FunctionEntryBase {
     }
   }
 
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  FunctionMetafileText generate_metafile_text(
+      std::string_view class_name) const override {
+    const auto argument_name = this->metadata_.parameter_names.empty() ?
+                                   "arg1" :
+                                   this->metadata_.parameter_names.front();
+    return {
+        .type        = std::format("fun({}: {}): {}", argument_name, class_name,
+            metafile_type_name<ReturnType>()),
+        .definitions = generate_table_metafile_text(
+            this->schema_, std::string(class_name)),
+        .description = this->metadata_.description,
+    };
+  }
+#endif
+
  private:
-  Schema       schema_;
-  FunctionType func_;
+  Schema           schema_;
+  FunctionMetadata metadata_;
+  FunctionType     func_;
 };
 }  // namespace yabe::core::setting::schema

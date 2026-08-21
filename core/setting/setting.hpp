@@ -20,6 +20,10 @@ class Setting {
   fields::Dispatchers dispatchers;
   fields::Keybinds    keybinds;
 
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  std::string generate_metafile_text() const;
+#endif
+
  private:
   Engine engine_;
 };

@@ -1,14 +1,12 @@
 #include "engine.hpp"
 
-#include <lauxlib.h>
-
 #include <cassert>
 #include <functional>
 #include <lua.hpp>
 
 #include "common/common.hpp"
 #include "core/setting/schema/function-entry.hpp"
-#include "lua.h"
+#include "core/setting/schema/metafile.hpp"  // IWYU pragma: keep
 
 // Lua macro uses these features
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, bugprone-casting-through-void)
@@ -25,7 +23,9 @@ Engine::~Engine() {
 
 void Engine::initialize(const std::function<void(Engine*)>& initializer) {
   lua_newtable(this->l_);
+  this->push_metafile_table(nullptr);
   initializer(this);
+  this->pop_metafile_table();
   assert(lua_istable(this->l_, -1));
   lua_setglobal(this->l_, "yabe");
 }
@@ -52,7 +52,9 @@ void Engine::add_error_message(std::string&& message) {
 void Engine::create_table(const char*   name,
     const std::function<void(Engine*)>& handle_initialize_table) {
   lua_newtable(this->l_);
+  this->push_metafile_table(name);
   handle_initialize_table(this);
+  this->pop_metafile_table();
   // -1 is the field that will be set to the table
   lua_setfield(this->l_, -2, name);
 }
@@ -61,10 +63,12 @@ void Engine::create_field(const char* name, int value) {
   assert(lua_istable(this->l_, -1));
   lua_pushinteger(this->l_, value);
   lua_setfield(this->l_, -2, name);
+  this->add_metafile_field(name);
 }
 void Engine::create_field(
     const char* name, std::unique_ptr<schema::FunctionEntryBase>&& handler) {
   assert(lua_istable(this->l_, -1));
+  this->add_metafile_field(name, *handler);
   lua_pushlightuserdata(this->l_, handler.get());
   this->handlers_.emplace_back(std::move(handler));
 
@@ -83,5 +87,78 @@ void Engine::create_field(
 void Engine::push_stack_value(int value) {
   lua_pushinteger(this->l_, value);
 }
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+void Engine::push_metafile_table(const char* name) {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  if (name == nullptr) {
+    this->metafile_tables_.push_back({
+        .class_name_prefix = "Yabe",
+        .class_name        = "YabeObject",
+        .fields            = {},
+    });
+    this->metafile_table_stack_.push_back(0);
+    return;
+  }
+
+  const auto& parent =
+      this->metafile_tables_[this->metafile_table_stack_.back()];
+  const auto class_name_prefix =
+      parent.class_name_prefix + schema::metafile_pascal_case(name);
+  const auto class_name = class_name_prefix + "Namespace";
+  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
+      .name        = name,
+      .type        = class_name,
+      .description = {},
+  });
+  this->metafile_tables_.push_back({
+      .class_name_prefix = class_name_prefix,
+      .class_name        = class_name,
+      .fields            = {},
+  });
+  this->metafile_table_stack_.push_back(this->metafile_tables_.size() - 1);
+#else
+  static_cast<void>(name);
+#endif
+}
+void Engine::pop_metafile_table() {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  this->metafile_table_stack_.pop_back();
+#endif
+}
+
+void Engine::add_metafile_field(const char* name) {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
+      .name        = name,
+      .type        = "integer",
+      .description = {},
+  });
+#else
+  static_cast<void>(name);
+#endif
+}
+
+void Engine::add_metafile_field(
+    const char* name, const schema::FunctionEntryBase& handler) {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  const auto& table =
+      this->metafile_tables_[this->metafile_table_stack_.back()];
+  auto metafile = handler.generate_metafile_text(
+      table.class_name_prefix + schema::metafile_pascal_case(name));
+  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
+      .name        = name,
+      .type        = std::move(metafile.type),
+      .description = std::move(metafile.description),
+  });
+  if (!metafile.definitions.empty()) {
+    this->metafile_definitions_.push_back(std::move(metafile.definitions));
+  }
+#else
+  static_cast<void>(name);
+  static_cast<void>(handler);
+#endif
+}
+// NOLINTEND(readability-convert-member-functions-to-static)
 }  // namespace yabe::core::setting
 // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic, bugprone-casting-through-void)

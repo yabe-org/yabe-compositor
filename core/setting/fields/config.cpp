@@ -7,6 +7,10 @@ namespace yabe::core::setting::fields {
 void Config::initialize(Engine* engine) {
   engine->create_field(
       "config", schema::FunctionEntry<void(ConfigSchema)>::create(kConfigTable,
+                    {
+                        .description     = "Set the configuration",
+                        .parameter_names = {"config"},
+                    },
                     [this](schema::TableValue<ConfigSchema> config) {
                       this->values_ = std::move(config);
                       this->on_config_changed();

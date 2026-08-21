@@ -4,22 +4,18 @@
 #include <functional>
 #include <lua.hpp>
 #include <memory>
+#include <sstream>  // IWYU pragma: keep
+#include <string>
 #include <vector>
 
 #include "common/common.hpp"
+#include "common/is-vector.hpp"
 #include "core/setting/schema/table.hpp"
 
 namespace yabe::core::setting {
 namespace schema {
 class FunctionEntryBase;
 }  // namespace schema
-
-template <typename T>
-struct IsVector : std::false_type {};
-template <typename T, typename Allocator>
-struct IsVector<std::vector<T, Allocator>> : std::true_type {
-  using value_type = T;
-};
 
 // to avoid header name collision (lua.hpp), it is named Engine
 // but actually it is only for Lua
@@ -48,11 +44,11 @@ class Engine {
     std::function<T(lua_State*, int, int*)> getter;
     // this vector branch does not use checker / getter,
     // but this check should be here to avoid compilation error
-    if constexpr (IsVector<T>::value) {
+    if constexpr (common::IsVector<T>::value) {
       if (!lua_istable(this->l_, stack_index)) {
         return std::nullopt;
       }
-      using ValueType = typename IsVector<T>::value_type;
+      using ValueType = typename common::IsVector<T>::value_type;
       // using T disables syntax highlight and completion
       std::vector<ValueType> result;
       auto                   len = luaL_len(this->l_, stack_index);
@@ -148,8 +144,53 @@ class Engine {
   }
 
  private:
+  void push_metafile_table(const char* name);
+  void pop_metafile_table();
+  void add_metafile_field(const char* name);
+  void add_metafile_field(
+      const char* name, const schema::FunctionEntryBase& handler);
+
   lua_State*                                              l_;
   std::vector<std::unique_ptr<schema::FunctionEntryBase>> handlers_;
   std::vector<std::string>                                error_messages_;
+
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+ public:
+  std::string generate_metafile_text() const {
+    std::stringstream result;
+    result << "---@meta\n\n";
+    for (const auto& table : this->metafile_tables_) {
+      result << "---@class " << table.class_name << '\n';
+      for (const auto& field : table.fields) {
+        result << "---@field " << field.name << ' ' << field.type;
+        if (!field.description.empty()) {
+          result << " # " << field.description;
+        }
+        result << '\n';
+      }
+      result << '\n';
+    }
+    for (const auto& definitions : this->metafile_definitions_) {
+      result << definitions;
+    }
+    result << "---@type YabeObject\n" << "yabe = {}\n";
+    return result.str();
+  }
+
+ private:
+  struct MetafileField {
+    std::string name;
+    std::string type;
+    std::string description;
+  };
+  struct MetafileTable {
+    std::string                class_name_prefix;
+    std::string                class_name;
+    std::vector<MetafileField> fields;
+  };
+  std::vector<MetafileTable> metafile_tables_;
+  std::vector<std::size_t>   metafile_table_stack_;
+  std::vector<std::string>   metafile_definitions_;
+#endif
 };
 }  // namespace yabe::core::setting

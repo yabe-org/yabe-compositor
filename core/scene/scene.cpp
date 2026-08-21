@@ -1,6 +1,7 @@
 #include "scene.hpp"
 
 #include <mutex>
+#include <ranges>
 
 #include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
@@ -48,18 +49,13 @@ void Scene::draw(render::DrawRectFunc& draw_rect) {
 std::optional<SceneIntersection> Scene::get_nearest_intersection(
     const glm::vec3& origin, const glm::vec3& direction) {
   const std::lock_guard<std::mutex> lock(this->mutex_);
-  std::optional<SceneIntersection>  nearest;
-  for (const auto& node : this->nodes_) {
+  for (const auto& node : this->nodes_ | std::views::reverse) {
     const auto intersection =
         node->check_intersection(origin, direction, nullptr, glm::mat4(1.F));
-    if (!intersection.has_value()) {
-      continue;
-    }
-    if (!nearest.has_value() || intersection->intersect_info.distance <
-                                    nearest->intersect_info.distance) {
-      nearest = intersection;
+    if (intersection.has_value()) {
+      return intersection;
     }
   }
-  return nearest;
+  return std::nullopt;
 }
 }  // namespace yabe::core::scene

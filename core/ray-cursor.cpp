@@ -63,8 +63,8 @@ void RayCursor::set_drag_and_drop_icon(std::weak_ptr<Surface>&& surface) {
 void RayCursor::set_cursor(
     std::weak_ptr<Surface>&& surface, int32_t x, int32_t y) {
   this->cursor_surface_   = std::move(surface);
-  this->cursor_hotspot_x_ = unit::Pixel(x);
-  this->cursor_hotspot_y_ = unit::Pixel(y);
+  this->cursor_hotspot_x_ = common::unit::Pixel(x);
+  this->cursor_hotspot_y_ = common::unit::Pixel(y);
 }
 void RayCursor::set_cursor_rotation(glm::quat rotation) {
   this->cursor_rotation_mat_ = glm::mat4_cast(rotation);
@@ -95,7 +95,7 @@ void RayCursor::draw_cursor(
     }
   } else {
     if (!this->is_default_cursor_texture_uploaded_) {
-      unit::Pixel size{kDefaultCursorSize};
+      common::unit::Pixel size{kDefaultCursorSize};
       this->default_cursor_texture_.upload(
           // NOLINTNEXTLINE: (static|const|reinterpret)_cast cannot cast this (why?)
           (void*)(kDefaultCursorTexture.data()), WL_SHM_FORMAT_ARGB8888, size,
@@ -112,8 +112,8 @@ glm::quat RayCursor::rotation() const {
              glm::vec3{-1.F, 0.F, 0.F});
 }
 glm::mat4 RayCursor::cursor_model_mat() const {
-  unit::Pixel width{0};
-  unit::Pixel height{0};
+  common::unit::Pixel width{0};
+  common::unit::Pixel height{0};
   if (this->cursor_surface_) {
     if (auto surface = this->cursor_surface_.value().lock()) {
       width  = surface->texture_width();
@@ -123,13 +123,14 @@ glm::mat4 RayCursor::cursor_model_mat() const {
     width  = kDefaultCursorSize;
     height = kDefaultCursorSize;
   }
-  const auto pos      = this->origin_ + this->direction() * this->length_;
+  const auto pos = this->origin_ + this->direction() * this->length_;
   // In 2D, surface position is calculated by $pos - hotspot$
   // but yabe uses OpenGL, so Y axis should be inverted
   // and the surface position should be the center of the surface
-  const auto offset_x = unit::Pixel{width.value / 2} - this->cursor_hotspot_x_;
+  const auto offset_x =
+      common::unit::Pixel{width.value / 2} - this->cursor_hotspot_x_;
   const auto offset_y =
-      (unit::Pixel{height.value / 2} - this->cursor_hotspot_y_) * -1;
+      (common::unit::Pixel{height.value / 2} - this->cursor_hotspot_y_) * -1;
   const auto hotspot_offset =
       glm::vec3(*offset_x.to_world_unit(), *offset_y.to_world_unit(), 0.F);
 

@@ -23,25 +23,25 @@ class XdgSurface {
     return this->wl_surface_;
   }
 
-  [[nodiscard]] core::unit::Pixel width() const {
+  [[nodiscard]] common::unit::Pixel width() const {
     return this->current_.width;
   }
-  [[nodiscard]] core::unit::Pixel height() const {
+  [[nodiscard]] common::unit::Pixel height() const {
     return this->current_.height;
   }
-  [[nodiscard]] core::unit::Pixel x() const {
+  [[nodiscard]] common::unit::Pixel x() const {
     return this->current_.x;
   }
-  [[nodiscard]] core::unit::Pixel y() const {
+  [[nodiscard]] common::unit::Pixel y() const {
     return this->current_.y;
   }
 
  private:
   struct {
-    core::unit::Pixel x{0};
-    core::unit::Pixel y{0};
-    core::unit::Pixel width{0};
-    core::unit::Pixel height{0};
+    common::unit::Pixel x{0};
+    common::unit::Pixel y{0};
+    common::unit::Pixel width{0};
+    common::unit::Pixel height{0};
   } pending_, current_;
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> wl_surface_;

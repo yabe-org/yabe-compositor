@@ -9,10 +9,10 @@ Region::Region(wl_resource* resource) : resource_(resource) {
 
 void Region::add(int32_t x, int32_t y, int32_t width, int32_t height) {
   Rect new_rect{
-      .begin_x = unit::Pixel(x),
-      .begin_y = unit::Pixel(y),
-      .end_x   = unit::Pixel(x + width),
-      .end_y   = unit::Pixel(y + height),
+      .begin_x = common::unit::Pixel(x),
+      .begin_y = common::unit::Pixel(y),
+      .end_x   = common::unit::Pixel(x + width),
+      .end_y   = common::unit::Pixel(y + height),
   };
   if (new_rect.is_empty()) {
     return;
@@ -40,10 +40,10 @@ void Region::add(int32_t x, int32_t y, int32_t width, int32_t height) {
 
 void Region::subtract(int32_t x, int32_t y, int32_t width, int32_t height) {
   Rect sub_rect{
-      .begin_x = unit::Pixel(x),
-      .begin_y = unit::Pixel(y),
-      .end_x   = unit::Pixel(x + width),
-      .end_y   = unit::Pixel(y + height),
+      .begin_x = common::unit::Pixel(x),
+      .begin_y = common::unit::Pixel(y),
+      .end_x   = common::unit::Pixel(x + width),
+      .end_y   = common::unit::Pixel(y + height),
   };
   if (sub_rect.is_empty()) {
     return;
@@ -56,7 +56,7 @@ void Region::subtract(int32_t x, int32_t y, int32_t width, int32_t height) {
   }
   this->rects_ = std::move(new_rects);
 }
-bool Region::contains(unit::Pixel x, unit::Pixel y) const {
+bool Region::contains(common::unit::Pixel x, common::unit::Pixel y) const {
   return std::ranges::any_of(
       this->rects_.begin(), this->rects_.end(), [x, y](const Rect& rect) {
         return rect.begin_x <= x && x < rect.end_x &&  //

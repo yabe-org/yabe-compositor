@@ -70,10 +70,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
   [[nodiscard]] const render::Texture& texture() const {
     return this->texture_;
   }
-  [[nodiscard]] const unit::Pixel& texture_width() const {
+  [[nodiscard]] const common::unit::Pixel& texture_width() const {
     return this->texture_width_;
   }
-  [[nodiscard]] const unit::Pixel& texture_height() const {
+  [[nodiscard]] const common::unit::Pixel& texture_height() const {
     return this->texture_height_;
   }
   [[nodiscard]] const std::optional<Region>& input_region() const {
@@ -91,7 +91,7 @@ class Surface : public std::enable_shared_from_this<Surface> {
   }
 
  private:
-  unit::Pixel texture_width_{0}, texture_height_{0};
+  common::unit::Pixel texture_width_{0}, texture_height_{0};
 
   std::mutex buffer_mutex_;
   struct {

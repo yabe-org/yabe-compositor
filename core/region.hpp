@@ -18,15 +18,16 @@ class Region {
 
   void add(int32_t x, int32_t y, int32_t width, int32_t height);
   void subtract(int32_t x, int32_t y, int32_t width, int32_t height);
-  [[nodiscard]] bool contains(unit::Pixel x, unit::Pixel y) const;
+  [[nodiscard]] bool contains(
+      common::unit::Pixel x, common::unit::Pixel y) const;
 
  private:
   struct Rect {
     /// all positions are top-left originated position
-    unit::Pixel begin_x{0};
-    unit::Pixel begin_y{0};
-    unit::Pixel end_x{0};
-    unit::Pixel end_y{0};
+    common::unit::Pixel begin_x{0};
+    common::unit::Pixel begin_y{0};
+    common::unit::Pixel end_x{0};
+    common::unit::Pixel end_y{0};
 
     [[nodiscard]] bool              is_empty() const;
     [[nodiscard]] bool              intersects(const Rect& other) const;

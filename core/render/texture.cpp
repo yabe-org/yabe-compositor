@@ -143,7 +143,8 @@ Texture::~Texture() {
 }
 
 void Texture::upload(void* data, uint32_t wl_shm_format,
-    const unit::Pixel& width, const unit::Pixel& height, int32_t stride) {
+    const common::unit::Pixel& width, const common::unit::Pixel& height,
+    int32_t stride) {
   auto gl_format = get_gl_format(wl_shm_format);
   if (!gl_format.has_value()) {
     LOG_ERR(

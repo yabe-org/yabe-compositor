@@ -5,7 +5,7 @@
 
 #include "coordinate.hpp"
 
-namespace yabe::core {
+namespace yabe::common {
 class Geometry {
  public:
   explicit Geometry(const glm::vec3& pos) : cartesian_(pos) {
@@ -50,4 +50,4 @@ class Geometry {
   glm::quat                  rotation_ = glm::quat(1.F, 0.F, 0.F, 0.F);
   glm::vec3                  scale_    = glm::vec3(1.F, 1.F, 1.F);
 };
-}  // namespace yabe::core
+}  // namespace yabe::common

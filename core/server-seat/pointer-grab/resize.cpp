@@ -57,9 +57,9 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
     server::get().seat.pointer.end_grab();
     return;
   }
-  const unit::WorldUnit surface_delta_width{
+  const common::unit::WorldUnit surface_delta_width{
       std::tan(this->move_amount_x_) * scene::kSurfaceDistance};
-  const unit::WorldUnit surface_delta_height{
+  const common::unit::WorldUnit surface_delta_height{
       std::tan(this->move_amount_y_) * scene::kSurfaceDistance};
   xdg_toplevel->request_resize(
       this->initial_width_ + surface_delta_width.to_pixel(),

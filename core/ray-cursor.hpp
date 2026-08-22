@@ -59,8 +59,8 @@ class RayCursor {
   // has value but nullptr: invisible cursor
   std::optional<std::weak_ptr<Surface>> cursor_surface_;
   glm::mat4                             cursor_rotation_mat_ = glm::mat4(1.F);
-  unit::Pixel                           cursor_hotspot_x_{0};
-  unit::Pixel                           cursor_hotspot_y_{0};
+  common::unit::Pixel                   cursor_hotspot_x_{0};
+  common::unit::Pixel                   cursor_hotspot_y_{0};
 
   std::weak_ptr<Surface> drag_and_drop_icon_surface_;
 };

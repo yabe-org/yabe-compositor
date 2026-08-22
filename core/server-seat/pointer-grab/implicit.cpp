@@ -48,8 +48,9 @@ void ImplicitPointerGrab::move_relative(float dx, float dy) {
     server::get().seat.pointer.end_grab();
     return;
   }
-  const unit::WorldUnit surface_width{scene_node->geometry().scale().x};
-  const unit::WorldUnit surface_height{scene_node->geometry().scale().y};
+  const common::unit::WorldUnit surface_width{scene_node->geometry().scale().x};
+  const common::unit::WorldUnit surface_height{
+      scene_node->geometry().scale().y};
   client_seat.value()->pointer.send_motion(
       static_cast<float>(*surface_width.to_pixel()) * result->u,
       static_cast<float>(*surface_height.to_pixel()) * (1.F - result->v));

@@ -1,9 +1,11 @@
 #pragma once
 
-#include <compare>
 #include <cstdint>
 
-namespace yabe::core::unit {
+// This is required to use default impl of <=> but clangd says it is unused
+#include <compare>  // IWYU pragma: keep
+
+namespace yabe::common::unit {
 struct Pixel;
 struct WorldUnit {
   float value;
@@ -67,4 +69,4 @@ struct Pixel {
   }
   [[nodiscard]] WorldUnit to_world_unit() const;
 };
-}  // namespace yabe::core::unit
+}  // namespace yabe::common::unit

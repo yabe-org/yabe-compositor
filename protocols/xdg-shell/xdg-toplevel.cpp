@@ -86,7 +86,7 @@ void XdgToplevel::start_resize(uint32_t edges) {
 }
 
 void XdgToplevel::request_resize(
-    core::unit::Pixel width, core::unit::Pixel height) {
+    common::unit::Pixel width, common::unit::Pixel height) {
   this->send_configure(*width, *height);
 }
 

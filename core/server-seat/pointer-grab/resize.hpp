@@ -26,10 +26,10 @@ class ResizePointerGrab final : public PointerGrab {
   explicit ResizePointerGrab() = default;
   ~ResizePointerGrab()         = default;
 
-  uint32_t    edges_ = 0;
-  unit::Pixel initial_width_{0};
-  unit::Pixel initial_height_{0};
-  glm::vec3   initial_toplevel_pos_{0.F};
+  uint32_t            edges_ = 0;
+  common::unit::Pixel initial_width_{0};
+  common::unit::Pixel initial_height_{0};
+  glm::vec3           initial_toplevel_pos_{0.F};
 
   float move_amount_x_ = 0.F;
   float move_amount_y_ = 0.F;

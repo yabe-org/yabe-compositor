@@ -8,9 +8,9 @@
 #include "common/common.hpp"
 #include "wayland-server-protocol.h"
 
-namespace yabe::core {
+namespace yabe::common {
 template <>
-void core::Edge::set(xdg_positioner_gravity value) {
+void Edge::set(xdg_positioner_gravity value) {
   switch (value) {
     case XDG_POSITIONER_GRAVITY_NONE:
       break;
@@ -45,7 +45,7 @@ void core::Edge::set(xdg_positioner_gravity value) {
   }
 }
 template <>
-void core::Edge::set(xdg_positioner_anchor value) {
+void Edge::set(xdg_positioner_anchor value) {
   switch (value) {
     case XDG_POSITIONER_ANCHOR_NONE:
       break;
@@ -79,7 +79,7 @@ void core::Edge::set(xdg_positioner_anchor value) {
       break;
   }
 }
-}  // namespace yabe::core
+}  // namespace yabe::common
 
 namespace yabe::proto::xdg_shell::xdg_positioner {
 XdgPositioner::XdgPositioner(wl_resource* resource) : resource_(resource) {
@@ -101,15 +101,15 @@ XdgPositioner::XdgPositioner(XdgPositioner* other) {
 }
 
 void XdgPositioner::set_size(int32_t width, int32_t height) {
-  this->width_  = core::unit::Pixel(width);
-  this->height_ = core::unit::Pixel(height);
+  this->width_  = common::unit::Pixel(width);
+  this->height_ = common::unit::Pixel(height);
 }
 void XdgPositioner::set_anchor_rect(
     int32_t x, int32_t y, int32_t width, int32_t height) {
-  this->anchor_x_      = core::unit::Pixel(x);
-  this->anchor_y_      = core::unit::Pixel(y);
-  this->anchor_width_  = core::unit::Pixel(width);
-  this->anchor_height_ = core::unit::Pixel(height);
+  this->anchor_x_      = common::unit::Pixel(x);
+  this->anchor_y_      = common::unit::Pixel(y);
+  this->anchor_width_  = common::unit::Pixel(width);
+  this->anchor_height_ = common::unit::Pixel(height);
 }
 void XdgPositioner::set_anchor(xdg_positioner_anchor anchor) {
   this->anchor_.set(anchor);
@@ -121,12 +121,12 @@ void XdgPositioner::set_constraint_adjustment(uint32_t constraint_adjustment) {
   this->constraint_adjustment_ = constraint_adjustment;
 }
 void XdgPositioner::set_offset(int32_t x, int32_t y) {
-  this->offset_x_ = core::unit::Pixel(x);
-  this->offset_y_ = core::unit::Pixel(y);
+  this->offset_x_ = common::unit::Pixel(x);
+  this->offset_y_ = common::unit::Pixel(y);
 }
 void XdgPositioner::set_parent_size(int32_t width, int32_t height) {
-  this->parent_width_  = core::unit::Pixel(width);
-  this->parent_height_ = core::unit::Pixel(height);
+  this->parent_width_  = common::unit::Pixel(width);
+  this->parent_height_ = common::unit::Pixel(height);
 }
 
 PopupPosition XdgPositioner::calculate_pos() {
@@ -137,25 +137,25 @@ PopupPosition XdgPositioner::calculate_pos() {
       .height = this->height_,
   };
 
-  if (this->anchor_.at(core::Edge::RIGHT)) {
+  if (this->anchor_.at(common::Edge::RIGHT)) {
     pos.x += this->anchor_width_;
-  } else if (!this->anchor_.at(core::Edge::LEFT)) {
+  } else if (!this->anchor_.at(common::Edge::LEFT)) {
     pos.x += this->anchor_width_ / 2;
   }
-  if (this->anchor_.at(core::Edge::BOTTOM)) {
+  if (this->anchor_.at(common::Edge::BOTTOM)) {
     pos.y += this->anchor_height_;
-  } else if (!this->anchor_.at(core::Edge::TOP)) {
+  } else if (!this->anchor_.at(common::Edge::TOP)) {
     pos.y += this->anchor_height_ / 2;
   }
 
-  if (this->gravity_.at(core::Edge::LEFT)) {
+  if (this->gravity_.at(common::Edge::LEFT)) {
     pos.x -= this->width_;
-  } else if (!this->gravity_.at(core::Edge::RIGHT)) {
+  } else if (!this->gravity_.at(common::Edge::RIGHT)) {
     pos.x -= this->width_ / 2;
   }
-  if (this->gravity_.at(core::Edge::TOP)) {
+  if (this->gravity_.at(common::Edge::TOP)) {
     pos.y -= this->height_;
-  } else if (!this->gravity_.at(core::Edge::BOTTOM)) {
+  } else if (!this->gravity_.at(common::Edge::BOTTOM)) {
     pos.y -= this->height_ / 2;
   }
 

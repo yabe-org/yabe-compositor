@@ -29,7 +29,7 @@ class XdgToplevel : public core::SurfaceRole,
 
   void start_move();
   void start_resize(uint32_t edges);
-  void request_resize(core::unit::Pixel width, core::unit::Pixel height);
+  void request_resize(common::unit::Pixel width, common::unit::Pixel height);
 
   [[nodiscard]] std::weak_ptr<xdg_surface::XdgSurface> xdg_surface() const {
     return this->xdg_surface_;

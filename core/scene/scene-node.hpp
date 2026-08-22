@@ -13,7 +13,7 @@ namespace yabe::core::scene {
 class SceneNode : public std::enable_shared_from_this<SceneNode> {
  public:
   DISABLE_MOVE_AND_COPY(SceneNode);
-  explicit SceneNode(const Geometry& geometry);
+  explicit SceneNode(const common::Geometry& geometry);
   virtual ~SceneNode() = default;
 
   void draw(const glm::mat4& vp_mat, render::DrawRectFunc& draw_rect,
@@ -32,10 +32,10 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const glm::vec3& origin, const glm::vec3& direction,
       const SceneNode* parent, const glm::mat4& parent_world_transform);
 
-  [[nodiscard]] Geometry& geometry() {
+  [[nodiscard]] common::Geometry& geometry() {
     return this->geometry_;
   }
-  [[nodiscard]] const Geometry& geometry() const {
+  [[nodiscard]] const common::Geometry& geometry() const {
     return this->geometry_;
   }
   [[nodiscard]] glm::mat4 world_transform() const;
@@ -53,7 +53,7 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const SceneNode* parent, const glm::mat4& parent_world_transform) const;
 
  private:
-  Geometry                              geometry_;
+  common::Geometry                      geometry_;
   std::list<std::shared_ptr<SceneNode>> children_;
   std::weak_ptr<SceneNode>              parent_;
 };

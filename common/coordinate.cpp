@@ -3,7 +3,7 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-namespace yabe::core::coordinate {
+namespace yabe::common::coordinate {
 CartesianCoord SphericalCoord::to_cartesian() const {
   return CartesianCoord({
       +this->radius * std::cos(this->phi) * std::sin(this->theta),
@@ -19,4 +19,4 @@ SphericalCoord CartesianCoord::to_spherical() const {
       .phi    = std::asin(glm::normalize(this->pos).y),
   };
 }
-}  // namespace yabe::core::coordinate
+}  // namespace yabe::common::coordinate

@@ -3,7 +3,7 @@
 #include <bitset>
 #include <cstdint>
 
-namespace yabe::core {
+namespace yabe::common {
 class Edge {
  public:
   Edge()                       = default;
@@ -35,4 +35,4 @@ template <>
 inline void Edge::set(Pos value) {
   this->edges_.set(static_cast<size_t>(value));
 }
-}  // namespace yabe::core
+}  // namespace yabe::common

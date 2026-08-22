@@ -1,6 +1,6 @@
 #include "geometry.hpp"
 
-namespace yabe::core {
+namespace yabe::common {
 glm::mat4 Geometry::transform_mat() const {
   glm::mat4 model_mat(1.F);
   model_mat = glm::translate(model_mat, this->cartesian_.pos) *
@@ -35,4 +35,4 @@ void Geometry::move_relative(float d_theta, float d_phi, float d_radius) {
   this->cartesian_ = spherical.to_cartesian();
 }
 
-}  // namespace yabe::core
+}  // namespace yabe::common

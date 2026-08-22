@@ -5,18 +5,18 @@
 #include <cstdint>
 
 #include "common/common.hpp"
+#include "common/edge.hpp"
 #include "common/unit.hpp"
-#include "core/edge.hpp"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_positioner {
 // relative value from the top-left corner of the parent surface
 // right and down are positive
 struct PopupPosition {
-  core::unit::Pixel x;
-  core::unit::Pixel y;
-  core::unit::Pixel width;
-  core::unit::Pixel height;
+  common::unit::Pixel x;
+  common::unit::Pixel y;
+  common::unit::Pixel width;
+  common::unit::Pixel height;
 };
 
 class XdgPositioner {
@@ -37,23 +37,23 @@ class XdgPositioner {
   PopupPosition calculate_pos();
 
  private:
-  core::unit::Pixel width_{0};
-  core::unit::Pixel height_{0};
+  common::unit::Pixel width_{0};
+  common::unit::Pixel height_{0};
 
-  core::unit::Pixel anchor_x_{0};
-  core::unit::Pixel anchor_y_{0};
-  core::unit::Pixel anchor_width_{0};
-  core::unit::Pixel anchor_height_{0};
+  common::unit::Pixel anchor_x_{0};
+  common::unit::Pixel anchor_y_{0};
+  common::unit::Pixel anchor_width_{0};
+  common::unit::Pixel anchor_height_{0};
 
-  core::Edge anchor_;
-  core::Edge gravity_;
-  uint32_t   constraint_adjustment_ = XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_NONE;
+  common::Edge anchor_;
+  common::Edge gravity_;
+  uint32_t constraint_adjustment_ = XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_NONE;
 
-  core::unit::Pixel offset_x_{0};
-  core::unit::Pixel offset_y_{0};
+  common::unit::Pixel offset_x_{0};
+  common::unit::Pixel offset_y_{0};
 
-  core::unit::Pixel parent_width_{0};
-  core::unit::Pixel parent_height_{0};
+  common::unit::Pixel parent_width_{0};
+  common::unit::Pixel parent_height_{0};
 
   wl_resource* resource_;
 };

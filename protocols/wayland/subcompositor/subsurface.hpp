@@ -27,9 +27,9 @@ class Subsurface : public core::SurfaceRole {
   }
 
  private:
-  core::unit::Pixel x_{0};
-  core::unit::Pixel y_{0};
-  void              update_position();
+  common::unit::Pixel x_{0};
+  common::unit::Pixel y_{0};
+  void                update_position();
 
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> surface_;

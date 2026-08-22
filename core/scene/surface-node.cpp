@@ -8,7 +8,7 @@
 
 namespace yabe::core::scene {
 SurfaceNode::SurfaceNode(std::weak_ptr<core::Surface>&& surface, Anchor anchor)
-    : SceneNode(Geometry(glm::vec3{0.F, 0.F, -kSurfaceDistance}))
+    : SceneNode(common::Geometry(glm::vec3{0.F, 0.F, -kSurfaceDistance}))
     , surface_(std::move(surface))
     , anchor_(anchor) {
   // scale (size) will be set by wl_surface.commit()
@@ -85,8 +85,8 @@ std::optional<SceneIntersection> SurfaceNode::check_intersection_self(
   if (!region.has_value()) {
     return intersection;
   }
-  if (region.value().contains(unit::Pixel(static_cast<int32_t>(x)),
-          unit::Pixel(static_cast<int32_t>(y)))) {
+  if (region.value().contains(common::unit::Pixel(static_cast<int32_t>(x)),
+          common::unit::Pixel(static_cast<int32_t>(y)))) {
     return intersection;
   }
   return std::nullopt;

@@ -19,8 +19,9 @@ class Texture {
   }
 
   /// must be called in the rendering thread
-  void upload(void* data, uint32_t wl_shm_format, const unit::Pixel& width,
-      const unit::Pixel& height, int32_t stride);
+  void upload(void* data, uint32_t wl_shm_format,
+      const common::unit::Pixel& width, const common::unit::Pixel& height,
+      int32_t stride);
 
  private:
   GLuint texture_ = 0;

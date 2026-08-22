@@ -3,7 +3,7 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-namespace yabe::core::coordinate {
+namespace yabe::common::coordinate {
 /*
          +Y  -Z (direction that the user initially looks at)
           ^  /
@@ -35,4 +35,4 @@ struct CartesianCoord {
   }
   [[nodiscard]] SphericalCoord to_spherical() const;
 };
-}  // namespace yabe::core::coordinate
+}  // namespace yabe::common::coordinate

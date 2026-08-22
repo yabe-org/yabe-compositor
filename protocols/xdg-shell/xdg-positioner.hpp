@@ -2,11 +2,11 @@
 
 #include <wayland-server.h>
 
-#include <bitset>
 #include <cstdint>
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
+#include "core/edge.hpp"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_positioner {
@@ -17,31 +17,6 @@ struct PopupPosition {
   core::unit::Pixel y;
   core::unit::Pixel width;
   core::unit::Pixel height;
-};
-
-class Edge {
- public:
-  Edge()                       = default;
-  Edge(const Edge&)            = default;
-  Edge& operator=(const Edge&) = default;
-  Edge(Edge&&)                 = delete;
-  Edge& operator=(Edge&&)      = delete;
-  ~Edge()                      = default;
-
-  enum Pos : uint8_t {
-    TOP    = 0,
-    BOTTOM = 1,
-    LEFT   = 2,
-    RIGHT  = 3,
-  };
-
-  void set(xdg_positioner_gravity gravity);
-  void set(xdg_positioner_anchor anchor);
-  void set(Pos pos);
-  bool at(Pos pos);
-
- private:
-  std::bitset<4> edges_;
 };
 
 class XdgPositioner {
@@ -70,9 +45,9 @@ class XdgPositioner {
   core::unit::Pixel anchor_width_{0};
   core::unit::Pixel anchor_height_{0};
 
-  Edge     anchor_;
-  Edge     gravity_;
-  uint32_t constraint_adjustment_ = XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_NONE;
+  core::Edge anchor_;
+  core::Edge gravity_;
+  uint32_t   constraint_adjustment_ = XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_NONE;
 
   core::unit::Pixel offset_x_{0};
   core::unit::Pixel offset_y_{0};

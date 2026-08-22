@@ -8,12 +8,10 @@
 #include "common/common.hpp"
 #include "wayland-server-protocol.h"
 
-namespace yabe::proto::xdg_shell::xdg_positioner {
-void Edge::set(Pos pos) {
-  this->edges_.set(static_cast<size_t>(pos));
-}
-void Edge::set(xdg_positioner_gravity gravity) {
-  switch (gravity) {
+namespace yabe::core {
+template <>
+void core::Edge::set(xdg_positioner_gravity value) {
+  switch (value) {
     case XDG_POSITIONER_GRAVITY_NONE:
       break;
     case XDG_POSITIONER_GRAVITY_TOP:
@@ -46,8 +44,9 @@ void Edge::set(xdg_positioner_gravity gravity) {
       break;
   }
 }
-void Edge::set(xdg_positioner_anchor anchor) {
-  switch (anchor) {
+template <>
+void core::Edge::set(xdg_positioner_anchor value) {
+  switch (value) {
     case XDG_POSITIONER_ANCHOR_NONE:
       break;
     case XDG_POSITIONER_ANCHOR_TOP:
@@ -80,10 +79,9 @@ void Edge::set(xdg_positioner_anchor anchor) {
       break;
   }
 }
-bool Edge::at(Pos pos) {
-  return this->edges_.test(static_cast<size_t>(pos));
-}
+}  // namespace yabe::core
 
+namespace yabe::proto::xdg_shell::xdg_positioner {
 XdgPositioner::XdgPositioner(wl_resource* resource) : resource_(resource) {
 }
 XdgPositioner::XdgPositioner(XdgPositioner* other) {
@@ -139,25 +137,25 @@ PopupPosition XdgPositioner::calculate_pos() {
       .height = this->height_,
   };
 
-  if (this->anchor_.at(Edge::RIGHT)) {
+  if (this->anchor_.at(core::Edge::RIGHT)) {
     pos.x += this->anchor_width_;
-  } else if (!this->anchor_.at(Edge::LEFT)) {
+  } else if (!this->anchor_.at(core::Edge::LEFT)) {
     pos.x += this->anchor_width_ / 2;
   }
-  if (this->anchor_.at(Edge::BOTTOM)) {
+  if (this->anchor_.at(core::Edge::BOTTOM)) {
     pos.y += this->anchor_height_;
-  } else if (!this->anchor_.at(Edge::TOP)) {
+  } else if (!this->anchor_.at(core::Edge::TOP)) {
     pos.y += this->anchor_height_ / 2;
   }
 
-  if (this->gravity_.at(Edge::LEFT)) {
+  if (this->gravity_.at(core::Edge::LEFT)) {
     pos.x -= this->width_;
-  } else if (!this->gravity_.at(Edge::RIGHT)) {
+  } else if (!this->gravity_.at(core::Edge::RIGHT)) {
     pos.x -= this->width_ / 2;
   }
-  if (this->gravity_.at(Edge::TOP)) {
+  if (this->gravity_.at(core::Edge::TOP)) {
     pos.y -= this->height_;
-  } else if (!this->gravity_.at(Edge::BOTTOM)) {
+  } else if (!this->gravity_.at(core::Edge::BOTTOM)) {
     pos.y -= this->height_ / 2;
   }
 

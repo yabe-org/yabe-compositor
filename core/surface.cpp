@@ -45,7 +45,7 @@ void Surface::commit() {
     if (!buffer.has_value()) {
       return false;
     }
-    if (buffer->resource == nullptr) {
+    if (buffer->resource() == nullptr) {
       return false;
     }
     return true;
@@ -84,7 +84,7 @@ void Surface::commit() {
   }
 
   if (buffer_to_release.has_value()) {
-    wl_buffer_send_release(buffer_to_release->resource);
+    wl_buffer_send_release(buffer_to_release->resource());
   }
 
   if (const auto role = this->role_.lock()) {
@@ -94,10 +94,11 @@ void Surface::commit() {
 
 void Surface::upload_texture_if_needed() {
   const std::lock_guard lock(this->buffer_mutex_);
-  if (!this->current_.buffer.has_value() || this->is_texture_uploaded_) {
+  if (!this->current_.buffer.has_value() ||
+      !this->current_.buffer->resource() || this->is_texture_uploaded_) {
     return;
   }
-  auto* shm_buffer      = this->current_.buffer->shm_buffer;
+  auto* shm_buffer      = this->current_.buffer->shm_buffer();
   this->texture_width_  = wl_shm_buffer_get_width(shm_buffer);
   this->texture_height_ = wl_shm_buffer_get_height(shm_buffer);
   auto* data            = wl_shm_buffer_get_data(shm_buffer);
@@ -141,8 +142,8 @@ void Surface::finish_rendering() {
         if (!surface) {
           return;
         }
-        if (buffer.has_value() && buffer->resource) {
-          wl_buffer_send_release(buffer->resource);
+        if (buffer.has_value() && buffer->resource()) {
+          wl_buffer_send_release(buffer->resource());
         }
         for (auto* frame_callback : frame_callbacks) {
           wl_callback_send_done(frame_callback, common::now_msec());

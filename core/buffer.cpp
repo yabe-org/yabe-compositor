@@ -6,21 +6,24 @@
 
 namespace yabe::core {
 Buffer::Buffer(wl_resource* buffer_resource) {
-  wl_list_init(&this->resource_destroy_listener.link);
-  this->resource_destroy_listener.notify = [](wl_listener* listener,
-                                               void* /*data*/) {
+  wl_list_init(&this->resource_destroy_listener_.link);
+  this->resource_destroy_listener_.notify = [](wl_listener* listener,
+                                                void* /*data*/) {
     // NOLINTBEGIN
     Buffer* buffer =
-        wl_container_of(listener, buffer, resource_destroy_listener);
+        wl_container_of(listener, buffer, resource_destroy_listener_);
     // NOLINTEND
     buffer->set_resource(nullptr);
   };
   this->set_resource(buffer_resource);
 }
-Buffer::Buffer(const Buffer& other) : Buffer(other.resource) {
+Buffer::Buffer(const Buffer& other) : Buffer(other.resource_) {
 }
 Buffer& Buffer::operator=(const Buffer& other) {
-  this->set_resource(other.resource);
+  if (this == &other) {
+    return *this;
+  }
+  this->set_resource(other.resource_);
   return *this;
 }
 Buffer::~Buffer() {
@@ -28,26 +31,26 @@ Buffer::~Buffer() {
 }
 
 void Buffer::set_resource(wl_resource* resource) {
-  if (this->resource != nullptr) {
-    wl_list_remove(&this->resource_destroy_listener.link);
+  if (this->resource_ != nullptr) {
+    wl_list_remove(&this->resource_destroy_listener_.link);
   }
-  if (resource == nullptr) {
-    this->resource = nullptr;
+  if (this->shm_buffer_) {
+    wl_shm_buffer_unref(this->shm_buffer_);
+    this->shm_buffer_ = nullptr;
+  }
+  this->resource_ = resource;
+  if (this->resource_ == nullptr) {
     return;
   }
-  if (this->shm_buffer) {
-    wl_shm_buffer_unref(this->shm_buffer);
-  }
-  this->resource   = resource;
-  this->shm_buffer = wl_shm_buffer_get(resource);
-  wl_shm_buffer_ref(this->shm_buffer);
-  wl_resource_add_destroy_listener(resource, &this->resource_destroy_listener);
+  this->shm_buffer_ = wl_shm_buffer_get(resource);
+  wl_shm_buffer_ref(this->shm_buffer_);
+  wl_resource_add_destroy_listener(resource, &this->resource_destroy_listener_);
 }
 void Buffer::unref_shm_buffer() {
-  if (!this->shm_buffer) {
+  if (!this->shm_buffer_) {
     return;
   }
-  wl_shm_buffer_unref(this->shm_buffer);
-  this->shm_buffer = nullptr;
+  wl_shm_buffer_unref(this->shm_buffer_);
+  this->shm_buffer_ = nullptr;
 }
 }  // namespace yabe::core

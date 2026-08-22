@@ -3,7 +3,10 @@
 #include <wayland-server-core.h>
 
 namespace yabe::core {
-struct Buffer {
+// If resource is non-null, shm_buffer is also non-null
+// If resource is     null, shm_buffer is also     null
+class Buffer {
+ public:
   explicit Buffer(wl_resource* buffer_resource);
   ~Buffer();
   Buffer(const Buffer&);
@@ -11,15 +14,23 @@ struct Buffer {
   Buffer(Buffer&&)            = delete;
   Buffer& operator=(Buffer&&) = delete;
 
-  wl_resource*   resource   = nullptr;  // nullable
-  wl_shm_buffer* shm_buffer = nullptr;
-  wl_listener    resource_destroy_listener;
-
   void set_resource(wl_resource* resource);
   void unref_shm_buffer();
 
-  bool operator==(const Buffer& other) const {
-    return this->resource == other.resource;
+  [[nodiscard]] wl_resource* resource() const {
+    return this->resource_;
   }
+  [[nodiscard]] wl_shm_buffer* shm_buffer() const {
+    return this->shm_buffer_;
+  }
+
+  bool operator==(const Buffer& other) const {
+    return this->resource_ == other.resource_;
+  }
+
+ private:
+  wl_resource*   resource_   = nullptr;  // nullable
+  wl_shm_buffer* shm_buffer_ = nullptr;
+  wl_listener    resource_destroy_listener_;
 };
 }  // namespace yabe::core

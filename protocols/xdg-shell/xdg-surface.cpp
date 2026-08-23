@@ -30,10 +30,12 @@ void XdgSurface::configure() {
 }
 void XdgSurface::set_window_geometry(
     int32_t x, int32_t y, int32_t width, int32_t height) {
-  this->pending_.x      = x;
-  this->pending_.y      = y;
-  this->pending_.width  = width;
-  this->pending_.height = height;
+  this->pending_ = common::Box2D{
+      .x      = common::unit::Pixel(x),
+      .y      = common::unit::Pixel(y),
+      .width  = common::unit::Pixel(width),
+      .height = common::unit::Pixel(height),
+  };
 }
 
 namespace {

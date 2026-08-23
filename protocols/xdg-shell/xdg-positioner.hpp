@@ -4,21 +4,13 @@
 
 #include <cstdint>
 
+#include "common/box.hpp"
 #include "common/common.hpp"
 #include "common/edge.hpp"
 #include "common/unit.hpp"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg_shell::xdg_positioner {
-// relative value from the top-left corner of the parent surface
-// right and down are positive
-struct PopupPosition {
-  common::unit::Pixel x;
-  common::unit::Pixel y;
-  common::unit::Pixel width;
-  common::unit::Pixel height;
-};
-
 class XdgPositioner {
  public:
   DISABLE_MOVE_AND_COPY(XdgPositioner);
@@ -34,16 +26,15 @@ class XdgPositioner {
   void set_offset(int32_t x, int32_t y);
   void set_parent_size(int32_t width, int32_t height);
 
-  PopupPosition calculate_pos();
+  // relative value from the top-left corner of the parent surface
+  // right and down are positive
+  common::Box2D calculate_pos();
 
  private:
   common::unit::Pixel width_{0};
   common::unit::Pixel height_{0};
 
-  common::unit::Pixel anchor_x_{0};
-  common::unit::Pixel anchor_y_{0};
-  common::unit::Pixel anchor_width_{0};
-  common::unit::Pixel anchor_height_{0};
+  common::Box2D anchor_rect_;
 
   common::Edge anchor_;
   common::Edge gravity_;

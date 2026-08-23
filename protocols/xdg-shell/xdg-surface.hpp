@@ -2,6 +2,7 @@
 
 #include <wayland-server-core.h>
 
+#include "common/box.hpp"
 #include "common/unit.hpp"
 #include "core/surface.hpp"
 
@@ -37,12 +38,7 @@ class XdgSurface {
   }
 
  private:
-  struct {
-    common::unit::Pixel x{0};
-    common::unit::Pixel y{0};
-    common::unit::Pixel width{0};
-    common::unit::Pixel height{0};
-  } pending_, current_;
+  common::Box2D                pending_, current_;
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> wl_surface_;
 };

@@ -87,10 +87,7 @@ XdgPositioner::XdgPositioner(wl_resource* resource) : resource_(resource) {
 XdgPositioner::XdgPositioner(XdgPositioner* other) {
   this->width_                 = other->width_;
   this->height_                = other->height_;
-  this->anchor_x_              = other->anchor_x_;
-  this->anchor_y_              = other->anchor_y_;
-  this->anchor_width_          = other->anchor_width_;
-  this->anchor_height_         = other->anchor_height_;
+  this->anchor_rect_           = other->anchor_rect_;
   this->anchor_                = other->anchor_;
   this->gravity_               = other->gravity_;
   this->constraint_adjustment_ = other->constraint_adjustment_;
@@ -106,10 +103,12 @@ void XdgPositioner::set_size(int32_t width, int32_t height) {
 }
 void XdgPositioner::set_anchor_rect(
     int32_t x, int32_t y, int32_t width, int32_t height) {
-  this->anchor_x_      = common::unit::Pixel(x);
-  this->anchor_y_      = common::unit::Pixel(y);
-  this->anchor_width_  = common::unit::Pixel(width);
-  this->anchor_height_ = common::unit::Pixel(height);
+  this->anchor_rect_ = common::Box2D{
+      .x      = common::unit::Pixel(x),
+      .y      = common::unit::Pixel(y),
+      .width  = common::unit::Pixel(width),
+      .height = common::unit::Pixel(height),
+  };
 }
 void XdgPositioner::set_anchor(xdg_positioner_anchor anchor) {
   this->anchor_.set(anchor);
@@ -129,23 +128,23 @@ void XdgPositioner::set_parent_size(int32_t width, int32_t height) {
   this->parent_height_ = common::unit::Pixel(height);
 }
 
-PopupPosition XdgPositioner::calculate_pos() {
-  PopupPosition pos{
-      .x      = this->offset_x_ + anchor_x_,
-      .y      = this->offset_y_ + anchor_y_,
+common::Box2D XdgPositioner::calculate_pos() {
+  common::Box2D pos{
+      .x      = this->offset_x_ + this->anchor_rect_.x,
+      .y      = this->offset_y_ + this->anchor_rect_.y,
       .width  = this->width_,
       .height = this->height_,
   };
 
   if (this->anchor_.at(common::Edge::RIGHT)) {
-    pos.x += this->anchor_width_;
+    pos.x += this->anchor_rect_.width;
   } else if (!this->anchor_.at(common::Edge::LEFT)) {
-    pos.x += this->anchor_width_ / 2;
+    pos.x += this->anchor_rect_.width / 2;
   }
   if (this->anchor_.at(common::Edge::BOTTOM)) {
-    pos.y += this->anchor_height_;
+    pos.y += this->anchor_rect_.height;
   } else if (!this->anchor_.at(common::Edge::TOP)) {
-    pos.y += this->anchor_height_ / 2;
+    pos.y += this->anchor_rect_.height / 2;
   }
 
   if (this->gravity_.at(common::Edge::LEFT)) {

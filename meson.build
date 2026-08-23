@@ -15,7 +15,7 @@ libffi_sp            = subproject('libffi', default_options: ['tests=false'])
 wayland_sp           = subproject('wayland', default_options: ['tests=false', 'documentation=false', 'scanner=false', 'dtd_validation=false', 'default_library=static'])
 wayland_protocols_sp = subproject('wayland-protocols', default_options: ['tests=false'])
 glm_sp               = subproject('glm')
-xkbcommon_sp         = subproject('libxkbcommon', default_options: ['tests=false', 'enable-tools=false', 'enable-x11=false', 'enable-docs=false', 'enable-xkbregistry=false', 'enable-bash-completion=false', 'default_library=static'])
+xkbcommon_sp         = subproject('libxkbcommon', default_options: ['enable-tools=false', 'enable-x11=false', 'enable-docs=false', 'enable-xkbregistry=false', 'enable-bash-completion=false', 'default_library=static'])
 lua_sp               = subproject('lua', default_options: ['default_library=static', 'loadlib=enabled', 'interpreter=false'])
 
 srcs = [

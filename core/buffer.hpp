@@ -3,8 +3,8 @@
 #include <wayland-server-core.h>
 
 namespace yabe::core {
-// If resource is non-null, shm_buffer is also non-null
 // If resource is     null, shm_buffer is also     null
+// If resource is non-null, shm_buffer might be null (e.g. after uploading)
 class Buffer {
  public:
   explicit Buffer(wl_resource* buffer_resource);

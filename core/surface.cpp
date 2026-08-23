@@ -108,7 +108,6 @@ void Surface::upload_texture_if_needed() {
   this->texture_.upload(
       data, format, this->texture_width_, this->texture_height_, stride);
   wl_shm_buffer_end_access(shm_buffer);
-  this->current_.buffer->unref_shm_buffer();
   this->is_texture_uploaded_ = true;
   this->uploaded_buffer_     = this->current_.buffer;
 
@@ -136,14 +135,21 @@ void Surface::finish_rendering() {
   }
 
   const auto weak_surface = this->weak_from_this();
+  // without `mutable`, buffer->unref_shm_buffer() cannot be called
   server::get().enqueue(
-      [weak_surface, buffer, frame_callbacks, release_callback]() {
+      [weak_surface, buffer, frame_callbacks = std::move(frame_callbacks),
+          release_callback]() mutable {
         const auto surface = weak_surface.lock();
         if (!surface) {
           return;
         }
-        if (buffer.has_value() && buffer->resource()) {
-          wl_buffer_send_release(buffer->resource());
+        if (buffer.has_value()) {
+          if (buffer->shm_buffer()) {
+            buffer->unref_shm_buffer();
+          }
+          if (buffer->resource()) {
+            wl_buffer_send_release(buffer->resource());
+          }
         }
         for (auto* frame_callback : frame_callbacks) {
           wl_callback_send_done(frame_callback, common::now_msec());

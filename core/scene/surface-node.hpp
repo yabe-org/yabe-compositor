@@ -34,8 +34,8 @@ class SurfaceNode : public SceneNode {
 
  private:
   void prepare_for_draw() override;
-  void draw_self(render::DrawRectFunc& draw_rect,
-      const glm::mat4&                 world_transform) override;
+  void draw_self(const glm::mat4& vp_mat, render::DrawRectFunc& draw_rect,
+      const glm::mat4& world_transform) override;
   [[nodiscard]] std::optional<SceneIntersection> check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction,
       const glm::mat4& world_transform) override;

@@ -15,11 +15,10 @@ const char* vert_shader = GLSL(
   layout(location = 1) in vec2 tex_coord;
   out vec2 tex_coord_out;
 
-  uniform mat4 vp_mat;
-  uniform mat4 model_mat;
+  uniform mat4 mvp_mat;
 
   void main() {
-    gl_Position = vp_mat * model_mat * vec4(pos, 1.0);
+    gl_Position = mvp_mat * vec4(pos, 1.0);
     tex_coord_out = tex_coord;
   }
 );
@@ -49,7 +48,8 @@ RectRenderer::~RectRenderer() {
 }
 
 void RectRenderer::rendering_scope(const float* vp_mat,
-    const std::function<void(DrawRectFunc&)>&   render_func) {
+    const std::function<void(const glm::mat4& vp_mat, DrawRectFunc&)>&
+        render_func) {
   if (!this->initialized_) {
     this->init();
   }
@@ -59,15 +59,15 @@ void RectRenderer::rendering_scope(const float* vp_mat,
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(this->texture_sampler_location_, 0);
-  glUniformMatrix4fv(this->vp_mat_location_, 1, GL_FALSE, vp_mat);
 
-  DrawRectFunc draw_rect = [this](glm::mat4 model_mat, const Texture& texture) {
+  DrawRectFunc draw_rect = [this](const glm::mat4& mvp_mat,
+                               const Texture&      texture) {
     glUniformMatrix4fv(
-        this->model_mat_location_, 1, GL_FALSE, glm::value_ptr(model_mat));
+        this->mvp_mat_location_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
     glBindTexture(GL_TEXTURE_2D, texture.get_texture_id());
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   };
-  render_func(draw_rect);
+  render_func(glm::make_mat4(vp_mat), draw_rect);
 }
 
 void RectRenderer::init() {
@@ -82,8 +82,7 @@ void RectRenderer::init() {
     throw std::runtime_error("Failed to link RectRenderer shader program");
   }
 
-  this->vp_mat_location_    = glGetUniformLocation(this->program_, "vp_mat");
-  this->model_mat_location_ = glGetUniformLocation(this->program_, "model_mat");
+  this->mvp_mat_location_ = glGetUniformLocation(this->program_, "mvp_mat");
   this->texture_sampler_location_ =
       glGetUniformLocation(this->program_, "texture_sampler");
 

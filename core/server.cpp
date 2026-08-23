@@ -198,9 +198,9 @@ void Server::draw(const float* vp_mat) {
 
 void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
-      vp_mat, [this](render::DrawRectFunc draw_rect) {
-        this->scene.draw(draw_rect);
-        this->ray_cursor.draw_cursor(draw_rect);
+      vp_mat, [this](const glm::mat4& vp_mat, render::DrawRectFunc draw_rect) {
+        this->scene.draw(vp_mat, draw_rect);
+        this->ray_cursor.draw_cursor(vp_mat, draw_rect);
       });
   this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());

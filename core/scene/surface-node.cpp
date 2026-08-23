@@ -45,10 +45,10 @@ void SurfaceNode::prepare_for_draw() {
   this->surface()->upload_texture_if_needed();
 }
 
-void SurfaceNode::draw_self(
+void SurfaceNode::draw_self(const glm::mat4& vp_mat,
     render::DrawRectFunc& draw_rect, const glm::mat4& world_transform) {
-  const auto model_mat =
-      world_transform * glm::scale(glm::mat4(1.F), this->geometry().scale());
+  const auto model_mat = vp_mat * world_transform *
+                         glm::scale(glm::mat4(1.F), this->geometry().scale());
   draw_rect(model_mat, this->surface()->texture());
   this->surface()->finish_rendering();
 }

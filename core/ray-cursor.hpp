@@ -28,7 +28,7 @@ class RayCursor {
   void set_cursor_rotation(glm::quat rotation);
   void reset_cursor();
 
-  void draw_cursor(render::DrawRectFunc draw_rect);
+  void draw_cursor(const glm::mat4& vp_mat, render::DrawRectFunc draw_rect);
 
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;

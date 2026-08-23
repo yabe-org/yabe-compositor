@@ -10,14 +10,14 @@ SceneNode::SceneNode(const Geometry& geometry) : geometry_(geometry) {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion): ???
-void SceneNode::draw(render::DrawRectFunc& draw_rect, const SceneNode* parent,
-    const glm::mat4& parent_world_transform) {
+void SceneNode::draw(const glm::mat4& vp_mat, render::DrawRectFunc& draw_rect,
+    const SceneNode* parent, const glm::mat4& parent_world_transform) {
   this->prepare_for_draw();
   const auto world_transform =
       this->resolve_world_transform(parent, parent_world_transform);
-  this->draw_self(draw_rect, world_transform);
+  this->draw_self(vp_mat, draw_rect, world_transform);
   for (const auto& child : this->children_) {
-    child->draw(draw_rect, this, world_transform);
+    child->draw(vp_mat, draw_rect, this, world_transform);
   }
 }
 

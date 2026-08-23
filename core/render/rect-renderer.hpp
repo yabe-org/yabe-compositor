@@ -10,7 +10,7 @@
 
 namespace yabe::core::render {
 using DrawRectFunc =
-    const std::function<void(glm::mat4 /*model_mat*/, const Texture&)>&;
+    const std::function<void(const glm::mat4& /*mvp_mat*/, const Texture&)>&;
 
 class RectRenderer {
  public:
@@ -22,8 +22,9 @@ class RectRenderer {
   ~RectRenderer();
 
   /// must be called in the rendering thread
-  void rendering_scope(const float*             vp_mat,
-      const std::function<void(DrawRectFunc&)>& render_func);
+  void rendering_scope(const float* vp_mat,
+      const std::function<void(const glm::mat4& vp_mat, DrawRectFunc&)>&
+          render_func);
 
  private:
   bool initialized_ = false;
@@ -32,8 +33,7 @@ class RectRenderer {
   GLuint vert_shader_              = 0;
   GLuint frag_shader_              = 0;
   GLuint program_                  = 0;
-  GLint  vp_mat_location_          = 0;
-  GLint  model_mat_location_       = 0;
+  GLint  mvp_mat_location_         = 0;
   GLint  texture_sampler_location_ = 0;
 
   GLuint vao_ = 0;

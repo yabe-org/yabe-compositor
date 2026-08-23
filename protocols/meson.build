@@ -69,14 +69,12 @@ srcs += files(
   'wlr/layer-surface.cpp',
   'wlr/wlr.cpp',
 
+  'xdg/shell/xdg-popup.cpp',
+  'xdg/shell/xdg-positioner.cpp',
+  'xdg/shell/xdg-surface.cpp',
+  'xdg/shell/xdg-toplevel.cpp',
+  'xdg/shell/xdg-wm-base.cpp',
   'xdg/output/xdg-output-manager.cpp',
   'xdg/output/xdg-output.cpp',
   'xdg/xdg.cpp',
-
-  'xdg-shell/xdg-popup.cpp',
-  'xdg-shell/xdg-positioner.cpp',
-  'xdg-shell/xdg-shell.cpp',
-  'xdg-shell/xdg-surface.cpp',
-  'xdg-shell/xdg-toplevel.cpp',
-  'xdg-shell/xdg-wm-base.cpp',
 )

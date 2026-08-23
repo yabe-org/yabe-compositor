@@ -9,11 +9,11 @@
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
 #include "core/toplevel.hpp"
-#include "protocols/xdg-shell/xdg-surface.hpp"
+#include "protocols/xdg/shell/xdg-surface.hpp"
 #include "wayland-server-core.h"
 #include "xdg-shell-protocol.h"
 
-namespace yabe::proto::xdg_shell::xdg_toplevel {
+namespace yabe::proto::xdg::shell::xdg_toplevel {
 XdgToplevel::XdgToplevel(
     wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface)
     : resource_(resource), xdg_surface_(std::move(surface)) {
@@ -225,4 +225,4 @@ wl_resource* create(wl_client* client, int version, uint32_t id,
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return resource;
 }
-}  // namespace yabe::proto::xdg_shell::xdg_toplevel
+}  // namespace yabe::proto::xdg::shell::xdg_toplevel

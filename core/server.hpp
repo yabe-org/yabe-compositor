@@ -22,9 +22,9 @@
 #include "core/surface.hpp"
 #include "protocols/wayland/subcompositor/subsurface.hpp"
 #include "protocols/wlr/layer-surface.hpp"
-#include "protocols/xdg-shell/xdg-popup.hpp"
-#include "protocols/xdg-shell/xdg-surface.hpp"
-#include "protocols/xdg-shell/xdg-toplevel.hpp"
+#include "protocols/xdg/shell/xdg-popup.hpp"
+#include "protocols/xdg/shell/xdg-surface.hpp"
+#include "protocols/xdg/shell/xdg-toplevel.hpp"
 
 namespace yabe::core::server {
 class Server {
@@ -65,13 +65,13 @@ class Server {
       data_offer_map;
 
   std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg_shell::xdg_surface::XdgSurface>>
+      std::shared_ptr<proto::xdg::shell::xdg_surface::XdgSurface>>
       xdg_surface_map;
   std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg_shell::xdg_toplevel::XdgToplevel>>
+      std::shared_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel>>
       xdg_toplevel_map;
   std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg_shell::xdg_popup::XdgPopup>>
+      std::shared_ptr<proto::xdg::shell::xdg_popup::XdgPopup>>
       xdg_popup_map;
 
   setting::Setting        setting;

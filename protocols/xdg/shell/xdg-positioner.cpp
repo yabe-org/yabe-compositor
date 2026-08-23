@@ -81,7 +81,7 @@ void Edge::set(xdg_positioner_anchor value) {
 }
 }  // namespace yabe::common
 
-namespace yabe::proto::xdg_shell::xdg_positioner {
+namespace yabe::proto::xdg::shell::xdg_positioner {
 XdgPositioner::XdgPositioner(wl_resource* resource) : resource_(resource) {
 }
 XdgPositioner::XdgPositioner(XdgPositioner* other) {
@@ -231,4 +231,4 @@ XdgPositioner* get(wl_resource* resource) {
   return static_cast<XdgPositioner*>(self);
 }
 
-}  // namespace yabe::proto::xdg_shell::xdg_positioner
+}  // namespace yabe::proto::xdg::shell::xdg_positioner

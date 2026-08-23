@@ -4,7 +4,6 @@
 
 #include "wayland/wayland.hpp"
 #include "wlr/wlr.hpp"
-#include "xdg-shell/xdg-shell.hpp"
 #include "xdg/xdg.hpp"
 
 namespace yabe::proto {
@@ -20,7 +19,6 @@ bool init(wl_display* display) {
   ENSURE(wayland::init(display));
   ENSURE(wlr::init(display));
   ENSURE(xdg::init(display));
-  ENSURE(xdg_shell::init(display));
 
   return true;
 #undef ENSURE

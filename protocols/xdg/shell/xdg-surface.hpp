@@ -6,7 +6,7 @@
 #include "common/unit.hpp"
 #include "core/surface.hpp"
 
-namespace yabe::proto::xdg_shell::xdg_surface {
+namespace yabe::proto::xdg::shell::xdg_surface {
 class XdgSurface {
  public:
   DISABLE_MOVE_AND_COPY(XdgSurface);
@@ -45,4 +45,4 @@ class XdgSurface {
 
 void create(
     wl_client* client, int version, uint32_t id, wl_resource* wl_surface);
-}  // namespace yabe::proto::xdg_shell::xdg_surface
+}  // namespace yabe::proto::xdg::shell::xdg_surface

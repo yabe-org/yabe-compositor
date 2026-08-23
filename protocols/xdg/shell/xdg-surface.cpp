@@ -7,11 +7,11 @@
 
 #include "common/common.hpp"
 #include "core/server.hpp"
-#include "protocols/xdg-shell/xdg-popup.hpp"
-#include "protocols/xdg-shell/xdg-positioner.hpp"
+#include "protocols/xdg/shell/xdg-popup.hpp"
+#include "protocols/xdg/shell/xdg-positioner.hpp"
 #include "xdg-toplevel.hpp"
 
-namespace yabe::proto::xdg_shell::xdg_surface {
+namespace yabe::proto::xdg::shell::xdg_surface {
 XdgSurface::XdgSurface(
     wl_resource* resource, std::weak_ptr<core::Surface>&& wl_surface)
     : resource_(resource), wl_surface_(std::move(wl_surface)) {
@@ -101,4 +101,4 @@ void create(
       std::make_shared<XdgSurface>(resource, std::weak_ptr(surface->second)));
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 }
-}  // namespace yabe::proto::xdg_shell::xdg_surface
+}  // namespace yabe::proto::xdg::shell::xdg_surface

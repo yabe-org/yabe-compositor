@@ -10,7 +10,7 @@
 #include "common/unit.hpp"
 #include "xdg-shell-protocol.h"
 
-namespace yabe::proto::xdg_shell::xdg_positioner {
+namespace yabe::proto::xdg::shell::xdg_positioner {
 class XdgPositioner {
  public:
   DISABLE_MOVE_AND_COPY(XdgPositioner);
@@ -51,4 +51,4 @@ class XdgPositioner {
 
 void           create(wl_client* client, int version, uint32_t id);
 XdgPositioner* get(wl_resource* resource);
-}  // namespace yabe::proto::xdg_shell::xdg_positioner
+}  // namespace yabe::proto::xdg::shell::xdg_positioner

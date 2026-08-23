@@ -9,9 +9,9 @@
 #include "core/scene/surface-node.hpp"
 #include "core/surface.hpp"
 #include "core/toplevel.hpp"
-#include "protocols/xdg-shell/xdg-surface.hpp"
+#include "protocols/xdg/shell/xdg-surface.hpp"
 
-namespace yabe::proto::xdg_shell::xdg_toplevel {
+namespace yabe::proto::xdg::shell::xdg_toplevel {
 class XdgToplevel : public core::SurfaceRole,
                     public core::Toplevel,
                     public std::enable_shared_from_this<XdgToplevel> {
@@ -47,4 +47,4 @@ class XdgToplevel : public core::SurfaceRole,
 
 wl_resource* create(wl_client* client, int version, uint32_t id,
     std::weak_ptr<xdg_surface::XdgSurface> xdg_surface);
-}  // namespace yabe::proto::xdg_shell::xdg_toplevel
+}  // namespace yabe::proto::xdg::shell::xdg_toplevel

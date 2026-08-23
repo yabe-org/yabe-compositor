@@ -6,13 +6,13 @@
 
 #include "common/unit.hpp"
 #include "core/server.hpp"
-#include "protocols/xdg-shell/xdg-toplevel.hpp"
+#include "protocols/xdg/shell/xdg-toplevel.hpp"
 #include "xdg-shell-protocol.h"
 
 namespace yabe::core::server_seat::pointer_grab {
 ResizePointerGrab* ResizePointerGrab::start(
-    std::weak_ptr<proto::xdg_shell::xdg_toplevel::XdgToplevel>&& toplevel,
-    uint32_t                                                     edges) {
+    std::weak_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel>&& toplevel,
+    uint32_t                                                      edges) {
   static ResizePointerGrab instance;
   server::get().seat.pointer.unfocus_surface();
   instance.resizing_toplevel_ = std::move(toplevel);

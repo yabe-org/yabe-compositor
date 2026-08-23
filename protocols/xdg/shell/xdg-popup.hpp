@@ -8,11 +8,11 @@
 #include "common/common.hpp"
 #include "core/surface.hpp"
 #include "core/toplevel.hpp"
-#include "protocols/xdg-shell/xdg-positioner.hpp"
-#include "protocols/xdg-shell/xdg-surface.hpp"
+#include "protocols/xdg/shell/xdg-positioner.hpp"
+#include "protocols/xdg/shell/xdg-surface.hpp"
 #include "xdg-shell-protocol.h"
 
-namespace yabe::proto::xdg_shell::xdg_popup {
+namespace yabe::proto::xdg::shell::xdg_popup {
 class XdgPopup : public core::SurfaceRole {
  public:
   DISABLE_MOVE_AND_COPY(XdgPopup);
@@ -58,4 +58,4 @@ void create(wl_client* client, int version, uint32_t id,
     std::shared_ptr<xdg_surface::XdgSurface>& popup_surface,
     std::shared_ptr<xdg_surface::XdgSurface>& parent_surface,
     xdg_positioner::XdgPositioner*            positioner);
-}  // namespace yabe::proto::xdg_shell::xdg_popup
+}  // namespace yabe::proto::xdg::shell::xdg_popup

@@ -6,10 +6,10 @@
 #include "core/server-seat/pointer-grab/popup.hpp"
 #include "core/server.hpp"
 #include "core/toplevel.hpp"
-#include "protocols/xdg-shell/xdg-positioner.hpp"
+#include "protocols/xdg/shell/xdg-positioner.hpp"
 #include "xdg-shell-protocol.h"
 
-namespace yabe::proto::xdg_shell::xdg_popup {
+namespace yabe::proto::xdg::shell::xdg_popup {
 XdgPopup::XdgPopup(wl_resource*               resource,
     std::shared_ptr<xdg_surface::XdgSurface>& popup_surface,
     std::shared_ptr<xdg_surface::XdgSurface>& parent_surface,
@@ -180,4 +180,4 @@ void create(wl_client* client, int version, uint32_t id,
   popup_wl_surface->set_role(popup);
   core::server::get().xdg_popup_map.emplace(resource, std::move(popup));
 }
-}  // namespace yabe::proto::xdg_shell::xdg_popup
+}  // namespace yabe::proto::xdg::shell::xdg_popup

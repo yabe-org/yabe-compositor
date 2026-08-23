@@ -7,7 +7,7 @@
 #include "xdg-positioner.hpp"
 #include "xdg-surface.hpp"
 
-namespace yabe::proto::xdg_shell::xdg_wm_base {
+namespace yabe::proto::xdg::shell {
 namespace {
 constexpr struct xdg_wm_base_interface kImpl = {
     .destroy =
@@ -41,4 +41,4 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
   }
   wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
 }
-}  // namespace yabe::proto::xdg_shell::xdg_wm_base
+}  // namespace yabe::proto::xdg::shell

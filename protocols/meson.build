@@ -5,7 +5,8 @@ wayland_protocols_dep      = dependency('wayland-protocols')
 wayland_protocols_base_dir = wayland_protocols_dep.get_variable('pkgdatadir')
 
 foreach name, path : {
-  'xdg-shell'      : join_paths(wayland_protocols_base_dir, 'stable/xdg-shell/xdg-shell.xml'),
+  'xdg-shell'      : join_paths(wayland_protocols_base_dir,  'stable/xdg-shell/xdg-shell.xml'),
+  'xdg-output'     : join_paths(wayland_protocols_base_dir,  'unstable/xdg-output/xdg-output-unstable-v1.xml'),
   'wlr-layer-shell': join_paths(meson.project_source_root(), '3rdparty/wlr-protocols/unstable/wlr-layer-shell-unstable-v1.xml'),
 }
   filename = name + '-protocol'
@@ -67,6 +68,10 @@ srcs += files(
   'wlr/layer-shell.cpp',
   'wlr/layer-surface.cpp',
   'wlr/wlr.cpp',
+
+  'xdg/output/xdg-output-manager.cpp',
+  'xdg/output/xdg-output.cpp',
+  'xdg/xdg.cpp',
 
   'xdg-shell/xdg-popup.cpp',
   'xdg-shell/xdg-positioner.cpp',

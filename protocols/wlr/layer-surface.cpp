@@ -26,7 +26,7 @@ LayerSurface::~LayerSurface() {
 
 void LayerSurface::commit() {
   this->current_ = this->pending_;
-  core::server::get().layer_manager.reconfigure(this->resource_);
+  core::server::get().layer_manager.reconfigure(this->current_.layer);
 }
 [[nodiscard]] std::shared_ptr<core::Toplevel> LayerSurface::get_toplevel() {
   return {};
@@ -85,7 +85,7 @@ void LayerSurface::reconfigure(common::Box2D& available_area) {
 
   // do not update available_area if this surface is not mapped (not shown)
   // to prevent other surfaces from being moved due to invisible surface
-  if (this->is_mapped_ && !this->current_.exclusive_zone &&
+  if (this->state_ == State::MAPPED && !this->current_.exclusive_zone &&
       this->current_.exclusive_zone == -1) {
     auto zone = common::unit::Pixel{this->current_.exclusive_zone};
     switch (this->exclusive_edge_.value_or(ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP)) {
@@ -116,6 +116,9 @@ void LayerSurface::reconfigure(common::Box2D& available_area) {
     return;
   }
 
+  if (this->state_ == State::INITIAL) {
+    this->state_ = State::SENT_FIRST_CONFIGURE;
+  }
   zwlr_layer_surface_v1_send_configure(this->resource_,
       core::server::get().next_serial(), *result.width, *result.height);
   this->box_ = result;
@@ -125,14 +128,14 @@ void LayerSurface::reconfigure(common::Box2D& available_area) {
     // if this is the first time of commit() after attaching a buffer,
     // treat that is is mapped just now
     // and keyboard focusing should be performed at this time
-    if (!this->is_mapped_ &&
+    if (this->state_ == State::SENT_FIRST_CONFIGURE &&
         this->current_.keyboard_interactivity ==
             ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
       core::server::get().seat.keyboard.set_focused_surface(wl_surface);
     }
-    this->is_mapped_ = true;
+    this->state_ = State::MAPPED;
   } else {
-    this->is_mapped_ = false;
+    this->state_ = State::SENT_FIRST_CONFIGURE;
   }
 }
 

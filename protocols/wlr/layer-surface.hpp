@@ -49,6 +49,9 @@ class LayerSurface : public core::SurfaceRole {
   [[nodiscard]] const common::Box2D& box() const {
     return this->box_;
   }
+  [[nodiscard]] bool is_mapped() const {
+    return this->state_ == State::MAPPED;
+  }
 
  private:
   struct {
@@ -62,7 +65,11 @@ class LayerSurface : public core::SurfaceRole {
   } pending_, current_;
   std::optional<zwlr_layer_surface_v1_anchor> exclusive_edge_;
 
-  bool          is_mapped_ = false;
+  enum class State : uint8_t {
+    INITIAL,
+    SENT_FIRST_CONFIGURE,
+    MAPPED,
+  } state_ = State::INITIAL;
   common::Box2D box_;
 
   wl_resource*                 resource_;

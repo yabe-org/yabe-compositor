@@ -35,22 +35,14 @@ std::optional<LayerManager::StoredLayerSurface> LayerManager::get(
   return std::nullopt;
 }
 
-void LayerManager::reconfigure(wl_resource* resource) const {
-  auto surface = get(resource);
-  if (!surface) {
-    LOG_ERR(
-        "LayerManager: required reconfigure for wl_resource {}, but not found",
-        (void*)resource);
-    return;
-  }
-  const auto    layer = static_cast<size_t>(surface.value()->layer());
+void LayerManager::reconfigure(Layer layer) const {
   common::Box2D available_area{
       .x{0},
       .y{0},
       .width{proto::wayland::output::get_viewport_width()},
       .height{proto::wayland::output::get_viewport_height()},
   };
-  for (const auto& surface : surfaces_.at(layer)) {
+  for (const auto& surface : surfaces_.at(static_cast<size_t>(layer))) {
     surface.second->reconfigure(available_area);
   }
 }
@@ -73,8 +65,11 @@ void LayerManager::draw_layer(
       static_cast<float>(proto::wayland::output::get_viewport_height());
 
   for (const auto& layer_surface : surfaces_.at(static_cast<size_t>(layer))) {
+    if (!layer_surface.second->is_mapped()) {
+      continue;
+    }
     const auto& surface = layer_surface.second->wl_surface();
-    if (!surface || !surface->has_buffer()) {
+    if (!surface) {
       continue;
     }
     // box is top-left origin and [0, viewport_w&h] range, so

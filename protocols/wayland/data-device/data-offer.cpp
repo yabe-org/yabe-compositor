@@ -37,7 +37,7 @@ constexpr struct wl_data_offer_interface kImpl = {
           if (!wl_data_device_manager_dnd_action_is_valid(
                   preferred_action, wl_resource_get_version(resource))) {
             wl_resource_post_error(
-                resource, WL_DATA_OFFER_ERROR_INVALID_ACTION, "");
+                resource, WL_DATA_OFFER_ERROR_INVALID_ACTION, "invalid action");
             return;
           }
           core::server::get().data_offer_map.at(resource)->set_actions(

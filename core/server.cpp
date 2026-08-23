@@ -10,6 +10,7 @@
 #include "common/common.hpp"
 #include "core/server-seat/server-keyboard.hpp"
 #include "protocols/protocols.hpp"
+#include "protocols/wayland/output.hpp"
 
 namespace yabe::core::server {
 Server Server::instance;  // NOLINT
@@ -194,12 +195,22 @@ void Server::draw(const float* vp_mat) {
   glBindBuffer(GL_ARRAY_BUFFER, previous_array_buffer);
   glBindVertexArray(previous_vao);
   glUseProgram(previous_program);
+
+  if (!this->is_first_rendering_) {
+    return;
+  }
+  this->is_first_rendering_     = false;
+  std::array<GLint, 4> viewport = {};  // x, y, width, height
+  glGetIntegerv(GL_VIEWPORT, viewport.data());
+  proto::wayland::output::set_viewport_size(viewport[2], viewport[3]);
 }
 
 void Server::draw_content(const float* vp_mat) {
   this->rect_renderer_.rendering_scope(
       vp_mat, [this](const glm::mat4& vp_mat, render::DrawRectFunc draw_rect) {
+        this->layer_manager.draw_under_scene(draw_rect);
         this->scene.draw(vp_mat, draw_rect);
+        this->layer_manager.draw_above_scene(draw_rect);
         this->ray_cursor.draw_cursor(vp_mat, draw_rect);
       });
   this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),

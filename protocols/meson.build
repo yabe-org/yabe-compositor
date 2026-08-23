@@ -10,17 +10,40 @@ foreach name, path : {
 }
   filename = name + '-protocol'
   srcs += custom_target(
-    filename + '.h',
-    output: filename + '.h',
-    input: path,
-    command: [scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
-  )
-  srcs += custom_target(
     filename + '.c',
     output: filename + '.c',
     input: path,
     command: [scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
   )
+  # wlr-layer-shell uses arg name `namespace`, which is reserved by C++
+  if name == 'wlr-layer-shell'
+    tmp_name = filename + '.h_tmp'
+    header = custom_target(
+      tmp_name,
+      output: tmp_name,
+      input: path,
+      command: [scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
+    )
+    srcs += custom_target(
+      filename + '.h',
+      output: filename + '.h',
+      input: header,
+      command: [
+        'sh', '-c',
+        'sed "s/namespace/name_space/g" $1 > $2',
+        'sh', # $0
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+  else
+    srcs += custom_target(
+      filename + '.h',
+      output: filename + '.h',
+      input: path,
+      command: [scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
+    )
+  endif
 endforeach
 
 srcs += files(
@@ -40,6 +63,10 @@ srcs += files(
   'wayland/seat/keyboard.cpp',
   'wayland/subcompositor/subcompositor.cpp',
   'wayland/subcompositor/subsurface.cpp',
+
+  'wlr/layer-shell.cpp',
+  'wlr/layer-surface.cpp',
+  'wlr/wlr.cpp',
 
   'xdg-shell/xdg-popup.cpp',
   'xdg-shell/xdg-positioner.cpp',

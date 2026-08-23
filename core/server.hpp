@@ -11,6 +11,7 @@
 #include "core/data-device/data-device.hpp"
 #include "core/data-device/data-offer.hpp"
 #include "core/data-device/data-source.hpp"
+#include "core/layer-manager.hpp"
 #include "core/ray-cursor.hpp"
 #include "core/region.hpp"
 #include "core/render/ray-renderer.hpp"
@@ -20,6 +21,7 @@
 #include "core/setting/setting.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/subcompositor/subsurface.hpp"
+#include "protocols/wlr/layer-surface.hpp"
 #include "protocols/xdg-shell/xdg-popup.hpp"
 #include "protocols/xdg-shell/xdg-surface.hpp"
 #include "protocols/xdg-shell/xdg-toplevel.hpp"
@@ -76,6 +78,7 @@ class Server {
   server_seat::ServerSeat seat;
   RayCursor               ray_cursor;
   scene::Scene            scene;
+  LayerManager            layer_manager;
 
  private:
   Server()  = default;
@@ -84,7 +87,8 @@ class Server {
 
   void draw_content(const float* vp_mat);
 
-  bool is_initialized_ = false;
+  bool is_initialized_     = false;
+  bool is_first_rendering_ = true;
 
   render::RectRenderer               rect_renderer_;
   render::RayRenderer                ray_renderer_;

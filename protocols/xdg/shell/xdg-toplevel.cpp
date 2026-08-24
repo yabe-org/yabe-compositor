@@ -155,13 +155,16 @@ constexpr struct xdg_toplevel_interface kImpl = {
     .move =
         [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
             uint32_t /*serial*/) {
-          core::server::get().xdg_toplevel_map.at(resource)->start_move();
+          core::server::get()
+              .resources.get<XdgToplevel>(resource)
+              ->start_move();
         },
     .resize =
         [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
             uint32_t /*serial*/, uint32_t      edges) {
-          core::server::get().xdg_toplevel_map.at(resource)->start_resize(
-              edges);
+          core::server::get()
+              .resources.get<XdgToplevel>(resource)
+              ->start_resize(edges);
         },
     .set_max_size =
         [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*width*/,
@@ -197,7 +200,7 @@ constexpr struct xdg_toplevel_interface kImpl = {
 };
 
 void handle_destruction(wl_resource* resource) {
-  core::server::get().xdg_toplevel_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -220,7 +223,7 @@ wl_resource* create(wl_client* client, int version, uint32_t id,
   auto self = std::make_shared<XdgToplevel>(resource, std::move(xdg_surface));
   auto toplevel = std::static_pointer_cast<core::Toplevel>(self);
   core::server::get().seat.try_active_mapped_toplevel(toplevel);
-  core::server::get().xdg_toplevel_map.emplace(resource, self);
+  core::server::get().resources.add(resource, self);
   surface->set_role(self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return resource;

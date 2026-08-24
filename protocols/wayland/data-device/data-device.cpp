@@ -18,27 +18,34 @@ constexpr struct wl_data_device_interface kImpl = {
             wl_resource* /*origin*/, wl_resource* icon, uint32_t /*serial*/) {
           std::shared_ptr<core::Surface> icon_surface;
           if (icon) {
-            icon_surface = core::server::get().surface_map.at(icon);
+            icon_surface =
+                core::server::get().resources.get<core::Surface>(icon);
           }
           std::shared_ptr<core::data_device::DataSource> data_source;
           if (source) {
-            data_source = core::server::get().data_source_map.at(source);
+            data_source =
+                core::server::get()
+                    .resources.get<core::data_device::DataSource>(source);
           }
-          core::server::get().data_device_map.at(resource)->start_drag(
-              data_source, icon_surface);
+          core::server::get()
+              .resources.get<core::data_device::DataDevice>(resource)
+              ->start_drag(data_source, icon_surface);
         },
     .set_selection =
         [](wl_client* /*client*/, wl_resource* resource,
             wl_resource* data_source_resource, uint32_t /*serial*/) {
           if (data_source_resource == nullptr) {
-            core::server::get().data_device_map.at(resource)->set_selection(
-                nullptr);
+            core::server::get()
+                .resources.get<core::data_device::DataDevice>(resource)
+                ->set_selection(nullptr);
             return;
           }
-          auto source =
-              core::server::get().data_source_map.at(data_source_resource);
-          core::server::get().data_device_map.at(resource)->set_selection(
-              source);
+          const auto source =
+              core::server::get().resources.get<core::data_device::DataSource>(
+                  data_source_resource);
+          core::server::get()
+              .resources.get<core::data_device::DataDevice>(resource)
+              ->set_selection(source);
         },
     .release =
         [](wl_client* /*client*/, wl_resource* resource) {
@@ -46,7 +53,7 @@ constexpr struct wl_data_device_interface kImpl = {
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().data_device_map.erase(resource);
+  core::server::get().resources.remove(resource);
 
   auto*      client      = wl_resource_get_client(resource);
   const auto client_seat = core::server::get().seat.get_client_seat(client);
@@ -66,7 +73,7 @@ void create(wl_client* client, int version, uint32_t id) {
     return;
   }
   const auto self = std::make_shared<core::data_device::DataDevice>(resource);
-  core::server::get().data_device_map.emplace(resource, self);
+  core::server::get().resources.add(resource, self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 
   const auto client_seat = core::server::get().seat.get_client_seat(client);

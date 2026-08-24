@@ -140,20 +140,21 @@ constexpr struct xdg_popup_interface kImpl = {
     .grab =
         [](wl_client* /*client*/, wl_resource* resource, wl_resource* /*seat*/,
             uint32_t /*serial*/) {
-          core::server::get().xdg_popup_map.at(resource)->start_grab();
+          core::server::get().resources.get<XdgPopup>(resource)->start_grab();
         },
     .reposition =
         [](wl_client* /*client*/, wl_resource* resource,
             wl_resource* positioner_resource, uint32_t token) {
-          const auto& self = core::server::get().xdg_popup_map.at(resource);
-          auto*       positioner = xdg_positioner::get(positioner_resource);
+          const auto self =
+              core::server::get().resources.get<XdgPopup>(resource);
+          auto* positioner = xdg_positioner::get(positioner_resource);
           self->replace_positioner(positioner);
           self->reposition(token);
         },
 };
 
 void handle_destruction(wl_resource* resource) {
-  core::server::get().xdg_popup_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -178,6 +179,6 @@ void create(wl_client* client, int version, uint32_t id,
   auto popup = std::make_shared<XdgPopup>(
       resource, popup_surface, parent_surface, positioner);
   popup_wl_surface->set_role(popup);
-  core::server::get().xdg_popup_map.emplace(resource, std::move(popup));
+  core::server::get().resources.add(resource, popup);
 }
 }  // namespace yabe::proto::xdg::shell::xdg_popup

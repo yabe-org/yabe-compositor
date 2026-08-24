@@ -4,6 +4,7 @@
 #include <wlr-layer-shell-protocol.h>
 
 #include "core/server.hpp"
+#include "core/surface.hpp"
 #include "layer-surface.hpp"
 
 namespace yabe::proto::wlr::layer_shell {
@@ -13,8 +14,8 @@ constexpr struct zwlr_layer_shell_v1_interface kImpl = {
         [](wl_client* client, wl_resource* resource, uint32_t id,
             wl_resource* surface_resource, wl_resource* /*output_resource*/,
             uint32_t layer, const char* name_space) {
-          auto wl_surface =
-              core::server::get().surface_map.at(surface_resource);
+          auto wl_surface = core::server::get().resources.get<core::Surface>(
+              surface_resource);
           layer_surface::create(client, wl_resource_get_version(resource), id,
               wl_surface, static_cast<zwlr_layer_shell_v1_layer>(layer),
               name_space);

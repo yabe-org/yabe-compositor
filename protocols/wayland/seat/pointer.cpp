@@ -4,6 +4,7 @@
 
 #include "common/common.hpp"
 #include "core/server.hpp"
+#include "core/surface.hpp"
 
 namespace yabe::proto::wayland::seat::pointer {
 namespace {
@@ -14,7 +15,8 @@ constexpr struct wl_pointer_interface kImpl = {
             int32_t hotspot_x, int32_t hotspot_y) {
           std::shared_ptr<core::Surface> surface;
           if (surface_resource) {
-            surface = core::server::get().surface_map.at(surface_resource);
+            surface = core::server::get().resources.get<core::Surface>(
+                surface_resource);
           }
           core::server::get().ray_cursor.set_cursor(
               surface, hotspot_x, hotspot_y);

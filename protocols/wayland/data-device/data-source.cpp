@@ -3,6 +3,7 @@
 #include <wayland-server-core.h>
 #include <wayland-server-protocol-core.h>
 
+#include "core/data-device/data-source.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wayland::data_device_manager::data_source {
@@ -11,8 +12,9 @@ constexpr struct wl_data_source_interface kImpl = {
     .offer =
         [](wl_client* /*client*/, wl_resource* resource,
             const char* mime_type) {
-          core::server::get().data_source_map.at(resource)->add_mime_type(
-              mime_type);
+          core::server::get()
+              .resources.get<core::data_device::DataSource>(resource)
+              ->add_mime_type(mime_type);
         },
     .destroy =
         [](wl_client* /*client*/, wl_resource* resource) {
@@ -20,12 +22,13 @@ constexpr struct wl_data_source_interface kImpl = {
         },
     .set_actions =
         [](wl_client* /*client*/, wl_resource* resource, uint32_t dnd_actions) {
-          core::server::get().data_source_map.at(resource)->set_actions(
-              dnd_actions);
+          core::server::get()
+              .resources.get<core::data_device::DataSource>(resource)
+              ->set_actions(dnd_actions);
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().data_source_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -37,7 +40,7 @@ void create(wl_client* client, int version, uint32_t id) {
     return;
   }
   const auto self = std::make_shared<core::data_device::DataSource>(resource);
-  core::server::get().data_source_map.emplace(resource, self);
+  core::server::get().resources.add(resource, self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 }
 }  // namespace yabe::proto::wayland::data_device_manager::data_source

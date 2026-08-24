@@ -15,13 +15,16 @@ constexpr struct wl_data_offer_interface kImpl = {
     .accept =
         [](wl_client* /*client*/, wl_resource* resource, uint32_t /*serial*/,
             const char* mime_type) {
-          core::server::get().data_offer_map.at(resource)->accept(mime_type);
+          core::server::get()
+              .resources.get<core::data_device::DataOffer>(resource)
+              ->accept(mime_type);
         },
     .receive =
         [](wl_client* /*client*/, wl_resource* resource, const char* mime_type,
             int32_t fd) {
-          core::server::get().data_offer_map.at(resource)->receive(
-              mime_type, fd);
+          core::server::get()
+              .resources.get<core::data_device::DataOffer>(resource)
+              ->receive(mime_type, fd);
         },
     .destroy =
         [](wl_client* /*client*/, wl_resource* resource) {
@@ -29,7 +32,9 @@ constexpr struct wl_data_offer_interface kImpl = {
         },
     .finish =
         [](wl_client* /*client*/, wl_resource* resource) {
-          core::server::get().data_offer_map.at(resource)->finish_dnd();
+          core::server::get()
+              .resources.get<core::data_device::DataOffer>(resource)
+              ->finish_dnd();
         },
     .set_actions =
         [](wl_client* /*client*/, wl_resource* resource, uint32_t dnd_actions,
@@ -40,13 +45,15 @@ constexpr struct wl_data_offer_interface kImpl = {
                 resource, WL_DATA_OFFER_ERROR_INVALID_ACTION, "invalid action");
             return;
           }
-          core::server::get().data_offer_map.at(resource)->set_actions(
-              dnd_actions,
-              static_cast<wl_data_device_manager_dnd_action>(preferred_action));
+          core::server::get()
+              .resources.get<core::data_device::DataOffer>(resource)
+              ->set_actions(
+                  dnd_actions, static_cast<wl_data_device_manager_dnd_action>(
+                                   preferred_action));
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().data_offer_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -60,7 +67,7 @@ std::shared_ptr<core::data_device::DataOffer> create(
   }
   const auto self =
       std::make_shared<core::data_device::DataOffer>(resource, source);
-  core::server::get().data_offer_map.emplace(resource, self);
+  core::server::get().resources.add(resource, self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return self;
 }

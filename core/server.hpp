@@ -4,27 +4,17 @@
 
 #include <functional>
 #include <mutex>
-#include <unordered_map>
 #include <vector>
 
 #include "common/common.hpp"
-#include "core/data-device/data-device.hpp"
-#include "core/data-device/data-offer.hpp"
-#include "core/data-device/data-source.hpp"
 #include "core/layer-manager.hpp"
 #include "core/ray-cursor.hpp"
-#include "core/region.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/resource-storage.hpp"
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
-#include "core/surface.hpp"
-#include "protocols/wayland/subcompositor/subsurface.hpp"
-#include "protocols/wlr/layer-surface.hpp"
-#include "protocols/xdg/shell/xdg-popup.hpp"
-#include "protocols/xdg/shell/xdg-surface.hpp"
-#include "protocols/xdg/shell/xdg-toplevel.hpp"
 
 namespace yabe::core::server {
 class Server {
@@ -47,33 +37,7 @@ class Server {
   uint32_t       next_serial();
   wl_event_loop* loop();
 
-  std::unordered_map<wl_client*, wl_resource*>               output_map;
-  std::unordered_map<wl_resource*, std::unique_ptr<Region>>  region_map;
-  std::unordered_map<wl_resource*, std::shared_ptr<Surface>> surface_map;
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::wayland::subcompositor::subsurface::Subsurface>>
-      subsurface_map;
-
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<core::data_device::DataDevice>>
-      data_device_map;
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<core::data_device::DataSource>>
-      data_source_map;
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<core::data_device::DataOffer>>
-      data_offer_map;
-
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg::shell::xdg_surface::XdgSurface>>
-      xdg_surface_map;
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel>>
-      xdg_toplevel_map;
-  std::unordered_map<wl_resource*,
-      std::shared_ptr<proto::xdg::shell::xdg_popup::XdgPopup>>
-      xdg_popup_map;
-
+  ResourceStorage         resources;
   setting::Setting        setting;
   server_seat::ServerSeat seat;
   RayCursor               ray_cursor;

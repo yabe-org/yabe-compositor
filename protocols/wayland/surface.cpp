@@ -5,6 +5,7 @@
 
 #include <optional>
 
+#include "core/region.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 
@@ -18,7 +19,11 @@ constexpr struct wl_surface_interface kImpl = {
     .attach =
         [](wl_client* /*client*/, wl_resource* resource,
             wl_resource* buffer_resource, int32_t /*dx*/, int32_t /*dy*/) {
-          core::server::get().surface_map.at(resource)->attach(buffer_resource);
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->attach(buffer_resource);
+          }
         },
     .damage =
         [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*x*/,
@@ -33,8 +38,11 @@ constexpr struct wl_surface_interface kImpl = {
             wl_client_post_no_memory(client);
             return;
           }
-          core::server::get().surface_map.at(resource)->set_frame_callback(
-              callback_resource);
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->set_frame_callback(callback_resource);
+          }
         },
     .set_opaque_region =
         [](wl_client* /*client*/, wl_resource* /*resource*/,
@@ -44,17 +52,23 @@ constexpr struct wl_surface_interface kImpl = {
     .set_input_region =
         [](wl_client* /*client*/, wl_resource* resource,
             wl_resource* region_resource) {
-          const auto& self = core::server::get().surface_map.at(resource);
-          auto region_it = core::server::get().region_map.find(region_resource);
-          if (region_it == core::server::get().region_map.end()) {
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          const auto region =
+              core::server::get().resources.get<core::Region>(region_resource);
+          if (!region) {
             self->set_input_region(std::nullopt);
             return;
           }
-          self->set_input_region(*region_it->second);
+          self->set_input_region(*region);
         },
     .commit =
         [](wl_client* /*client*/, wl_resource* resource) {
-          core::server::get().surface_map.at(resource)->commit();
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->commit();
+          }
         },
     .set_buffer_transform =
         [](wl_client* /*client*/, wl_resource* /*resource*/,
@@ -84,13 +98,16 @@ constexpr struct wl_surface_interface kImpl = {
             wl_client_post_no_memory(client);
             return;
           }
-          core::server::get().surface_map.at(resource)->set_release_callback(
-              callback_resource);
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->set_release_callback(callback_resource);
+          }
         },
 };
 
 void handle_destruction(wl_resource* resource) {
-  core::server::get().surface_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -101,7 +118,7 @@ void create(wl_client* client, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  core::server::get().surface_map.emplace(
+  core::server::get().resources.add(
       resource, std::make_shared<core::Surface>(resource));
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 }

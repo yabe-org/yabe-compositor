@@ -4,6 +4,7 @@
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
 
+#include "core/region.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wayland::region {
@@ -16,17 +17,24 @@ constexpr struct wl_region_interface kImpl = {
     .add =
         [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
             int32_t width, int32_t height) {
-          core::server::get().region_map.at(resource)->add(x, y, width, height);
+          const auto self =
+              core::server::get().resources.get<core::Region>(resource);
+          if (self) {
+            self->add(x, y, width, height);
+          }
         },
     .subtract =
         [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
             int32_t width, int32_t height) {
-          core::server::get().region_map.at(resource)->subtract(
-              x, y, width, height);
+          const auto self =
+              core::server::get().resources.get<core::Region>(resource);
+          if (self) {
+            self->subtract(x, y, width, height);
+          }
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().region_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -38,7 +46,7 @@ void create(wl_client* client, uint32_t id) {
     return;
   }
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
-  core::server::get().region_map.emplace(
-      resource, std::make_unique<core::Region>(resource));
+  const auto self = std::make_shared<core::Region>(resource);
+  core::server::get().resources.add(resource, self);
 }
 }  // namespace yabe::proto::wayland::region

@@ -13,7 +13,7 @@ constexpr struct wl_output_interface kImpl = {
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().output_map.erase(wl_resource_get_client(resource));
+  core::server::get().resources.remove(resource);
 }
 
 int32_t viewport_width  = 1920;
@@ -37,7 +37,8 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  core::server::get().output_map.emplace(client, resource);
+  const auto self = std::make_shared<Output>(Output{resource});
+  core::server::get().resources.add(resource, self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   wl_output_send_geometry(resource, 0, 0, 0, 0, WL_OUTPUT_SUBPIXEL_UNKNOWN,
       "yabe-compositor", "output", WL_OUTPUT_TRANSFORM_NORMAL);

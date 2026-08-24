@@ -4,6 +4,7 @@
 #include <wayland-server.h>
 
 #include "core/server.hpp"
+#include "core/surface.hpp"
 #include "subsurface.hpp"
 #include "wayland-server-core.h"
 
@@ -17,16 +18,18 @@ constexpr struct wl_subcompositor_interface kImpl = {
     .get_subsurface =
         [](wl_client* client, wl_resource* resource, uint32_t id,
             wl_resource* surface, wl_resource* parent) {
-          auto parent_surface = core::server::get().surface_map.find(parent);
-          if (parent_surface == core::server::get().surface_map.end()) {
+          auto parent_surface =
+              core::server::get().resources.get<core::Surface>(parent);
+          if (!parent_surface) {
             wl_client_post_implementation_error(
                 wl_resource_get_client(resource),
                 "subsurface requested for unknown parent surface");
             return;
           }
-          auto wl_surface = core::server::get().surface_map.at(surface);
+          auto wl_surface =
+              core::server::get().resources.get<core::Surface>(surface);
           subsurface::create(client, wl_resource_get_version(resource), id,
-              wl_surface, parent_surface->second);
+              wl_surface, parent_surface);
         },
 };
 }  // namespace

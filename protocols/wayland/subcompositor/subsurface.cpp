@@ -91,7 +91,8 @@ constexpr struct wl_subsurface_interface kImpl = {
         },
     .set_position =
         [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y) {
-          core::server::get().subsurface_map.at(resource)->set_position(x, y);
+          core::server::get().resources.get<Subsurface>(resource)->set_position(
+              x, y);
         },
     .place_above =
         [](wl_client* /*client*/, wl_resource* /*resource*/,
@@ -113,7 +114,7 @@ constexpr struct wl_subsurface_interface kImpl = {
         },
 };
 void handle_destruction(wl_resource* resource) {
-  core::server::get().subsurface_map.erase(resource);
+  core::server::get().resources.remove(resource);
 }
 }  // namespace
 
@@ -129,7 +130,7 @@ void create(wl_client* client, int version, uint32_t id,
   auto subsurface =
       std::make_shared<Subsurface>(resource, surface, parent_surface);
   surface->set_role(subsurface);
-  core::server::get().subsurface_map.emplace(resource, std::move(subsurface));
+  core::server::get().resources.add(resource, subsurface);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
 }
 }  // namespace yabe::proto::wayland::subcompositor::subsurface

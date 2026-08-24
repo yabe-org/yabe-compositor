@@ -44,7 +44,7 @@ class SurfaceNode : public SceneNode {
 
   // weak reference to avoid circular reference
   // Surface always valid while SurfaceNode exists
-  // (note that Surface owner is Server::surface_map)
+  // (note that Surface owner is Server::resources)
   std::weak_ptr<core::Surface> surface_;
   Anchor                       anchor_;
 };

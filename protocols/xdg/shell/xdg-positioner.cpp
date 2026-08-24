@@ -5,7 +5,6 @@
 
 #include <cassert>
 
-#include "common/common.hpp"
 #include "wayland-server-protocol.h"
 
 namespace yabe::common {

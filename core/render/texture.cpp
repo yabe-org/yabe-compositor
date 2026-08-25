@@ -5,6 +5,8 @@
 
 #include <optional>
 
+#include "core/server.hpp"
+
 namespace yabe::core::render {
 namespace {
 struct GlFormat {
@@ -137,9 +139,13 @@ std::optional<GlFormat> get_gl_format(uint32_t wl_shm_format) {
 }  // namespace
 
 Texture::~Texture() {
-  if (this->texture_ != 0) {
-    glDeleteTextures(1, &this->texture_);
+  if (this->texture_ == 0) {
+    return;
   }
+  const auto texture = this->texture_;
+  server::get().enqueue_rendering_thread_task([texture] {
+    glDeleteTextures(1, &texture);
+  });
 }
 
 void Texture::upload(void* data, uint32_t wl_shm_format,

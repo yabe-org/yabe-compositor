@@ -37,7 +37,7 @@ void Server::init() {
       [](int fd, uint32_t, void*) {
         uint64_t value = 0;
         while (read(fd, &value, sizeof(value)) < 0 && errno == EINTR) {}
-        server::get().consume_queued_tasks();
+        server::get().wayland_thread_tasks_.consume();
         return 0;
       },
       this);
@@ -90,7 +90,7 @@ void Server::start() {
 }
 
 void Server::add_client_fd(int fd) {
-  this->enqueue([this, fd]() {
+  this->enqueue_wayland_thread_task([this, fd]() {
     if (wl_client_create(this->wl_display_, fd) == nullptr) {
       LOG_ERR("Failed to create Wayland client for fd: {}", fd);
       close(fd);
@@ -102,15 +102,15 @@ void Server::terminate() {
   if (!this->wl_display_) {
     return;
   }
-  this->enqueue([this]() {
+  this->enqueue_wayland_thread_task([this]() {
     wl_display_terminate(this->wl_display_);
   });
 }
 
-void Server::enqueue(std::function<void()> task) {
+void Server::enqueue_wayland_thread_task(std::function<void()> task) {
   {
-    const std::lock_guard lock(this->task_mutex_);
-    this->tasks_.push_back(std::move(task));
+    const std::lock_guard lock(this->wayland_thread_tasks_.mutex);
+    this->wayland_thread_tasks_.tasks.push_back(std::move(task));
   }
   const uint64_t value = 1;
   if (write(this->task_dispatch_event_fd_, &value, sizeof(value)) < 0 &&
@@ -118,19 +118,15 @@ void Server::enqueue(std::function<void()> task) {
     LOG_ERR("Failed to wake compositor event loop: {}", strerror(errno));
   }
 }
-
-void Server::consume_queued_tasks() {
-  std::vector<std::function<void()>> tasks;
-  {
-    const std::lock_guard lock(this->task_mutex_);
-    tasks.swap(this->tasks_);
-  }
-  for (auto& task : tasks) {
-    task();
-  }
+void Server::enqueue_rendering_thread_task(std::function<void()> task) {
+  const std::lock_guard lock(this->rendering_thread_tasks_.mutex);
+  this->rendering_thread_tasks_.tasks.push_back(std::move(task));
 }
 
 void Server::draw(const float* vp_mat) {
+  this->thread_for_rendering_thread_tasks_         = std::thread([this]() {
+    this->rendering_thread_tasks_.consume();
+  });
   const GLboolean        was_cull_face_enabled     = glIsEnabled(GL_CULL_FACE);
   const GLboolean        was_depth_test_enabled    = glIsEnabled(GL_DEPTH_TEST);
   const GLboolean        was_blend_enabled         = glIsEnabled(GL_BLEND);
@@ -195,6 +191,10 @@ void Server::draw(const float* vp_mat) {
   glBindBuffer(GL_ARRAY_BUFFER, previous_array_buffer);
   glBindVertexArray(previous_vao);
   glUseProgram(previous_program);
+
+  if (this->thread_for_rendering_thread_tasks_.joinable()) {
+    this->thread_for_rendering_thread_tasks_.join();
+  }
 
   if (!this->is_first_rendering_) {
     return;

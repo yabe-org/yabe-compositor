@@ -62,24 +62,24 @@ void yabe_compositor_draw(const float* vp_mat) {
 }
 
 void yabe_compositor_move_pointer(float dx, float dy) {
-  yabe::core::server::get().enqueue([dx, dy]() {
+  yabe::core::server::get().enqueue_wayland_thread_task([dx, dy]() {
     yabe::core::server::get().seat.pointer.handle_pointer_move_relative(dx, dy);
   });
 }
 void yabe_compositor_button(uint32_t button, bool is_pressed) {
-  yabe::core::server::get().enqueue([button, is_pressed]() {
+  yabe::core::server::get().enqueue_wayland_thread_task([button, is_pressed]() {
     yabe::core::server::get().seat.pointer.handle_pointer_button(
         button, is_pressed);
   });
 }
 void yabe_compositor_axis(uint32_t axis, float value) {
-  yabe::core::server::get().enqueue([axis, value]() {
+  yabe::core::server::get().enqueue_wayland_thread_task([axis, value]() {
     yabe::core::server::get().seat.pointer.handle_pointer_axis(axis, value);
   });
 }
 
 void yabe_compositor_key(uint32_t key, bool is_pressed) {
-  yabe::core::server::get().enqueue([key, is_pressed]() {
+  yabe::core::server::get().enqueue_wayland_thread_task([key, is_pressed]() {
     yabe::core::server::get().seat.keyboard.handle_keyboard_key(
         key, is_pressed);
   });

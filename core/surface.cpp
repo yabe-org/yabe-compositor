@@ -137,7 +137,7 @@ void Surface::finish_rendering() {
 
   const auto weak_surface = this->weak_from_this();
   // without `mutable`, buffer->unref_shm_buffer() cannot be called
-  server::get().enqueue(
+  server::get().enqueue_wayland_thread_task(
       [weak_surface, buffer, frame_callbacks = std::move(frame_callbacks),
           release_callback]() mutable {
         const auto surface = weak_surface.lock();

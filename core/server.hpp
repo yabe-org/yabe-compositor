@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #include "common/common.hpp"
@@ -29,10 +30,9 @@ class Server {
   void     start();
   void     terminate();
   void     add_client_fd(int fd);
-  void     enqueue(std::function<void()> task);
+  void     enqueue_wayland_thread_task(std::function<void()> task);
+  void     enqueue_rendering_thread_task(std::function<void()> task);
   void     draw(const float* vp_mat);
-
-  void consume_queued_tasks();
 
   uint32_t       next_serial();
   wl_event_loop* loop();
@@ -54,13 +54,26 @@ class Server {
   bool is_initialized_     = false;
   bool is_first_rendering_ = true;
 
-  render::RectRenderer               rect_renderer_;
-  render::RayRenderer                ray_renderer_;
-  wl_display*                        wl_display_             = nullptr;
-  wl_event_source*                   task_source_            = nullptr;
-  int                                task_dispatch_event_fd_ = -1;
-  std::mutex                         task_mutex_;
-  std::vector<std::function<void()>> tasks_;
+  render::RectRenderer rect_renderer_;
+  render::RayRenderer  ray_renderer_;
+  wl_display*          wl_display_             = nullptr;
+  wl_event_source*     task_source_            = nullptr;
+  int                  task_dispatch_event_fd_ = -1;
+  struct {
+    std::mutex                         mutex;
+    std::vector<std::function<void()>> tasks;
+    void                               consume() {
+      std::vector<std::function<void()>> tasks;
+      {
+        const std::lock_guard lock(this->mutex);
+        tasks.swap(this->tasks);
+      }
+      for (auto& task : tasks) {
+        task();
+      }
+    }
+  } wayland_thread_tasks_, rendering_thread_tasks_;
+  std::thread thread_for_rendering_thread_tasks_;
 };
 
 /// shortening

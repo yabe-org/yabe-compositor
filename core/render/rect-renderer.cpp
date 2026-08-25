@@ -47,9 +47,7 @@ RectRenderer::~RectRenderer() {
   glDeleteBuffers(1, &this->vbo_);
 }
 
-void RectRenderer::rendering_scope(const float* vp_mat,
-    const std::function<void(const glm::mat4& vp_mat, DrawRectFunc&)>&
-        render_func) {
+void RectRenderer::render(const glm::mat4& mvp_mat, const Texture& texture) {
   if (!this->initialized_) {
     this->init();
   }
@@ -59,15 +57,10 @@ void RectRenderer::rendering_scope(const float* vp_mat,
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(this->texture_sampler_location_, 0);
-
-  DrawRectFunc draw_rect = [this](const glm::mat4& mvp_mat,
-                               const Texture&      texture) {
-    glUniformMatrix4fv(
-        this->mvp_mat_location_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
-    glBindTexture(GL_TEXTURE_2D, texture.get_texture_id());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-  };
-  render_func(glm::make_mat4(vp_mat), draw_rect);
+  glUniformMatrix4fv(
+      this->mvp_mat_location_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
+  glBindTexture(GL_TEXTURE_2D, texture.get_texture_id());
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void RectRenderer::init() {

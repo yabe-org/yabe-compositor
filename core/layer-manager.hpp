@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "common/common.hpp"
-#include "core/render/rect-renderer.hpp"
 
 namespace yabe::proto::wlr::layer_shell::layer_surface {
 class LayerSurface;
@@ -38,11 +37,11 @@ class LayerManager {
   std::optional<StoredLayerSurface> get(wl_resource* resource) const;
   void                              reconfigure(Layer layer) const;
 
-  void draw_under_scene(render::DrawRectFunc draw_rect) const;
-  void draw_above_scene(render::DrawRectFunc draw_rect) const;
+  void draw_under_scene() const;
+  void draw_above_scene() const;
 
  private:
-  void draw_layer(Layer layer, render::DrawRectFunc draw_rect) const;
+  void draw_layer(Layer layer) const;
   std::array<  //
       std::map<wl_resource*, StoredLayerSurface>,
       static_cast<size_t>(Layer::LAYER_COUNT)>

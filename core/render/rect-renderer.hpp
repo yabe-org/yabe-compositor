@@ -2,16 +2,12 @@
 
 #include <GLES3/gl32.h>
 
-#include <functional>
 #include <glm/glm.hpp>
 
 #include "common/common.hpp"
 #include "texture.hpp"
 
 namespace yabe::core::render {
-using DrawRectFunc =
-    const std::function<void(const glm::mat4& /*mvp_mat*/, const Texture&)>&;
-
 class RectRenderer {
  public:
   DISABLE_MOVE_AND_COPY(RectRenderer);
@@ -22,9 +18,7 @@ class RectRenderer {
   ~RectRenderer();
 
   /// must be called in the rendering thread
-  void rendering_scope(const float* vp_mat,
-      const std::function<void(const glm::mat4& vp_mat, DrawRectFunc&)>&
-          render_func);
+  void render(const glm::mat4& mvp_mat, const Texture& texture);
 
  private:
   bool initialized_ = false;

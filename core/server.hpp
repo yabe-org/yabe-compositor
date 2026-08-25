@@ -44,6 +44,8 @@ class Server {
   scene::Scene            scene;
   LayerManager            layer_manager;
 
+  render::RectRenderer rect_renderer;
+
  private:
   Server()  = default;
   ~Server() = default;
@@ -54,11 +56,10 @@ class Server {
   bool is_initialized_     = false;
   bool is_first_rendering_ = true;
 
-  render::RectRenderer rect_renderer_;
-  render::RayRenderer  ray_renderer_;
-  wl_display*          wl_display_             = nullptr;
-  wl_event_source*     task_source_            = nullptr;
-  int                  task_dispatch_event_fd_ = -1;
+  render::RayRenderer ray_renderer_;
+  wl_display*         wl_display_             = nullptr;
+  wl_event_source*    task_source_            = nullptr;
+  int                 task_dispatch_event_fd_ = -1;
   struct {
     std::mutex                         mutex;
     std::vector<std::function<void()>> tasks;

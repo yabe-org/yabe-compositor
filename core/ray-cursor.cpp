@@ -3,9 +3,9 @@
 #include <glm/ext.hpp>
 #include <memory>
 
-#include "common/common.hpp"
 #include "common/unit.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/server.hpp"
 #include "core/surface.hpp"
 #include "wayland-server-protocol.h"
 
@@ -76,13 +76,12 @@ void RayCursor::reset_cursor() {
   this->set_length(kDefaultLength);
 }
 
-void RayCursor::draw_cursor(
-    const glm::mat4& vp_mat, render::DrawRectFunc draw_rect) {
+void RayCursor::draw_cursor(const glm::mat4& vp_mat) {
   const auto drag_and_drop_icon_surface =
       this->drag_and_drop_icon_surface_.lock();
   if (drag_and_drop_icon_surface) {
     drag_and_drop_icon_surface->upload_texture_if_needed();
-    draw_rect(vp_mat * this->cursor_model_mat(),
+    server::get().rect_renderer.render(vp_mat * this->cursor_model_mat(),
         drag_and_drop_icon_surface->texture());
     drag_and_drop_icon_surface->finish_rendering();
   }
@@ -90,7 +89,8 @@ void RayCursor::draw_cursor(
   if (this->cursor_surface_) {
     if (auto cursor_surface = this->cursor_surface_.value().lock()) {
       cursor_surface->upload_texture_if_needed();
-      draw_rect(vp_mat * this->cursor_model_mat(), cursor_surface->texture());
+      server::get().rect_renderer.render(
+          vp_mat * this->cursor_model_mat(), cursor_surface->texture());
       cursor_surface->finish_rendering();
     }
   } else {
@@ -102,7 +102,8 @@ void RayCursor::draw_cursor(
           size, kDefaultCursorSize * 4);
       this->is_default_cursor_texture_uploaded_ = true;
     }
-    draw_rect(vp_mat * this->cursor_model_mat(), this->default_cursor_texture_);
+    server::get().rect_renderer.render(
+        vp_mat * this->cursor_model_mat(), this->default_cursor_texture_);
   }
 }
 

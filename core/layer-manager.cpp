@@ -6,6 +6,7 @@
 #include "common/box.hpp"
 #include "common/common.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/server.hpp"
 #include "protocols/wayland/output.hpp"
 #include "protocols/wlr/layer-surface.hpp"
 
@@ -47,18 +48,17 @@ void LayerManager::reconfigure(Layer layer) const {
   }
 }
 
-void LayerManager::draw_under_scene(render::DrawRectFunc draw_rect) const {
-  this->draw_layer(Layer::BACKGROUND, draw_rect);
-  this->draw_layer(Layer::BOTTOM, draw_rect);
+void LayerManager::draw_under_scene() const {
+  this->draw_layer(Layer::BACKGROUND);
+  this->draw_layer(Layer::BOTTOM);
 }
-void LayerManager::draw_above_scene(render::DrawRectFunc draw_rect) const {
-  this->draw_layer(Layer::UNSPECIFIED, draw_rect);
-  this->draw_layer(Layer::TOP, draw_rect);
-  this->draw_layer(Layer::OVERLAY, draw_rect);
+void LayerManager::draw_above_scene() const {
+  this->draw_layer(Layer::UNSPECIFIED);
+  this->draw_layer(Layer::TOP);
+  this->draw_layer(Layer::OVERLAY);
 }
 
-void LayerManager::draw_layer(
-    Layer layer, render::DrawRectFunc draw_rect) const {
+void LayerManager::draw_layer(Layer layer) const {
   const auto viewport_width =
       static_cast<float>(proto::wayland::output::get_viewport_width());
   const auto viewport_height =
@@ -96,7 +96,7 @@ void LayerManager::draw_layer(
                        1.F,
                    });
     surface->upload_texture_if_needed();
-    draw_rect(model_mat, surface->texture());
+    server::get().rect_renderer.render(model_mat, surface->texture());
     surface->finish_rendering();
   }
 }

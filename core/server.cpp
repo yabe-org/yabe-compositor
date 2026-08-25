@@ -206,13 +206,11 @@ void Server::draw(const float* vp_mat) {
 }
 
 void Server::draw_content(const float* vp_mat) {
-  this->rect_renderer_.rendering_scope(
-      vp_mat, [this](const glm::mat4& vp_mat, render::DrawRectFunc draw_rect) {
-        this->layer_manager.draw_under_scene(draw_rect);
-        this->scene.draw(vp_mat, draw_rect);
-        this->layer_manager.draw_above_scene(draw_rect);
-        this->ray_cursor.draw_cursor(vp_mat, draw_rect);
-      });
+  const auto vp_mat_glm = glm::make_mat4(vp_mat);
+  this->layer_manager.draw_under_scene();
+  this->scene.draw(vp_mat_glm);
+  this->layer_manager.draw_above_scene();
+  this->ray_cursor.draw_cursor(vp_mat_glm);
   this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());
 }

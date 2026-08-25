@@ -8,7 +8,6 @@
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
-#include "core/render/rect-renderer.hpp"
 #include "core/render/texture.hpp"
 #include "core/scene/scene-node.hpp"
 #include "core/scene/surface-node.hpp"
@@ -29,7 +28,7 @@ class RayCursor {
   void set_cursor_rotation(glm::quat rotation);
   void reset_cursor();
 
-  void draw_cursor(const glm::mat4& vp_mat, render::DrawRectFunc draw_rect);
+  void draw_cursor(const glm::mat4& vp_mat);
 
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;

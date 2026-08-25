@@ -2,10 +2,11 @@
 
 #include <wayland-server.h>
 
+#include "client-data-device.hpp"
 #include "client-keyboard.hpp"
 #include "client-pointer.hpp"
+#include "client-ray.hpp"
 #include "common/common.hpp"
-#include "core/client-seat/client-data-device.hpp"
 
 namespace yabe::core::client_seat {
 class ClientSeat {
@@ -17,5 +18,6 @@ class ClientSeat {
   ClientKeyboard   keyboard;
   ClientPointer    pointer;
   ClientDataDevice data_device;
+  ClientRay        ray;
 };
 }  // namespace yabe::core::client_seat

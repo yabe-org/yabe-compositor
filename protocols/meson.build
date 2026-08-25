@@ -8,6 +8,9 @@ foreach name, path : {
   'xdg-shell'      : join_paths(wayland_protocols_base_dir,  'stable/xdg-shell/xdg-shell.xml'),
   'xdg-output'     : join_paths(wayland_protocols_base_dir,  'unstable/xdg-output/xdg-output-unstable-v1.xml'),
   'wlr-layer-shell': join_paths(meson.project_source_root(), '3rdparty/wlr-protocols/unstable/wlr-layer-shell-unstable-v1.xml'),
+  'zwin'           : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin.xml'),
+  'zwin-shell'     : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-shell.xml'),
+  'zwin-gles-v32'  : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-gles-v32.xml'),
 }
   filename = name + '-protocol'
   srcs += custom_target(
@@ -77,4 +80,25 @@ srcs += files(
   'xdg/output/xdg-output-manager.cpp',
   'xdg/output/xdg-output.cpp',
   'xdg/xdg.cpp',
+
+  'zwin/gles-v32/base-technique.cpp',
+  'zwin/gles-v32/buffer.cpp',
+  'zwin/gles-v32/gles-v32.cpp',
+  'zwin/gles-v32/program.cpp',
+  'zwin/gles-v32/rendering-unit.cpp',
+  'zwin/gles-v32/sampler.cpp',
+  'zwin/gles-v32/shader.cpp',
+  'zwin/gles-v32/texture.cpp',
+  'zwin/gles-v32/vertex-array.cpp',
+  'zwin/shell/bounded.cpp',
+  'zwin/shell/shell.cpp',
+  'zwin/shm/shm-buffer.cpp',
+  'zwin/shm/shm-pool.cpp',
+  'zwin/shm/shm.cpp',
+  'zwin/compositor.cpp',
+  'zwin/ray.cpp',
+  'zwin/region.cpp',
+  'zwin/seat.cpp',
+  'zwin/virtual-object.cpp',
+  'zwin/zwin.cpp',
 )

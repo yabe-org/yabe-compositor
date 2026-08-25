@@ -1,3 +1,6 @@
 [submodule "3rdparty/wlr-protocols"]
 	path = 3rdparty/wlr-protocols
 	url = https://gitlab.freedesktop.org/wlroots/wlr-protocols.git
+[submodule "3rdparty/zwin"]
+	path = 3rdparty/zwin
+	url = https://github.com/watasuke102/zwin

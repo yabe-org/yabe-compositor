@@ -1,12 +1,12 @@
 #include "server-pointer.hpp"
 
+#include <wayland-server.h>
+
 #include <optional>
 
-#include "common/common.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/server-seat/pointer-grab/default.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::core::server_seat {
 ServerPointer::ServerPointer()

@@ -5,6 +5,7 @@
 #include "wayland/wayland.hpp"
 #include "wlr/wlr.hpp"
 #include "xdg/xdg.hpp"
+#include "zwin/zwin.hpp"
 
 namespace yabe::proto {
 bool init(wl_display* display) {
@@ -19,6 +20,7 @@ bool init(wl_display* display) {
   ENSURE(wayland::init(display));
   ENSURE(wlr::init(display));
   ENSURE(xdg::init(display));
+  ENSURE(zwin::init(display));
 
   return true;
 #undef ENSURE

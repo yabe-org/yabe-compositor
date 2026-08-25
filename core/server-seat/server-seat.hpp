@@ -17,8 +17,8 @@ class ServerSeat {
   explicit ServerSeat() = default;
   ~ServerSeat()         = default;
 
-  client_seat::ClientSeat* create_client_seat(wl_client* client);
-  void                     remove_client_seat(wl_client* client);
+  void create_client_seat(wl_client* client);
+  void remove_client_seat(wl_client* client);
 
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
   get_client_seat(wl_client* client) {

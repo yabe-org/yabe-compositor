@@ -42,9 +42,8 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  auto* client_seat = core::server::get().seat.create_client_seat(client);
-  wl_resource_set_implementation(
-      resource, &kImpl, client_seat, handle_destruction);
+  core::server::get().seat.create_client_seat(client);
+  wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   wl_seat_send_capabilities(
       resource, WL_SEAT_CAPABILITY_POINTER | WL_SEAT_CAPABILITY_KEYBOARD);
 }

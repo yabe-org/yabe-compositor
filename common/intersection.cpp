@@ -39,4 +39,37 @@ std::optional<SurfaceInfo> with_surface(const glm::vec3& o,
       .v        = glm::dot(q, d) / det,
   };
 }
+
+// based
+// https://www.opengl-tutorial.org/jp/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/
+std::optional<float> with_obb(const glm::vec3& origin,
+    const glm::vec3& direction, const glm::vec3& half_size,
+    const glm::mat4& model_mat) {
+  const glm::vec3 direction_norm = glm::normalize(direction);
+  const glm::vec3 obb_world_pos  = model_mat[3];
+  const glm::vec3 delta          = obb_world_pos - origin;
+
+  float near = 0.F;
+  float far  = std::numeric_limits<float>::max();
+  for (int i = 0; i <= 2; ++i) {
+    const glm::vec3 axis = model_mat[i];
+    const float     e    = glm::dot(axis, delta);
+    const float     f    = glm::dot(direction_norm, axis);
+    if (std::abs(f) > 0.001F) {
+      float intersect_min = (e - half_size[i]) / f;
+      float intersect_max = (e + half_size[i]) / f;
+      if (intersect_min > intersect_max) {
+        std::swap(intersect_min, intersect_max);
+      }
+      far  = std::min(far, intersect_max);
+      near = std::max(near, intersect_min);
+      if (far < near) {
+        return std::nullopt;
+      }
+    } else if (-e - half_size[i] > 0.F || -e + half_size[i] < 0.F) {
+      return std::nullopt;
+    }
+  }
+  return near;
+}
 }  // namespace yabe::common::intersection

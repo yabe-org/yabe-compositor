@@ -9,6 +9,7 @@ srcs += files(
   'client-seat/client-data-device.cpp',
   'client-seat/client-keyboard.cpp',
   'client-seat/client-pointer.cpp',
+  'client-seat/client-ray.cpp',
 
   'setting/engine.cpp',
   'setting/setting.cpp',
@@ -25,6 +26,7 @@ srcs += files(
   'render/shader.cpp',
   'render/texture.cpp',
 
+  'scene/bounded-node.cpp',
   'scene/scene-node.cpp',
   'scene/scene.cpp',
   'scene/surface-node.cpp',

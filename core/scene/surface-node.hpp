@@ -12,8 +12,6 @@ namespace yabe::core {
 class Surface;
 }
 namespace yabe::core::scene {
-constexpr float kSurfaceDistance = 0.7F;
-
 // Surface owns this and erases this from Scene on destruction
 class SurfaceNode : public SceneNode {
  public:

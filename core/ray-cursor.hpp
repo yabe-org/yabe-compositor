@@ -10,6 +10,7 @@
 #include "common/unit.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/render/texture.hpp"
+#include "core/scene/scene-node.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/surface.hpp"
 
@@ -46,7 +47,7 @@ class RayCursor {
   [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
   constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, 1.F);
-  constexpr static float     kDefaultLength = scene::kSurfaceDistance * 2.F;
+  constexpr static float     kDefaultLength = scene::kSceneNodeDistance * 2.F;
 
   glm::vec3 origin_  = {0.F, -0.3F, -0.001F};
   float     length_  = kDefaultLength;

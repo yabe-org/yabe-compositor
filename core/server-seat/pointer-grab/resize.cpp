@@ -58,9 +58,9 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
     return;
   }
   const common::unit::WorldUnit surface_delta_width{
-      std::tan(this->move_amount_x_) * scene::kSurfaceDistance};
+      std::tan(this->move_amount_x_) * scene::kSceneNodeDistance};
   const common::unit::WorldUnit surface_delta_height{
-      std::tan(this->move_amount_y_) * scene::kSurfaceDistance};
+      std::tan(this->move_amount_y_) * scene::kSceneNodeDistance};
   xdg_toplevel->request_resize(
       this->initial_width_ + surface_delta_width.to_pixel(),
       this->initial_height_ + surface_delta_height.to_pixel());

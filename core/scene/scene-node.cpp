@@ -6,7 +6,8 @@
 #include "core/scene/scene-intersection.hpp"
 
 namespace yabe::core::scene {
-SceneNode::SceneNode(const common::Geometry& geometry) : geometry_(geometry) {
+SceneNode::SceneNode()
+    : geometry_(common::Geometry(glm::vec3{0.F, 0.F, -kSceneNodeDistance})) {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion): ???

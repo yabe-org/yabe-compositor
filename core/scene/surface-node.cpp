@@ -8,9 +8,7 @@
 
 namespace yabe::core::scene {
 SurfaceNode::SurfaceNode(std::weak_ptr<core::Surface>&& surface, Anchor anchor)
-    : SceneNode(common::Geometry(glm::vec3{0.F, 0.F, -kSurfaceDistance}))
-    , surface_(std::move(surface))
-    , anchor_(anchor) {
+    : surface_(std::move(surface)), anchor_(anchor) {
   // scale (size) will be set by wl_surface.commit()
   this->geometry().scale().x = 0.F;
   this->geometry().scale().y = 0.F;

@@ -10,10 +10,12 @@
 #include "core/scene/scene-intersection.hpp"
 
 namespace yabe::core::scene {
+constexpr float kSceneNodeDistance = 0.7F;
+
 class SceneNode : public std::enable_shared_from_this<SceneNode> {
  public:
   DISABLE_MOVE_AND_COPY(SceneNode);
-  explicit SceneNode(const common::Geometry& geometry);
+  explicit SceneNode();
   virtual ~SceneNode() = default;
 
   void draw(const glm::mat4& vp_mat, render::DrawRectFunc& draw_rect,

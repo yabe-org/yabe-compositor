@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/stat.h>

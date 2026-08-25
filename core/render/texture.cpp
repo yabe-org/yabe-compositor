@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <wayland-server-protocol.h>
 
 #include <optional>

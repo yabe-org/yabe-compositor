@@ -6,7 +6,7 @@
 #include "common/common.hpp"
 
 namespace yabe::core::render {
-std::optional<GLuint> compile_glsl(int type, const char* src) {
+std::optional<GLuint> compile_glsl(GLenum type, const char* src) {
   GLuint shader_id = glCreateShader(type);
 
   glShaderSource(shader_id, 1, &src, nullptr);

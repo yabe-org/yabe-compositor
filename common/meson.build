@@ -4,5 +4,6 @@ common_srcs = files(
   'geometry.cpp',
   'intersection.cpp',
   'unit.cpp',
+  'weak-resource.cpp',
 )
 srcs += common_srcs

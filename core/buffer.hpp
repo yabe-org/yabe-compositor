@@ -2,6 +2,8 @@
 
 #include <wayland-server-core.h>
 
+#include "common/weak-resource.hpp"
+
 namespace yabe::core {
 // If resource is     null, shm_buffer is also     null
 // If resource is non-null, shm_buffer might be null (e.g. after uploading)
@@ -18,7 +20,7 @@ class Buffer {
   void unref_shm_buffer();
 
   [[nodiscard]] wl_resource* resource() const {
-    return this->resource_;
+    return this->resource_.get();
   }
   [[nodiscard]] wl_shm_buffer* shm_buffer() const {
     return this->shm_buffer_;
@@ -29,8 +31,7 @@ class Buffer {
   }
 
  private:
-  wl_resource*   resource_   = nullptr;  // nullable
-  wl_shm_buffer* shm_buffer_ = nullptr;
-  wl_listener    resource_destroy_listener_;
+  common::WeakResource resource_;
+  wl_shm_buffer*       shm_buffer_ = nullptr;
 };
 }  // namespace yabe::core

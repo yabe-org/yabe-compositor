@@ -91,6 +91,7 @@ srcs += files(
   'zwin/gles-v32/texture.cpp',
   'zwin/gles-v32/vertex-array.cpp',
   'zwin/shell/bounded.cpp',
+  'zwin/shell/expansive.cpp',
   'zwin/shell/shell.cpp',
   'zwin/shm/shm-buffer.cpp',
   'zwin/shm/shm-pool.cpp',

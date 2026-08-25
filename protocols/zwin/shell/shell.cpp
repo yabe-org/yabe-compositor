@@ -6,6 +6,7 @@
 
 #include "bounded.hpp"
 #include "core/server.hpp"
+#include "expansive.hpp"
 
 namespace yabe::proto::zwin::shell {
 namespace {
@@ -29,9 +30,18 @@ constexpr struct zwn_shell_interface kImpl = {
               virtual_object, half_size);
         },
     .get_expansive =
-        [](wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*id*/,
-            wl_resource* /*virtual_object*/) {
-          // TODO
+        [](wl_client* client, wl_resource* resource, uint32_t id,
+            wl_resource* virtual_object_resource) {
+          auto virtual_object =
+              core::server::get().resources.get<VirtualObject>(
+                  virtual_object_resource);
+          if (!virtual_object) {
+            wl_client_post_implementation_error(client,
+                "zwn_shell.get_expansive: invalid virtual_object resource");
+            return;
+          }
+          create_expansive(
+              client, wl_resource_get_version(resource), id, virtual_object);
         },
 };
 }  // namespace

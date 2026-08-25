@@ -64,6 +64,22 @@ void SceneNode::look_at_camera() {
   this->geometry().rotation() = rotation;
 }
 
+void SceneNode::enter(const glm::vec3& /*origin*/,
+    const glm::vec3& /*direction*/, const glm::vec3& /*pos*/
+) {
+}
+void SceneNode::leave() {
+}
+void SceneNode::motion(const glm::vec3& /*origin*/,
+    const glm::vec3& /*direction*/, const glm::vec3& /*intersect_info*/) {
+}
+void SceneNode::button(uint32_t /*button*/, bool /*is_pressed*/) {
+}
+void SceneNode::axis(uint32_t /*axis*/, float /*amount*/) {
+}
+void SceneNode::frame() {
+}
+
 // NOLINTNEXTLINE(misc-no-recursion): ???
 glm::mat4 SceneNode::world_transform() const {
   const auto parent = this->parent_.lock();

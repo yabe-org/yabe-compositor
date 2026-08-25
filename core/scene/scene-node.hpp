@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wayland-server-core.h>
+
 #include <glm/glm.hpp>
 #include <list>
 #include <memory>
@@ -7,6 +9,10 @@
 #include "common/common.hpp"
 #include "common/geometry.hpp"
 #include "core/scene/scene-intersection.hpp"
+
+namespace yabe::core::client_seat {
+class ClientSeat;
+}
 
 namespace yabe::core::scene {
 constexpr float kSceneNodeDistance = 0.7F;
@@ -29,6 +35,15 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   void move_relative(float polar, float azimuth);
   void look_at_camera();
 
+  virtual void enter(const glm::vec3& origin, const glm::vec3& direction,
+      const glm::vec3& pos);
+  virtual void leave();
+  virtual void motion(const glm::vec3& origin, const glm::vec3& direction,
+      const glm::vec3& pos);
+  virtual void button(uint32_t button, bool is_pressed);
+  virtual void axis(uint32_t axis, float amount);
+  virtual void frame();
+
   [[nodiscard]] std::optional<SceneIntersection> check_intersection(
       const glm::vec3& origin, const glm::vec3& direction,
       const SceneNode* parent, const glm::mat4& parent_world_transform);
@@ -40,6 +55,10 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
     return this->geometry_;
   }
   [[nodiscard]] glm::mat4 world_transform() const;
+
+  [[nodiscard]] virtual wl_client* data_device_target() const {
+    return nullptr;
+  }
 
  protected:
   // A node may need to determine its geometry before its world transform is

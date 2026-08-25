@@ -25,20 +25,15 @@ void PopupPointerGrab::move_relative(float dx, float dy) {
 }
 
 void PopupPointerGrab::button(uint32_t button, bool is_pressed) {
-  const auto pointer_focused_surface_node =
-      server::get().seat.pointer.get_focused_surface_node().lock();
-  if (!pointer_focused_surface_node) {
+  const auto pointer_focused_scene_node =
+      server::get().seat.pointer.get_focused_scene_node().lock();
+  if (!pointer_focused_scene_node) {
     return;
   }
   // do not call seat.keyboard.set_focused_surface!
 
-  const auto& client_seat =
-      server::get().seat.pointer.get_focused_client_seat();
-  if (!client_seat) {
-    return;
-  }
-  client_seat.value()->pointer.send_button(button, is_pressed);
-  client_seat.value()->pointer.send_frame();
+  pointer_focused_scene_node->button(button, is_pressed);
+  pointer_focused_scene_node->frame();
 }
 
 bool PopupPointerGrab::is_active(

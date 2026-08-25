@@ -5,8 +5,7 @@
 #include <memory>
 
 #include "common/common.hpp"
-#include "core/client-seat/client-seat.hpp"
-#include "core/scene/surface-node.hpp"
+#include "core/scene/scene-node.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
 
 namespace yabe::core::server_seat {
@@ -16,11 +15,9 @@ class ServerPointer {
   explicit ServerPointer();
   ~ServerPointer() = default;
 
-  [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
-  get_focused_client_seat() const;
-  [[nodiscard]] const std::weak_ptr<scene::SurfaceNode>&
-  get_focused_surface_node() const {
-    return this->focused_surface_node_;
+  [[nodiscard]] const std::weak_ptr<scene::SceneNode>& get_focused_scene_node()
+      const {
+    return this->focused_scene_node_;
   }
   void unfocus_surface();
   void focus_pointed_surface();
@@ -37,9 +34,9 @@ class ServerPointer {
 
  private:
   /// @return true if the focused surface node is changed
-  bool set_focused_surface_node(std::weak_ptr<scene::SurfaceNode> surface_node);
+  bool set_focused_scene_node(std::shared_ptr<scene::SceneNode> scene_node);
 
-  std::weak_ptr<scene::SurfaceNode> focused_surface_node_;
-  pointer_grab::PointerGrab*        grab_;
+  std::weak_ptr<scene::SceneNode> focused_scene_node_;
+  pointer_grab::PointerGrab*      grab_;
 };
 }  // namespace yabe::core::server_seat

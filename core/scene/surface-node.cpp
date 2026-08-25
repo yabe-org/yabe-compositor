@@ -15,6 +15,71 @@ SurfaceNode::SurfaceNode(std::weak_ptr<core::Surface>&& surface, Anchor anchor)
   this->geometry().scale().y = 0.F;
 }
 
+void SurfaceNode::enter(const glm::vec3& /*origin*/,
+    const glm::vec3& /*direction*/, const glm::vec3& pos) {
+  const auto surface = this->surface();
+  auto       seat    = this->seat();
+  if (!surface || !seat.has_value()) {
+    return;
+  }
+  seat.value()->pointer.send_enter(surface->resource(), pos.x, pos.y);
+}
+void SurfaceNode::leave() {
+  const auto surface = this->surface();
+  auto       seat    = this->seat();
+  if (!surface || !seat.has_value()) {
+    return;
+  }
+  seat.value()->pointer.send_leave(surface->resource());
+}
+void SurfaceNode::motion(const glm::vec3& /*origin*/,
+    const glm::vec3& /*direction*/, const glm::vec3& pos) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->pointer.send_motion(pos.x, pos.y);
+}
+void SurfaceNode::button(uint32_t button, bool is_pressed) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->pointer.send_button(button, is_pressed);
+}
+void SurfaceNode::axis(uint32_t axis, float amount) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  switch (axis) {
+    case 0:
+      seat.value()->pointer.send_axis(WL_POINTER_AXIS_VERTICAL_SCROLL, amount);
+      break;
+    case 1:
+      seat.value()->pointer.send_axis(
+          WL_POINTER_AXIS_HORIZONTAL_SCROLL, amount);
+      break;
+    default:
+      break;
+  }
+}
+void SurfaceNode::frame() {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->pointer.send_frame();
+}
+
+wl_client* SurfaceNode::data_device_target() const {
+  const auto surface = this->surface_.lock();
+  if (!surface) {
+    return nullptr;
+  }
+  return surface->client();
+}
+
 glm::mat4 SurfaceNode::resolve_world_transform(
     const SceneNode* parent, const glm::mat4& parent_world_transform) const {
   if (this->anchor_ != Anchor::TOP_LEFT) {
@@ -89,5 +154,14 @@ std::optional<SceneIntersection> SurfaceNode::check_intersection_self(
     return intersection;
   }
   return std::nullopt;
+}
+
+std::optional<std::shared_ptr<client_seat::ClientSeat>> SurfaceNode::seat()
+    const {
+  const auto surface = this->surface_.lock();
+  if (!surface) {
+    return std::nullopt;
+  }
+  return server::get().seat.get_client_seat(surface->client());
 }
 }  // namespace yabe::core::scene

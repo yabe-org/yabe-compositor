@@ -2,6 +2,7 @@
 
 #include <linux/input-event-codes.h>
 
+#include "common/intersection.hpp"
 #include "common/unit.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
@@ -42,30 +43,27 @@ void ImplicitPointerGrab::move_relative(float dx, float dy) {
     return;
   }
 
-  const auto& client_seat =
-      server::get().seat.pointer.get_focused_client_seat();
-  if (!client_seat) {
-    server::get().seat.pointer.end_grab();
-    return;
-  }
   const common::unit::WorldUnit surface_width{scene_node->geometry().scale().x};
   const common::unit::WorldUnit surface_height{
       scene_node->geometry().scale().y};
-  client_seat.value()->pointer.send_motion(
+  const glm::vec3 pos{
       static_cast<float>(*surface_width.to_pixel()) * result->u,
-      static_cast<float>(*surface_height.to_pixel()) * (1.F - result->v));
-  client_seat.value()->pointer.send_frame();
+      static_cast<float>(*surface_height.to_pixel()) * (1.F - result->v),
+      0.F,
+  };
+  scene_node->motion(server::get().ray_cursor.origin(),
+      server::get().ray_cursor.direction(), pos);
+  scene_node->frame();
 }
 
 void ImplicitPointerGrab::button(uint32_t button, bool is_pressed) {
-  const auto& client_seat =
-      server::get().seat.pointer.get_focused_client_seat();
-  if (!client_seat) {
+  const auto scene_node = this->focused_surface_node_.lock();
+  if (!scene_node) {
     server::get().seat.pointer.end_grab();
     return;
   }
-  client_seat.value()->pointer.send_button(button, is_pressed);
-  client_seat.value()->pointer.send_frame();
+  scene_node->button(button, is_pressed);
+  scene_node->frame();
 
   if (is_pressed) {
     pressed_buttons_.insert(button);

@@ -29,5 +29,7 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
   }
   wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
   core::server::get().seat.create_client_seat(client);
+  zwn_seat_send_capabilities(resource,
+      ZWN_SEAT_CAPABILITY_RAY_ORIGIN | ZWN_SEAT_CAPABILITY_RAY_DIRECTION);
 }
 }  // namespace yabe::proto::zwin::seat

@@ -24,6 +24,16 @@ class SurfaceNode : public SceneNode {
       std::weak_ptr<core::Surface>&& surface, Anchor anchor = Anchor::CENTER);
   ~SurfaceNode() override = default;
 
+  void enter(const glm::vec3& origin, const glm::vec3& direction,
+      const glm::vec3& pos) override;
+  void leave() override;
+  void motion(const glm::vec3& origin, const glm::vec3& direction,
+      const glm::vec3& pos) override;
+  void button(uint32_t button, bool is_pressed) override;
+  void axis(uint32_t axis, float amount) override;
+  void frame() override;
+
+  [[nodiscard]] wl_client*               data_device_target() const override;
   [[nodiscard]] std::shared_ptr<Surface> surface() const {
     return this->surface_.lock();
   }
@@ -38,6 +48,9 @@ class SurfaceNode : public SceneNode {
       const glm::mat4& world_transform) override;
   [[nodiscard]] glm::mat4 resolve_world_transform(const SceneNode* parent,
       const glm::mat4& parent_world_transform) const override;
+
+  [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>> seat()
+      const;
 
   // weak reference to avoid circular reference
   // Surface always valid while SurfaceNode exists

@@ -1,11 +1,90 @@
 #include "bounded-node.hpp"
 
+#include <memory>
+
+#include "common/common.hpp"
+#include "core/server.hpp"
 #include "protocols/zwin/shell/bounded.hpp"
+#include "zwin-protocol.h"
 
 namespace yabe::core::scene {
 BoundedNode::BoundedNode(
     const std::shared_ptr<proto::zwin::shell::Bounded>& bounded)
     : bounded_(bounded) {
+}
+
+void BoundedNode::enter(const glm::vec3& origin, const glm::vec3& direction,
+    const glm::vec3& /*pos*/) {
+  const auto bounded = this->bounded();
+  auto       seat    = this->seat();
+  if (!bounded || !seat.has_value()) {
+    return;
+  }
+  auto virtual_object = bounded->virtual_object().lock();
+  if (!virtual_object) {
+    return;
+  }
+  seat.value()->ray.send_enter(virtual_object, origin, direction);
+}
+void BoundedNode::leave() {
+  const auto bounded = this->bounded();
+  auto       seat    = this->seat();
+  if (!bounded || !seat.has_value()) {
+    return;
+  }
+  auto virtual_object = bounded->virtual_object().lock();
+  if (!virtual_object) {
+    return;
+  }
+  seat.value()->ray.send_leave(virtual_object);
+}
+void BoundedNode::motion(const glm::vec3& origin, const glm::vec3& direction,
+    const glm::vec3& /*pos*/) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->ray.send_motion(origin, direction);
+}
+void BoundedNode::button(uint32_t button, bool is_pressed) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->ray.send_button(button, is_pressed ?
+                                            ZWN_RAY_BUTTON_STATE_PRESSED :
+                                            ZWN_RAY_BUTTON_STATE_RELEASED);
+}
+void BoundedNode::axis(uint32_t axis, float amount) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  switch (axis) {
+    case 0:
+      seat.value()->ray.send_axis(ZWN_RAY_AXIS_VERTICAL_SCROLL, amount);
+      break;
+    case 1:
+      seat.value()->ray.send_axis(ZWN_RAY_AXIS_HORIZONTAL_SCROLL, amount);
+      break;
+    default:
+      break;
+  }
+}
+void BoundedNode::frame() {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->ray.send_frame();
+}
+
+wl_client* BoundedNode::data_device_target() const {
+  const auto bounded = this->bounded_.lock();
+  if (!bounded) {
+    return nullptr;
+  }
+  return bounded->client();
 }
 
 void BoundedNode::prepare_for_draw() {
@@ -61,5 +140,14 @@ BoundedNode::check_intersection_self(const glm::vec3& origin,
       .intersect_info = {.distance = inner_min_distance.value(),
                          .pos                     = glm::vec3{0.F, 0.F, 0.F}},
   };
+}
+
+std::optional<std::shared_ptr<client_seat::ClientSeat>> BoundedNode::seat()
+    const {
+  const auto bounded = this->bounded_.lock();
+  if (!bounded) {
+    return std::nullopt;
+  }
+  return server::get().seat.get_client_seat(bounded->client());
 }
 }  // namespace yabe::core::scene

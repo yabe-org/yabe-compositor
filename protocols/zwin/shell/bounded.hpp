@@ -3,6 +3,7 @@
 #include <wayland-server-core.h>
 
 #include <glm/glm.hpp>
+#include <memory>
 #include <optional>
 
 #include "common/common.hpp"
@@ -23,12 +24,18 @@ class Bounded : public std::enable_shared_from_this<Bounded>, public ZwinApp {
   void set_region(std::optional<compositor::Region*> region);
   void start_move();
 
-  void map() override;
-  void unmap() override;
-
   void draw(const glm::mat4& proj_mat, const glm::mat4& view_mat,
       const glm::mat4& model_mat);
 
+  void map() override;
+  void unmap() override;
+
+  [[nodiscard]] wl_client* client() const {
+    return wl_resource_get_client(this->resource_);
+  }
+  [[nodiscard]] std::weak_ptr<VirtualObject> virtual_object() const {
+    return this->virtual_object_;
+  }
   [[nodiscard]] const glm::vec3& half_size() const {
     return this->half_size_;
   }

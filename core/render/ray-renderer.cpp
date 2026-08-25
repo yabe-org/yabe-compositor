@@ -43,7 +43,7 @@ RayRenderer::~RayRenderer() {
   glDeleteBuffers(1, &this->vbo_);
 }
 
-void RayRenderer::draw(const float* vp_mat, const glm::vec3& start_pos,
+void RayRenderer::render(const glm::mat4& vp_mat, const glm::vec3& start_pos,
     const glm::vec3& direction, float length) {
   if (!this->initialized_) {
     this->init();
@@ -52,7 +52,8 @@ void RayRenderer::draw(const float* vp_mat, const glm::vec3& start_pos,
   glUseProgram(this->program_);
   glBindVertexArray(this->vao_);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
-  glUniformMatrix4fv(this->vp_mat_location_, 1, GL_FALSE, vp_mat);
+  glUniformMatrix4fv(
+      this->vp_mat_location_, 1, GL_FALSE, glm::value_ptr(vp_mat));
 
   glm::vec3 end_pos = start_pos + (direction * length);
 

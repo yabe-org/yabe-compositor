@@ -32,7 +32,7 @@ class Server {
   void     add_client_fd(int fd);
   void     enqueue_wayland_thread_task(std::function<void()> task);
   void     enqueue_rendering_thread_task(std::function<void()> task);
-  void     draw(const float* vp_mat);
+  void     draw(const float* proj_mat, const float* view_mat);
 
   uint32_t       next_serial();
   wl_event_loop* loop();
@@ -51,7 +51,7 @@ class Server {
   ~Server() = default;
   static Server instance;
 
-  void draw_content(const float* vp_mat);
+  void draw_content(const glm::mat4& proj_mat, const glm::mat4& view_mat);
 
   bool is_initialized_     = false;
   bool is_first_rendering_ = true;

@@ -123,7 +123,7 @@ void Server::enqueue_rendering_thread_task(std::function<void()> task) {
   this->rendering_thread_tasks_.tasks.push_back(std::move(task));
 }
 
-void Server::draw(const float* vp_mat) {
+void Server::draw(const float* proj_mat, const float* view_mat) {
   this->thread_for_rendering_thread_tasks_         = std::thread([this]() {
     this->rendering_thread_tasks_.consume();
   });
@@ -163,7 +163,7 @@ void Server::draw(const float* vp_mat) {
 
   glClearColor(0.F, 0.F, 0.F, 1.F);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  this->draw_content(vp_mat);
+  this->draw_content(glm::make_mat4(proj_mat), glm::make_mat4(view_mat));
 
   if (was_cull_face_enabled) {
     glEnable(GL_CULL_FACE);
@@ -205,13 +205,14 @@ void Server::draw(const float* vp_mat) {
   proto::wayland::output::set_viewport_size(viewport[2], viewport[3]);
 }
 
-void Server::draw_content(const float* vp_mat) {
-  const auto vp_mat_glm = glm::make_mat4(vp_mat);
+void Server::draw_content(
+    const glm::mat4& proj_mat, const glm::mat4& view_mat) {
   this->layer_manager.draw_under_scene();
-  this->scene.draw(vp_mat_glm);
+  this->scene.draw(proj_mat, view_mat);
   this->layer_manager.draw_above_scene();
-  this->ray_cursor.draw_cursor(vp_mat_glm);
-  this->ray_renderer_.draw(vp_mat, this->ray_cursor.origin(),
+  const auto vp_mat = proj_mat * view_mat;
+  this->ray_cursor.draw_cursor(vp_mat);
+  this->ray_renderer_.render(vp_mat, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());
 }
 

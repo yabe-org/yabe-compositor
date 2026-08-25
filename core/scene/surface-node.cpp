@@ -44,9 +44,9 @@ void SurfaceNode::prepare_for_draw() {
   this->surface()->upload_texture_if_needed();
 }
 
-void SurfaceNode::draw_self(
-    const glm::mat4& vp_mat, const glm::mat4& world_transform) {
-  const auto model_mat = vp_mat * world_transform *
+void SurfaceNode::draw_self(const glm::mat4& proj_mat,
+    const glm::mat4& view_mat, const glm::mat4& world_transform) {
+  const auto model_mat = proj_mat * view_mat * world_transform *
                          glm::scale(glm::mat4(1.F), this->geometry().scale());
   server::get().rect_renderer.render(model_mat, this->surface()->texture());
   this->surface()->finish_rendering();

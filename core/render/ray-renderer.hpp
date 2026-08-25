@@ -15,7 +15,7 @@ class RayRenderer {
   explicit RayRenderer() = default;
   ~RayRenderer();
 
-  void draw(const float* vp_mat, const glm::vec3& start_pos,
+  void render(const glm::mat4& vp_mat, const glm::vec3& start_pos,
       const glm::vec3& direction, float length);
 
  private:

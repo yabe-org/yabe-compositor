@@ -23,7 +23,7 @@ uint32_t yabe_compositor_register_socket_fd(int fd);
 void     yabe_compositor_start();
 void     yabe_compositor_terminate();
 void     yabe_compositor_add_client_fd(int fd);
-void     yabe_compositor_draw(const float* vp_mat);
+void     yabe_compositor_draw(const float* proj_mat, const float* view_mat);
 
 /// @param dx right is positive
 /// @param dy up is positive

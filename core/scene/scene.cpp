@@ -39,10 +39,10 @@ void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
   }
 }
 
-void Scene::draw(const glm::mat4& vp_mat) {
+void Scene::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat) {
   const std::lock_guard<std::mutex> lock(this->mutex_);
   for (const auto& node : this->nodes_) {
-    node->draw(vp_mat, nullptr, glm::mat4(1.F));
+    node->draw(proj_mat, view_mat, nullptr, glm::mat4(1.F));
   }
 }
 

@@ -57,8 +57,8 @@ void yabe_compositor_terminate() {
   yabe::core::server::get().terminate();
 }
 
-void yabe_compositor_draw(const float* vp_mat) {
-  yabe::core::server::get().draw(vp_mat);
+void yabe_compositor_draw(const float* proj_mat, const float* view_mat) {
+  yabe::core::server::get().draw(proj_mat, view_mat);
 }
 
 void yabe_compositor_move_pointer(float dx, float dy) {

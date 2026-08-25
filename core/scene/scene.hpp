@@ -19,7 +19,7 @@ class Scene {
   void erase(const std::shared_ptr<SceneNode>& node);
   void raise_to_front(const std::shared_ptr<SceneNode>& node);
 
-  void draw(const glm::mat4& vp_mat);
+  void draw(const glm::mat4& proj_mat, const glm::mat4& view_mat);
 
   std::optional<SceneIntersection> get_nearest_intersection(
       const glm::vec3& origin, const glm::vec3& direction);

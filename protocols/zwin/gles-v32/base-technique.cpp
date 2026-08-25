@@ -297,6 +297,12 @@ void BaseTechnique::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat,
         .visit(draw);
   }
   glDisable(GL_DEPTH_TEST);
+  glBindVertexArray(0);
+  glUseProgram(0);
+  for (const auto& [binding, texture_binding] : this->current_.textures) {
+    glBindSampler(binding, 0);
+    glBindTexture(texture_binding.target, 0);
+  }
 }
 
 namespace {

@@ -1,5 +1,7 @@
 #include "rect-renderer.hpp"
 
+#include <GLES3/gl32.h>
+
 #include <array>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
@@ -61,6 +63,10 @@ void RectRenderer::render(const glm::mat4& mvp_mat, const Texture& texture) {
       this->mvp_mat_location_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
   glBindTexture(GL_TEXTURE_2D, texture.get_texture_id());
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  glUseProgram(0);
 }
 
 void RectRenderer::init() {

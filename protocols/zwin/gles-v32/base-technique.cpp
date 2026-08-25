@@ -192,12 +192,23 @@ void BaseTechnique::draw_elements(GLenum mode, GLsizei count, GLenum type,
 void BaseTechnique::commit() {
   {
     const std::lock_guard lock(this->mutex_);
-    this->current_ = std::move(this->pending_);
-    this->pending_.program.reset();
-    this->pending_.vertex_array.reset();
-    this->pending_.textures.clear();
-    this->pending_.uniforms.clear();
-    this->pending_.draws.clear();
+    if (this->pending_.program.lock()) {
+      this->current_.program = this->pending_.program;
+    }
+    if (this->pending_.vertex_array.lock()) {
+      this->current_.vertex_array = this->pending_.vertex_array;
+    }
+    for (auto& [binding, texture_binding] : this->pending_.textures) {
+      this->current_.textures.insert_or_assign(
+          binding, std::move(texture_binding));
+    }
+    this->current_.uniforms.insert(this->current_.uniforms.end(),
+        std::make_move_iterator(this->pending_.uniforms.begin()),
+        std::make_move_iterator(this->pending_.uniforms.end()));
+    this->current_.draws.insert(this->current_.draws.end(),
+        std::make_move_iterator(this->pending_.draws.begin()),
+        std::make_move_iterator(this->pending_.draws.end()));
+    this->pending_.reset();
   }
   if (const auto program = this->current_.program.lock()) {
     program->commit();
@@ -226,8 +237,9 @@ void BaseTechnique::commit() {
 
 void BaseTechnique::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat,
     const glm::mat4& model_mat) {
-  auto program      = this->current_.program.lock();
-  auto vertex_array = this->current_.vertex_array.lock();
+  const std::lock_guard lock(this->mutex_);
+  auto                  program      = this->current_.program.lock();
+  auto                  vertex_array = this->current_.vertex_array.lock();
   if (!program || !vertex_array) {
     return;
   }

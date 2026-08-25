@@ -92,6 +92,14 @@ class BaseTechnique {
     std::unordered_map<GLuint, TextureBinding> textures;
     std::vector<Uniform>                       uniforms;
     std::vector<Draw>                          draws;
+
+    void reset() {
+      program.reset();
+      vertex_array.reset();
+      textures.clear();
+      uniforms.clear();
+      draws.clear();
+    }
   } pending_, current_;
 
   std::mutex mutex_;

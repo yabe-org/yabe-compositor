@@ -46,9 +46,11 @@ class ServerKeyboard {
 
   /// @return true if the focused surface is changed
   bool set_focused_surface(std::weak_ptr<Surface> surface);
+  void set_current_focused_surface_as_exclusive();
   [[nodiscard]] const std::weak_ptr<Surface>& get_focused_surface() const {
     return this->focused_surface_;
   }
+
   /// @param keysym e.g. XKB_KEY_A, not XKB_KEY_a nor KEY_A
   [[nodiscard]] bool           is_key_pressed(xkb_keysym_t keysym) const;
   [[nodiscard]] bool           is_mod_pressed(ModKeys mod) const;
@@ -87,5 +89,6 @@ class ServerKeyboard {
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
                          get_focused_client_seat() const;
   std::weak_ptr<Surface> focused_surface_;
+  std::weak_ptr<Surface> keyboard_exclusive_surface_;
 };
 }  // namespace yabe::core::server_seat

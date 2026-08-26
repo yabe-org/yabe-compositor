@@ -249,6 +249,9 @@ ServerKeyboard::get_focused_client_seat() const {
 }
 
 bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
+  if (this->keyboard_exclusive_surface_.lock()) {
+    return false;
+  }
   if (this->focused_surface_.lock() == surface.lock()) {
     return false;
   }
@@ -272,6 +275,9 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
     }
   }
   return true;
+}
+void ServerKeyboard::set_current_focused_surface_as_exclusive() {
+  this->keyboard_exclusive_surface_ = this->focused_surface_;
 }
 
 bool ServerKeyboard::is_key_pressed(xkb_keysym_t keysym) const {

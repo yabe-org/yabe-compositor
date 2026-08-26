@@ -8,6 +8,8 @@
 #include "output.hpp"
 #include "seat/seat.hpp"
 #include "subcompositor/subcompositor.hpp"
+#include "wl-workspace-protocol.h"
+#include "workspace/workspace.hpp"
 
 namespace yabe::proto::wayland {
 bool init(wl_display* display) {
@@ -35,6 +37,12 @@ bool init(wl_display* display) {
   if (!wl_global_create(display, &wl_subcompositor_interface,
           wl_subcompositor_interface.version, nullptr, subcompositor::bind)) {
     LOG_ERR("Failed to create global (subcompositor)");
+    return false;
+  }
+  if (!wl_global_create(display, &ext_workspace_manager_v1_interface,
+          ext_workspace_manager_v1_interface.version, nullptr,
+          workspace::bind)) {
+    LOG_ERR("Failed to create global (workspace)");
     return false;
   }
   return true;

@@ -96,8 +96,10 @@ void DragAndDropPointerGrab::button(uint32_t button, bool is_pressed) {
 }
 
 void DragAndDropPointerGrab::enter_pointed_surface() {
-  const auto intersection = server::get().scene.get_nearest_intersection(
-      server::get().ray_cursor.origin(), server::get().ray_cursor.direction());
+  const auto intersection =
+      server::get().workspace.current_scene().get_nearest_intersection(
+          server::get().ray_cursor.origin(),
+          server::get().ray_cursor.direction());
 
   if (!intersection.has_value()) {
     this->set_entered_surface({});

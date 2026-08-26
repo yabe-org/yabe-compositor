@@ -178,7 +178,7 @@ void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,
   if (parent.has_value()) {
     parent.value()->add_child(this->surface_node_.value());
   } else {
-    server::get().scene.insert(this->surface_node_.value());
+    server::get().workspace.current_scene().insert(this->surface_node_.value());
   }
   const auto output = server::get().output_map.find(this->resource_->client);
   if (output != server::get().output_map.end()) {
@@ -189,7 +189,7 @@ void Surface::unmap() {
   if (!this->surface_node_.has_value()) {
     return;
   }
-  server::get().scene.erase(this->surface_node_.value());
+  server::get().workspace.current_scene().erase(this->surface_node_.value());
   this->surface_node_ = std::nullopt;
   const auto output   = server::get().output_map.find(this->resource_->client);
   if (output != server::get().output_map.end()) {

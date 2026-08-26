@@ -17,8 +17,7 @@
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
-#include "protocols/wayland/output.hpp"
-#include "wayland-server-core.h"
+#include "core/workspace.hpp"
 
 namespace yabe::core::server {
 class Server {
@@ -44,7 +43,7 @@ class Server {
   setting::Setting        setting;
   server_seat::ServerSeat seat;
   RayCursor               ray_cursor;
-  scene::Scene            scene;
+  Workspace               workspace;
   LayerManager            layer_manager;
 
   render::RectRenderer rect_renderer;

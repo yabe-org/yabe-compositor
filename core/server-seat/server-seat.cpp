@@ -36,7 +36,7 @@ void ServerSeat::set_active_toplevel(std::shared_ptr<Toplevel> toplevel) {
     toplevel->set_activated(true);
     auto node = toplevel->surface().lock()->surface_node();
     if (node.has_value()) {
-      server::get().scene.raise_to_front(
+      server::get().workspace.current_scene().raise_to_front(
           toplevel->surface().lock()->surface_node().value());
     }
   }

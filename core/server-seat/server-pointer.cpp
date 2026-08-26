@@ -19,7 +19,8 @@ void ServerPointer::focus_pointed_surface() {
   const auto origin    = server::get().ray_cursor.origin();
   const auto direction = server::get().ray_cursor.direction();
   const auto intersection =
-      server::get().scene.get_nearest_intersection(origin, direction);
+      server::get().workspace.current_scene().get_nearest_intersection(
+          origin, direction);
 
   if (!intersection.has_value()) {
     this->set_focused_scene_node({});

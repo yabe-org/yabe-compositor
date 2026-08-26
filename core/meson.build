@@ -5,6 +5,7 @@ srcs += files(
   'region.cpp',
   'server.cpp',
   'surface.cpp',
+  'workspace.cpp',
 
   'client-seat/client-data-device.cpp',
   'client-seat/client-keyboard.cpp',

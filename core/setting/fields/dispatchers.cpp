@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "common/common.hpp"
+#include "core/server.hpp"
 #include "core/setting/schema/function-entry.hpp"
 
 namespace yabe::core::setting::fields {
@@ -15,6 +16,37 @@ void Dispatchers::set_executer(
 
 void Dispatchers::initialize(Engine* engine) {
   engine->create_table("dispatchers", [this](Engine* engine) {
+    engine->create_field("set_workspace",
+        schema::FunctionEntry<int(int)>::create(
+            {
+                .description = "Set the current workspace by absolute index",
+                .parameter_names = {"index"},
+            },
+            [this](int index) {
+              if (index < 0 || index >= 10) {
+                LOG_ERR("Invalid workspace index: {}", index);
+                return -1;
+              }
+              this->dispatchers_.emplace_back([index]() {
+                server::get().workspace.set_current_scene_index(index);
+              });
+              return Dispatchers::get_next_dispatcher_id();
+            }));
+
+    engine->create_field("add_workspace_index",
+        schema::FunctionEntry<int(int)>::create(
+            {
+                .description =
+                    "Add to the current workspace index (can be negative)",
+                .parameter_names = {"delta"},
+            },
+            [this](int delta) {
+              this->dispatchers_.emplace_back([delta]() {
+                server::get().workspace.add_scene_index(delta);
+              });
+              return Dispatchers::get_next_dispatcher_id();
+            }));
+
     engine->create_field("exec",
         schema::FunctionEntry<int(std::string)>::create(
             {
@@ -28,10 +60,7 @@ void Dispatchers::initialize(Engine* engine) {
                     "sh", "-c", command.c_str(), nullptr};
                 this->execvp_(argv.data());
               });
-              const auto dispatcher_id = Dispatchers::get_next_dispatcher_id();
-              assert(static_cast<size_t>(Dispatchers::next_dispatcher_id) ==
-                     this->dispatchers_.size());
-              return dispatcher_id;
+              return Dispatchers::get_next_dispatcher_id();
             }));
   });
 }

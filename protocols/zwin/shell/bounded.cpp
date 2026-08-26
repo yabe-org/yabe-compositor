@@ -44,13 +44,15 @@ void Bounded::map() {
   }
   this->scene_node_ =
       std::make_shared<core::scene::BoundedNode>(this->shared_from_this());
-  core::server::get().scene.insert(this->scene_node_.value());
+  core::server::get().workspace.current_scene().insert(
+      this->scene_node_.value());
 }
 void Bounded::unmap() {
   if (!this->scene_node_) {
     return;
   }
-  core::server::get().scene.erase(this->scene_node_.value());
+  core::server::get().workspace.current_scene().erase(
+      this->scene_node_.value());
 }
 void Bounded::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat,
     const glm::mat4& model_mat) {

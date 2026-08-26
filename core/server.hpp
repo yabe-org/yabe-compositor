@@ -5,6 +5,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "common/common.hpp"
@@ -16,6 +17,8 @@
 #include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
+#include "protocols/wayland/output.hpp"
+#include "wayland-server-core.h"
 
 namespace yabe::core::server {
 class Server {
@@ -45,6 +48,8 @@ class Server {
   LayerManager            layer_manager;
 
   render::RectRenderer rect_renderer;
+
+  std::unordered_map<wl_client*, wl_resource*> output_map;
 
  private:
   Server()  = default;

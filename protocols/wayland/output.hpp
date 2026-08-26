@@ -3,10 +3,6 @@
 #include <wayland-server-core.h>
 
 namespace yabe::proto::wayland::output {
-struct Output {
-  wl_resource* resource;
-};
-
 void    set_viewport_size(int32_t width, int32_t height);
 int32_t get_viewport_width();
 int32_t get_viewport_height();

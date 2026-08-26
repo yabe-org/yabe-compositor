@@ -73,7 +73,8 @@ void LayerManager::draw_layer(Layer layer) const {
       continue;
     }
     // box is top-left origin and [0, viewport_w&h] range, so
-    // convert to center origin and [-1, 1] range for OpenGL
+    // convert to center origin and [-1, 1] range
+    // for OpenGL (Normalized Device Coordinates; NDC)
     const auto box = layer_surface.second->box();
     const auto center_x =
         static_cast<float>(*box.x) + (static_cast<float>(*box.width) / 2.F);
@@ -89,10 +90,11 @@ void LayerManager::draw_layer(Layer layer) const {
 
     glm::mat4 model_mat{1.F};
     model_mat = glm::translate(model_mat, glm::vec3{x, y, 0.F});
+    // NDC is [-1, 1] range, so double the size
     model_mat = glm::scale(
         model_mat, glm::vec3{
-                       static_cast<float>(*box.width) / viewport_width,
-                       static_cast<float>(*box.height) / viewport_height,
+                       2.F * static_cast<float>(*box.width) / viewport_width,
+                       2.F * static_cast<float>(*box.height) / viewport_height,
                        1.F,
                    });
     surface->upload_texture_if_needed();

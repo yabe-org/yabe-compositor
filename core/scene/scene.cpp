@@ -56,6 +56,11 @@ void Scene::set_active_node(const std::shared_ptr<SceneNode>& node) {
   if (node == this->active_node_.lock()) {
     return;
   }
+  if (const auto surface_node = std::dynamic_pointer_cast<SurfaceNode>(node)) {
+    if (const auto toplevel = surface_node->surface()->get_toplevel()) {
+      toplevel->set_activated(false);
+    }
+  }
   this->active_node_ = node;
   this->focus_to_active_node();
 }

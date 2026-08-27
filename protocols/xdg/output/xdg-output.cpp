@@ -15,7 +15,8 @@ constexpr struct zxdg_output_v1_interface kImpl = {
 };
 }  // namespace
 
-void create(wl_client* client, int version, uint32_t id) {
+void create(
+    wl_client* client, int version, uint32_t id, wl_resource* output_resource) {
   wl_resource* resource =
       wl_resource_create(client, &zxdg_output_v1_interface, version, id);
   if (resource == nullptr) {
@@ -34,8 +35,13 @@ void create(wl_client* client, int version, uint32_t id) {
   if (version >= ZXDG_OUTPUT_V1_DESCRIPTION_SINCE_VERSION) {
     zxdg_output_v1_send_description(resource, "monitor");
   }
+  // xdg_output.done is deprecated in v3
+  // and compositor must send wl_output.done instead
+  // (note that wl_output.done can be sent multiple times)
   if (version < 3) {
-    wl_output_send_done(resource);
+    zxdg_output_v1_send_done(resource);
+  } else {
+    wl_output_send_done(output_resource);
   }
 }
 }  // namespace yabe::proto::xdg::output::xdg_output

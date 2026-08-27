@@ -13,8 +13,9 @@ constexpr struct zxdg_output_manager_v1_interface kImpl = {
         },
     .get_xdg_output =
         [](wl_client* client, wl_resource* resource, uint32_t id,
-            wl_resource* /*output_resource*/) {
-          xdg_output::create(client, wl_resource_get_version(resource), id);
+            wl_resource* output_resource) {
+          xdg_output::create(
+              client, wl_resource_get_version(resource), id, output_resource);
         },
 };
 }  // namespace

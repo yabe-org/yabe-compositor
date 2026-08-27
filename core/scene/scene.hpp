@@ -18,6 +18,8 @@ class Scene {
   void insert(std::shared_ptr<SceneNode>&& node);
   void erase(const std::shared_ptr<SceneNode>& node);
   void raise_to_front(const std::shared_ptr<SceneNode>& node);
+  void set_active_node(const std::shared_ptr<SceneNode>& node);
+  void focus_to_active_node();
 
   void draw(const glm::mat4& proj_mat, const glm::mat4& view_mat);
 
@@ -27,5 +29,6 @@ class Scene {
  private:
   std::list<std::shared_ptr<SceneNode>> nodes_;
   std::mutex                            mutex_;
+  std::weak_ptr<SceneNode>              active_node_;
 };
 }  // namespace yabe::core::scene

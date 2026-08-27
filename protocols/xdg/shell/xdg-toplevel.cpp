@@ -222,7 +222,6 @@ wl_resource* create(wl_client* client, int version, uint32_t id,
   }
   auto self = std::make_shared<XdgToplevel>(resource, std::move(xdg_surface));
   auto toplevel = std::static_pointer_cast<core::Toplevel>(self);
-  core::server::get().seat.try_active_mapped_toplevel(toplevel);
   core::server::get().resources.add(resource, self);
   surface->set_role(self);
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);

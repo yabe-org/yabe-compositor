@@ -82,12 +82,12 @@ void Scene::focus_to_active_node() {
     server::get().seat.keyboard.set_focused_surface({});
     return;
   }
-  server::get().seat.keyboard.set_focused_surface(surface_node->surface());
-
   const auto toplevel = surface_node->surface()->get_toplevel();
   if (!toplevel) {
+    server::get().seat.keyboard.set_focused_surface({});
     return;
   }
+  server::get().seat.keyboard.set_focused_surface(toplevel->surface().lock());
   toplevel->set_activated(true);
 }
 

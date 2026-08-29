@@ -63,7 +63,10 @@ void yabe_compositor_draw(const float* proj_mat, const float* view_mat) {
 
 void yabe_compositor_move_pointer(float dx, float dy) {
   yabe::core::server::get().enqueue_wayland_thread_task([dx, dy]() {
-    yabe::core::server::get().seat.pointer.handle_pointer_move_relative(dx, dy);
+    const auto multiplier = static_cast<float>(yabe::core::server::get()
+            .setting.config.get<"input", "pointer", "movement_multiplier">());
+    yabe::core::server::get().seat.pointer.handle_pointer_move_relative(
+        dx * multiplier, dy * multiplier);
   });
 }
 void yabe_compositor_button(uint32_t button, bool is_pressed) {
@@ -74,7 +77,10 @@ void yabe_compositor_button(uint32_t button, bool is_pressed) {
 }
 void yabe_compositor_axis(uint32_t axis, float value) {
   yabe::core::server::get().enqueue_wayland_thread_task([axis, value]() {
-    yabe::core::server::get().seat.pointer.handle_pointer_axis(axis, value);
+    const auto multiplier = static_cast<float>(yabe::core::server::get()
+            .setting.config.get<"input", "pointer", "scroll_multiplier">());
+    yabe::core::server::get().seat.pointer.handle_pointer_axis(
+        axis, value * multiplier);
   });
 }
 

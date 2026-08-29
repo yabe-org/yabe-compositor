@@ -8,6 +8,16 @@ namespace yabe::core::setting::fields {
 // clang-format off
 constexpr auto kConfigTable = schema::table(
   schema::field<"input">(schema::table(
+    schema::field<"pointer">(schema::table(
+      schema::field<"movement_multiplier", double>(
+         "This value will be multiplied to the amount of pointer movement",
+         1.0
+      ),
+      schema::field<"scroll_multiplier", double>(
+         "This value will be multiplied to the amount of pointer scroll",
+         1.0
+      )
+    )), // pointer
     schema::field<"keyboard">(schema::table(
       schema::field<"rules", std::string>(
          "keyboard rules (XKB)",

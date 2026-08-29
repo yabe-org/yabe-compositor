@@ -42,7 +42,7 @@ void XdgToplevel::commit() {
     return;
   }
   this->is_initial_commit_sent_ = true;
-  xdg_surface->configure();
+  this->send_configure(0, 0);
 }
 
 void XdgToplevel::map() {

@@ -24,6 +24,7 @@ class XdgToplevel : public core::SurfaceRole,
   void                                          commit() override;
   [[nodiscard]] std::shared_ptr<core::Toplevel> get_toplevel() override;
 
+  void map();
   void set_activated(bool is_activated) override;
   [[nodiscard]] std::weak_ptr<core::Surface> surface() override;
 

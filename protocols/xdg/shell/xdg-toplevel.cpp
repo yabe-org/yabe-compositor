@@ -18,7 +18,6 @@ XdgToplevel::XdgToplevel(
     wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface)
     : resource_(resource), xdg_surface_(std::move(surface)) {
   LOG_DBG("xdg_toplevel#{}: created", wl_resource_get_id(resource));
-  this->xdg_surface_.lock()->wl_surface().lock()->map();
 }
 XdgToplevel::~XdgToplevel() {
   LOG_DBG("xdg_toplevel#{}: destroyed", wl_resource_get_id(this->resource_));
@@ -46,6 +45,9 @@ void XdgToplevel::commit() {
   xdg_surface->configure();
 }
 
+void XdgToplevel::map() {
+  this->xdg_surface_.lock()->wl_surface().lock()->map();
+}
 void XdgToplevel::set_activated(bool is_activated) {
   this->is_activated_ = is_activated;
   this->send_configure(0, 0);
@@ -223,7 +225,11 @@ wl_resource* create(wl_client* client, int version, uint32_t id,
   auto self = std::make_shared<XdgToplevel>(resource, std::move(xdg_surface));
   auto toplevel = std::static_pointer_cast<core::Toplevel>(self);
   core::server::get().resources.add(resource, self);
+  // first set_role(), then map() because the SurfaceNode may be
+  // focused and activated if there is no active node in the scene,
+  // and activation uses SurfaceRole::get_toplevel()
   surface->set_role(self);
+  self->map();
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   return resource;
 }

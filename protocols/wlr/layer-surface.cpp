@@ -131,6 +131,7 @@ void LayerSurface::reconfigure(common::Box2D& available_area) {
     if (this->state_ == State::SENT_FIRST_CONFIGURE &&
         this->current_.keyboard_interactivity ==
             ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
+      core::server::get().workspace.current_scene().set_active_node({});
       core::server::get().seat.keyboard.set_focused_surface(wl_surface);
       core::server::get()
           .seat.keyboard.set_current_focused_surface_as_exclusive();

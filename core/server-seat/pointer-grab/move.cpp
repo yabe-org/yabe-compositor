@@ -11,6 +11,7 @@ MovePointerGrab* MovePointerGrab::start(
     std::weak_ptr<scene::SceneNode>&& scene_node) {
   static MovePointerGrab instance;
   server::get().seat.pointer.unfocus_surface();
+  server::get().workspace.current_scene().raise_to_front(scene_node.lock());
   instance.moving_scene_node_ = std::move(scene_node);
   return &instance;
 }

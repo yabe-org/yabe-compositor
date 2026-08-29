@@ -22,10 +22,13 @@ ResizePointerGrab* ResizePointerGrab::start(
 
   const auto xdg_toplevel        = instance.resizing_toplevel_.lock();
   const auto xdg_surface         = xdg_toplevel->xdg_surface().lock();
-  const auto locked_toplevel     = xdg_toplevel->surface_node().lock();
+  const auto surface_node        = xdg_toplevel->surface_node().lock();
   instance.initial_width_        = xdg_surface->width();
   instance.initial_height_       = xdg_surface->height();
-  instance.initial_toplevel_pos_ = locked_toplevel->geometry().pos();
+  instance.initial_toplevel_pos_ = surface_node->geometry().pos();
+  if (surface_node) {
+    server::get().workspace.current_scene().raise_to_front(surface_node);
+  }
   return &instance;
 }
 

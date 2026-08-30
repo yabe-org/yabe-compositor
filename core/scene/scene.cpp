@@ -53,10 +53,12 @@ void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
 
 void Scene::set_active_node(const std::shared_ptr<SceneNode>& node) {
   // do not lock mutex here because this sends Wayland related events only
-  if (node == this->active_node_.lock()) {
+  const auto current_active_node = this->active_node_.lock();
+  if (node == current_active_node) {
     return;
   }
-  if (const auto surface_node = std::dynamic_pointer_cast<SurfaceNode>(node)) {
+  if (const auto surface_node =
+          std::dynamic_pointer_cast<SurfaceNode>(current_active_node)) {
     if (const auto toplevel = surface_node->surface()->get_toplevel()) {
       toplevel->set_activated(false);
     }

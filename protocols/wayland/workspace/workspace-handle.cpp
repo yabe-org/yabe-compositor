@@ -77,7 +77,7 @@ std::shared_ptr<WorkspaceHandle> create_workspace_handle(wl_client* client,
   ext_workspace_handle_v1_send_state(
       resource, is_active ? EXT_WORKSPACE_HANDLE_V1_STATE_ACTIVE : 0);
   ext_workspace_handle_v1_send_capabilities(
-      resource, EXT_WORKSPACE_HANDLE_V1_STATE_ACTIVE);
+      resource, EXT_WORKSPACE_HANDLE_V1_WORKSPACE_CAPABILITIES_ACTIVATE);
 
   return self;
 }

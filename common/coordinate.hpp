@@ -5,9 +5,10 @@
 
 namespace yabe::common::coordinate {
 /*
-         +Y  -Z (direction that the user initially looks at)
-          ^  /
-          | /
+         +Y   -Z (direction that the user initially looks at)
+          ^   /
+          |  o
+          x /
           |/
 ----------------*----> +X
          /|
@@ -15,15 +16,20 @@ namespace yabe::common::coordinate {
        /  |
      +Z
 Let asterisk (*) pos is [x, y, z], its values are:
-  - x = +radius * cos(polar) * sin(azimuthal)
+  - x = +radius * cos(polar) * sin(azimuth)
   - y = +radius * sin(polar)
-  - z = -radius * cos(polar) * cos(azimuthal)
+  - z = -radius * cos(polar) * cos(azimuth)
+  => [polar = 0, azimuth = pi/2]
+
+Identically,
+  - `o` pos [0, 0, 1] : [polar = 0,    azimuth = 0]
+  - `x` pos [0, 1, 0] : [polar = pi/2, azimuth = 0]
 */
 struct CartesianCoord;
 struct SphericalCoord {
   float radius;
-  float theta;  // azimuthal angle, in radians
-  float phi;    // polar angle, in radians
+  float polar;    // in radians
+  float azimuth;  // x-z plane, in radians
 
   [[nodiscard]] CartesianCoord to_cartesian() const;
 };

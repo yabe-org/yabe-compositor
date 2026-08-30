@@ -38,10 +38,10 @@ class Geometry {
   [[nodiscard]] glm::mat4 model_mat() const;
 
   void move_absolute(const glm::vec3& new_cartesian);
-  void move_absolute(float new_theta, float new_phi, float new_radius);
+  void move_absolute(float new_azimuth, float new_polar, float new_radius);
 
   void move_relative(const glm::vec3& d_cartesian);
-  void move_relative(float d_theta, float d_phi, float d_radius);
+  void move_relative(float d_azimuth, float d_polar, float d_radius);
 
   void set_rotation(const glm::quat& new_rotation);
 

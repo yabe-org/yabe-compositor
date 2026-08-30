@@ -15,11 +15,12 @@ glm::mat4 Geometry::model_mat() const {
 void Geometry::move_absolute(const glm::vec3& new_cartesian) {
   this->cartesian_.pos = new_cartesian;
 }
-void Geometry::move_absolute(float new_theta, float new_phi, float new_radius) {
+void Geometry::move_absolute(
+    float new_azimuth, float new_polar, float new_radius) {
   const coordinate::SphericalCoord spherical{
-      .radius = new_radius,
-      .theta  = new_theta,
-      .phi    = new_phi,
+      .radius  = new_radius,
+      .polar   = new_polar,
+      .azimuth = new_azimuth,
   };
   this->cartesian_ = spherical.to_cartesian();
 }
@@ -27,10 +28,10 @@ void Geometry::move_absolute(float new_theta, float new_phi, float new_radius) {
 void Geometry::move_relative(const glm::vec3& d_cartesian) {
   this->cartesian_.pos += d_cartesian;
 }
-void Geometry::move_relative(float d_theta, float d_phi, float d_radius) {
+void Geometry::move_relative(float d_azimuth, float d_polar, float d_radius) {
   auto spherical = this->cartesian_.to_spherical();
-  spherical.theta += d_theta;
-  spherical.phi += d_phi;
+  spherical.azimuth += d_azimuth;
+  spherical.polar += d_polar;
   spherical.radius += d_radius;
   this->cartesian_ = spherical.to_cartesian();
 }

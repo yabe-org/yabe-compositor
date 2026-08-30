@@ -4,6 +4,7 @@
 
 #include <mutex>
 
+#include "core/scene/toplevel-group-node.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
@@ -41,6 +42,18 @@ void ToplevelSelectionPointerGrab::button(uint32_t button, bool is_pressed) {
   if (button != BTN_RIGHT || is_pressed) {
     return;
   }
+  auto extracted_nodes =
+      server::get()
+          .workspace.current_scene()
+          .extract_lasso_selected_surface_nodes(this->lasso_points_);
+  if (extracted_nodes.empty()) {
+    server::get().seat.pointer.end_grab();
+    return;
+  }
+
+  auto group_node = std::make_shared<scene::ToplevelGroupNode>();
+  group_node->init(extracted_nodes);
+  server::get().workspace.current_scene().insert(std::move(group_node));
   server::get().seat.pointer.end_grab();
 }
 

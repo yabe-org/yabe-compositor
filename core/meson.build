@@ -33,6 +33,7 @@ srcs += files(
   'scene/scene-node.cpp',
   'scene/scene.cpp',
   'scene/surface-node.cpp',
+  'scene/toplevel-group-node.cpp',
 
   'server-seat/server-data-device.cpp',
   'server-seat/server-keyboard.cpp',

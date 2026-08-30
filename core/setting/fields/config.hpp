@@ -57,6 +57,18 @@ constexpr auto kConfigTable = schema::table(
       schema::field<"line_distance", double>(
          "how far the lasso is from the camera",
          0.9
+      ),
+      schema::field<"window_spacing", double>(
+         "space between windows in a group",
+         0.008
+      ),
+      schema::field<"padding", double>(
+         "padding around the group",
+         0.01
+      ),
+      schema::field<"decoration_height", double>(
+         "height of the decoration bar, which is used to move the group",
+         0.008
       )
   )),
   schema::field<"pixels_per_meter", double>(

@@ -3,8 +3,10 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <mutex>
+#include <span>
 
 #include "common/common.hpp"
+#include "core/ray-cursor.hpp"
 #include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
 
@@ -20,6 +22,9 @@ class Scene {
   void raise_to_front(const std::shared_ptr<SceneNode>& node);
   void set_active_node(const std::shared_ptr<SceneNode>& node);
   void focus_to_active_node();
+
+  std::list<std::shared_ptr<SceneNode>> extract_lasso_selected_surface_nodes(
+      std::span<RayState> lasso_points);
 
   void draw(const glm::mat4& proj_mat, const glm::mat4& view_mat);
 

@@ -32,6 +32,7 @@ bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
     if (it == child) {
       it->parent_.reset();
       this->children_.remove(it);
+      this->handle_child_erased();
       return true;
     }
     return it->try_erace_child(child);
@@ -117,5 +118,8 @@ SceneNode::check_intersection(  // NOLINT(misc-no-recursion): ???
     return nearest_intersected_child;
   }
   return this->check_intersection_self(origin, direction, world_transform);
+}
+
+void SceneNode::handle_child_erased() {
 }
 }  // namespace yabe::core::scene

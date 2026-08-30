@@ -59,6 +59,9 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   [[nodiscard]] virtual wl_client* data_device_target() const {
     return nullptr;
   }
+  [[nodiscard]] bool has_child() const {
+    return !this->children_.empty();
+  }
 
  protected:
   // A node may need to determine its geometry before its world transform is
@@ -71,10 +74,14 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const glm::mat4& world_transform) = 0;
   [[nodiscard]] virtual glm::mat4 resolve_world_transform(
       const SceneNode* parent, const glm::mat4& parent_world_transform) const;
+  /// called when a child is erased from this node
+  virtual void handle_child_erased();
+
+  // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
+  std::list<std::shared_ptr<SceneNode>> children_;
 
  private:
-  common::Geometry                      geometry_;
-  std::list<std::shared_ptr<SceneNode>> children_;
-  std::weak_ptr<SceneNode>              parent_;
+  common::Geometry         geometry_;
+  std::weak_ptr<SceneNode> parent_;
 };
 }  // namespace yabe::core::scene

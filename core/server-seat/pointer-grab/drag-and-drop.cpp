@@ -83,7 +83,7 @@ void DragAndDropPointerGrab::send_cancel_if_needed() {
 }
 
 void DragAndDropPointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
   this->enter_pointed_surface();
 }
 

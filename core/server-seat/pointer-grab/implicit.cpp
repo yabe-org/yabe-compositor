@@ -23,7 +23,7 @@ void ImplicitPointerGrab::cleanup() {
 }
 
 void ImplicitPointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
   // do not unfocus because it is implicit grab!
 
   auto scene_node = this->focused_surface_node_.lock();

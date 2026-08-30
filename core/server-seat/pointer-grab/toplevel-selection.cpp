@@ -25,7 +25,7 @@ void ToplevelSelectionPointerGrab::cleanup() {
 }
 
 void ToplevelSelectionPointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
   const auto& prev_point    = this->lasso_points_.back();
   const auto& new_point     = server::get().ray_cursor.ray_state();
   const auto  delta_polar   = new_point.polar - prev_point.polar;

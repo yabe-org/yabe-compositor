@@ -40,7 +40,7 @@ void ResizePointerGrab::cleanup() {
 // so resizing behavior looks not the same as the movement of the cursor
 // if resize amount becomes large
 void ResizePointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
 
   // dx, dy are in OpenGL coordinate (+Y is upper)
   // and adjusted as a polar angles

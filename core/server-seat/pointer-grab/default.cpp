@@ -19,7 +19,7 @@ void DefaultPointerGrab::cleanup() {
 }
 
 void DefaultPointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
   server::get().seat.pointer.focus_pointed_surface();
 }
 

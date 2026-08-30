@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <memory>
-#include <numbers>
 
 #include "common/common.hpp"
 #include "common/unit.hpp"
@@ -49,7 +48,7 @@ class RayCursor {
     return this->state_;
   }
 
-  constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, 1.F);
+  constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, -1.F);
 
  private:
   [[nodiscard]] glm::quat rotation() const;
@@ -61,8 +60,8 @@ class RayCursor {
   glm::vec3 origin_ = {0.F, -0.3F, -0.001F};
   float     length_ = kDefaultLength;
   RayState  state_  = {
-      .polar   = std::numbers::pi / 2.F,  // [0, pi]
-      .azimuth = std::numbers::pi,        // x-z plane, [0, 2pi]
+      .polar   = 0,
+      .azimuth = 0,  // x-z plane, [0, 2pi]
   };
 
   bool            is_default_cursor_texture_uploaded_ = false;

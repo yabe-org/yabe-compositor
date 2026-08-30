@@ -2,6 +2,7 @@
 
 #include <glm/ext.hpp>
 #include <memory>
+#include <numbers>
 
 #include "common/unit.hpp"
 #include "core/render/rect-renderer.hpp"
@@ -48,11 +49,14 @@ constexpr std::array kDefaultCursorTexture = []() {
 
 void RayCursor::move_relative(float polar, float azimuth) {
   this->state_.azimuth += azimuth;
-
-  constexpr float kPolarMin = std::numbers::pi / 8.F;
-  constexpr float kPolarMax = std::numbers::pi - kPolarMin;
+  if (this->state_.azimuth > std::numbers::pi) {
+    this->state_.azimuth -= std::numbers::pi * 2.F;
+  } else if (this->state_.azimuth < -std::numbers::pi) {
+    this->state_.azimuth += std::numbers::pi * 2.F;
+  }
+  constexpr float kPolarMax = std::numbers::pi / 2.F * 0.95F;
   this->state_.polar =
-      std::clamp(this->state_.polar + polar, kPolarMin, kPolarMax);
+      std::clamp(this->state_.polar + polar, -kPolarMax, kPolarMax);
 }
 
 void RayCursor::set_length(float length) {
@@ -114,9 +118,8 @@ void RayCursor::invalidate_graphics() {
 }
 
 glm::quat RayCursor::rotation() const {
-  return glm::angleAxis(this->state_.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
-         glm::angleAxis((std::numbers::pi_v<float> / 2.F) - this->state_.polar,
-             glm::vec3{-1.F, 0.F, 0.F});
+  return glm::angleAxis(-this->state_.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
+         glm::angleAxis(+this->state_.polar, glm::vec3{1.F, 0.F, 0.F});
 }
 glm::mat4 RayCursor::cursor_model_mat() const {
   common::unit::Pixel width{0};

@@ -58,9 +58,8 @@ void LassoRenderer::render(const glm::mat4& vp_mat,
       server::get().setting.config.get<"surface_grouping", "line_distance">();
   for (const auto& point : lasso_points) {
     const auto rotation =
-        glm::angleAxis(point.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
-        glm::angleAxis((std::numbers::pi_v<float> / 2.F) - point.polar,
-            glm::vec3{-1.F, 0.F, 0.F});
+        glm::angleAxis(-point.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
+        glm::angleAxis(+point.polar, glm::vec3{1.F, 0.F, 0.F});
     const auto direction = glm::rotate(rotation, RayCursor::kBaseDirection);
     vertices.emplace_back(origin + direction * static_cast<float>(distance));
   }

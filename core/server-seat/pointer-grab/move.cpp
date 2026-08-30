@@ -21,7 +21,7 @@ void MovePointerGrab::cleanup() {
 }
 
 void MovePointerGrab::move_relative(float dx, float dy) {
-  server::get().ray_cursor.move_relative(-dy, -dx);
+  server::get().ray_cursor.move_relative(dy, dx);
 
   const auto toplevel = this->moving_scene_node_.lock();
   if (!toplevel) {

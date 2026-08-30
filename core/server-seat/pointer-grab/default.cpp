@@ -1,10 +1,13 @@
 #include "default.hpp"
 
+#include <linux/input-event-codes.h>
+
 #include <memory>
 
 #include "core/scene/surface-node.hpp"
-#include "core/server-seat/pointer-grab/implicit.hpp"
 #include "core/server.hpp"
+#include "implicit.hpp"
+#include "toplevel-selection.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
 DefaultPointerGrab* DefaultPointerGrab::start() {
@@ -28,6 +31,11 @@ void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
         pointer_focused_scene_node);
   }
   if (!pointer_focused_scene_node) {
+    if (is_pressed && button == BTN_RIGHT &&
+        server::get().setting.config.get<"surface_grouping", "enabled">()) {
+      server::get().seat.pointer.start_grab(
+          ToplevelSelectionPointerGrab::start());
+    }
     return;
   }
   pointer_focused_scene_node->button(button, is_pressed);

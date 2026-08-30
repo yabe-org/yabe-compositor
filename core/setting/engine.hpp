@@ -11,6 +11,7 @@
 #include "common/common.hpp"
 #include "common/is-vector.hpp"
 #include "core/setting/schema/table.hpp"
+#include "lua.h"
 
 namespace yabe::core::setting {
 namespace schema {
@@ -62,6 +63,14 @@ class Engine {
         result.push_back(*value);
       }
       return result;
+    } else if constexpr (std::is_same_v<T, bool>) {
+      checker = [](lua_State* l, int index) {
+        // this is macro so cannot be passed directly
+        return lua_isboolean(l, index);
+      };
+      getter = [](lua_State* l, int index, const int* /*len*/) {
+        return lua_toboolean(l, index) != 0;
+      };
     } else if constexpr (std::is_same_v<T, int>) {
       checker = lua_isinteger;
       getter  = lua_tointegerx;

@@ -47,11 +47,12 @@ constexpr std::array kDefaultCursorTexture = []() {
 }  // namespace
 
 void RayCursor::move_relative(float polar, float azimuth) {
-  this->azimuth_ += azimuth;
+  this->state_.azimuth += azimuth;
 
   constexpr float kPolarMin = std::numbers::pi / 8.F;
   constexpr float kPolarMax = std::numbers::pi - kPolarMin;
-  this->polar_ = std::clamp(this->polar_ + polar, kPolarMin, kPolarMax);
+  this->state_.polar =
+      std::clamp(this->state_.polar + polar, kPolarMin, kPolarMax);
 }
 
 void RayCursor::set_length(float length) {
@@ -113,8 +114,8 @@ void RayCursor::invalidate_graphics() {
 }
 
 glm::quat RayCursor::rotation() const {
-  return glm::angleAxis(this->azimuth_, glm::vec3{0.F, 1.F, 0.F}) *
-         glm::angleAxis((std::numbers::pi_v<float> / 2.F) - this->polar_,
+  return glm::angleAxis(this->state_.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
+         glm::angleAxis((std::numbers::pi_v<float> / 2.F) - this->state_.polar,
              glm::vec3{-1.F, 0.F, 0.F});
 }
 glm::mat4 RayCursor::cursor_model_mat() const {

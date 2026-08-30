@@ -22,6 +22,7 @@ srcs += files(
   'data-device/data-offer.cpp',
   'data-device/data-source.cpp',
 
+  'render/lasso-renderer.cpp',
   'render/ray-renderer.cpp',
   'render/rect-renderer.cpp',
   'render/shader.cpp',
@@ -44,4 +45,5 @@ srcs += files(
   'server-seat/pointer-grab/move.cpp',
   'server-seat/pointer-grab/popup.cpp',
   'server-seat/pointer-grab/resize.cpp',
+  'server-seat/pointer-grab/toplevel-selection.cpp',
 )

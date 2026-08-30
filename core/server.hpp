@@ -11,10 +11,10 @@
 #include "common/common.hpp"
 #include "core/layer-manager.hpp"
 #include "core/ray-cursor.hpp"
+#include "core/render/lasso-renderer.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/resource-storage.hpp"
-#include "core/scene/scene.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
 #include "core/workspace.hpp"
@@ -36,8 +36,9 @@ class Server {
   void     enqueue_rendering_thread_task(std::function<void()> task);
   void     draw(const float* proj_mat, const float* view_mat);
 
-  uint32_t       next_serial();
-  wl_event_loop* loop();
+  uint32_t                next_serial();
+  wl_event_loop*          loop();
+  [[nodiscard]] glm::mat4 get_vp_mat();
 
   ResourceStorage         resources;
   setting::Setting        setting;
@@ -66,10 +67,11 @@ class Server {
   bool       should_invalidate_graphics_ = false;
   std::mutex rendering_mutex_;
 
-  render::RayRenderer ray_renderer_;
-  wl_display*         wl_display_             = nullptr;
-  wl_event_source*    task_source_            = nullptr;
-  int                 task_dispatch_event_fd_ = -1;
+  render::RayRenderer   ray_renderer_;
+  render::LassoRenderer lasso_renderer_;
+  wl_display*           wl_display_             = nullptr;
+  wl_event_source*      task_source_            = nullptr;
+  int                   task_dispatch_event_fd_ = -1;
   struct {
     std::mutex                         mutex;
     std::vector<std::function<void()>> tasks;
@@ -85,6 +87,9 @@ class Server {
     }
   } wayland_thread_tasks_, rendering_thread_tasks_;
   std::thread thread_for_rendering_thread_tasks_;
+
+  glm::mat4  vp_mat_ = glm::mat4(1.F);
+  std::mutex vp_mat_mutex_;
 };
 
 /// shortening

@@ -41,6 +41,24 @@ constexpr auto kConfigTable = schema::table(
       )
     )) // keyboard
   )), // input
+  schema::field<"surface_grouping">(schema::table(
+      schema::field<"enabled", bool>(
+         "Enable surface grouping feature",
+         false
+      ),
+      schema::field<"fadeout_duration_ms", int>(
+         "Duration in milliseconds for the lasso to fade out after selection",
+         300
+      ),
+      schema::field<"line_width", double>(
+         "line width of the lasso while selecting",
+         3.0
+      ),
+      schema::field<"line_distance", double>(
+         "how far the lasso is from the camera",
+         0.9
+      )
+  )),
   schema::field<"pixels_per_meter", double>(
      "Number of pixels per meter in the world",
      2500.0

@@ -14,6 +14,11 @@
 #include "core/surface.hpp"
 
 namespace yabe::core {
+struct RayState {
+  float polar;
+  float azimuth;
+};
+
 class RayCursor {
  public:
   DISABLE_MOVE_AND_COPY(RayCursor);
@@ -40,19 +45,25 @@ class RayCursor {
   [[nodiscard]] glm::vec3 direction() const {
     return glm::rotate(this->rotation(), kBaseDirection);
   }
+  [[nodiscard]] const RayState& ray_state() const {
+    return this->state_;
+  }
+
+  constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, 1.F);
 
  private:
   [[nodiscard]] glm::quat rotation() const;
   [[nodiscard]] glm::mat4 cursor_model_mat() const;
   [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
-  constexpr static glm::vec3 kBaseDirection = glm::vec3(0.F, 0.F, 1.F);
-  constexpr static float     kDefaultLength = scene::kSceneNodeDistance * 2.F;
+  constexpr static float kDefaultLength = scene::kSceneNodeDistance * 2.F;
 
-  glm::vec3 origin_  = {0.F, -0.3F, -0.001F};
-  float     length_  = kDefaultLength;
-  float     polar_   = std::numbers::pi / 2.F;  // [0, pi]
-  float     azimuth_ = std::numbers::pi;        // x-z plane, [0, 2pi]
+  glm::vec3 origin_ = {0.F, -0.3F, -0.001F};
+  float     length_ = kDefaultLength;
+  RayState  state_  = {
+      .polar   = std::numbers::pi / 2.F,  // [0, pi]
+      .azimuth = std::numbers::pi,        // x-z plane, [0, 2pi]
+  };
 
   bool            is_default_cursor_texture_uploaded_ = false;
   render::Texture default_cursor_texture_;

@@ -31,6 +31,8 @@ std::string metafile_type_name() {
   if constexpr (common::IsVector<T>::value) {
     return metafile_type_name<typename common::IsVector<T>::value_type>() +
            "[]";
+  } else if constexpr (std::is_same_v<T, bool>) {
+    return "boolean";
   } else if constexpr (std::is_same_v<T, int>) {
     return "integer";
   } else if constexpr (std::is_same_v<T, double>) {

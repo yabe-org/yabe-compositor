@@ -7,7 +7,10 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 
+#include <mutex>
+
 #include "common/common.hpp"
+#include "core/server-seat/pointer-grab/toplevel-selection.hpp"
 #include "core/server-seat/server-keyboard.hpp"
 #include "protocols/protocols.hpp"
 #include "protocols/wayland/output.hpp"
@@ -228,12 +231,17 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
 
 void Server::draw_content(
     const glm::mat4& proj_mat, const glm::mat4& view_mat) {
+  {
+    const std::lock_guard lock(this->vp_mat_mutex_);
+    this->vp_mat_ = proj_mat * view_mat;
+  }
   this->layer_manager.draw_under_scene(proj_mat);
   this->workspace.current_scene().draw(proj_mat, view_mat);
   this->layer_manager.draw_above_scene(proj_mat);
-  const auto vp_mat = proj_mat * view_mat;
-  this->ray_cursor.draw_cursor(vp_mat);
-  this->ray_renderer_.render(vp_mat, this->ray_cursor.origin(),
+  server_seat::pointer_grab::ToplevelSelectionPointerGrab::draw(
+      this->lasso_renderer_, this->vp_mat_);
+  this->ray_cursor.draw_cursor(this->vp_mat_);
+  this->ray_renderer_.render(this->vp_mat_, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());
 }
 
@@ -242,5 +250,9 @@ uint32_t Server::next_serial() {
 }
 wl_event_loop* Server::loop() {
   return wl_display_get_event_loop(this->wl_display_);
+}
+glm::mat4 Server::get_vp_mat() {
+  const std::lock_guard lock(this->vp_mat_mutex_);
+  return this->vp_mat_;
 }
 }  // namespace yabe::core::server

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstddef>
+#include <glm/glm.hpp>
 #include <map>
 #include <memory>
 
@@ -37,11 +38,11 @@ class LayerManager {
   std::optional<StoredLayerSurface> get(wl_resource* resource) const;
   void                              reconfigure(Layer layer) const;
 
-  void draw_under_scene() const;
-  void draw_above_scene() const;
+  void draw_under_scene(const glm::mat4& proj_mat) const;
+  void draw_above_scene(const glm::mat4& proj_mat) const;
 
  private:
-  void draw_layer(Layer layer) const;
+  void draw_layer(Layer layer, const glm::mat4& proj_mat) const;
   std::array<  //
       std::map<wl_resource*, StoredLayerSurface>,
       static_cast<size_t>(Layer::LAYER_COUNT)>

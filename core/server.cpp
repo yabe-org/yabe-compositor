@@ -207,9 +207,9 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
 
 void Server::draw_content(
     const glm::mat4& proj_mat, const glm::mat4& view_mat) {
-  this->layer_manager.draw_under_scene();
+  this->layer_manager.draw_under_scene(proj_mat);
   this->workspace.current_scene().draw(proj_mat, view_mat);
-  this->layer_manager.draw_above_scene();
+  this->layer_manager.draw_above_scene(proj_mat);
   const auto vp_mat = proj_mat * view_mat;
   this->ray_cursor.draw_cursor(vp_mat);
   this->ray_renderer_.render(vp_mat, this->ray_cursor.origin(),

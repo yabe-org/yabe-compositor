@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 #include "common/box.hpp"
-#include "common/common.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/server.hpp"
 #include "protocols/wayland/output.hpp"
@@ -48,17 +47,17 @@ void LayerManager::reconfigure(Layer layer) const {
   }
 }
 
-void LayerManager::draw_under_scene() const {
-  this->draw_layer(Layer::BACKGROUND);
-  this->draw_layer(Layer::BOTTOM);
+void LayerManager::draw_under_scene(const glm::mat4& proj_mat) const {
+  this->draw_layer(Layer::BACKGROUND, proj_mat);
+  this->draw_layer(Layer::BOTTOM, proj_mat);
 }
-void LayerManager::draw_above_scene() const {
-  this->draw_layer(Layer::UNSPECIFIED);
-  this->draw_layer(Layer::TOP);
-  this->draw_layer(Layer::OVERLAY);
+void LayerManager::draw_above_scene(const glm::mat4& proj_mat) const {
+  this->draw_layer(Layer::UNSPECIFIED, proj_mat);
+  this->draw_layer(Layer::TOP, proj_mat);
+  this->draw_layer(Layer::OVERLAY, proj_mat);
 }
 
-void LayerManager::draw_layer(Layer layer) const {
+void LayerManager::draw_layer(Layer layer, const glm::mat4& proj_mat) const {
   const auto viewport_width =
       static_cast<float>(proto::wayland::output::get_viewport_width());
   const auto viewport_height =
@@ -88,17 +87,25 @@ void LayerManager::draw_layer(Layer layer) const {
     y *= 2.F;                             // [0, 2]
     y = 1.F - y;                          // [-1, 1], invert Y
 
-    glm::mat4 model_mat{1.F};
-    model_mat = glm::translate(model_mat, glm::vec3{x, y, 0.F});
+    const auto projection_scale_x = 1.F / proj_mat[0][0];
+    const auto projection_scale_y = 1.F / proj_mat[1][1];
+    glm::mat4  model_mat{1.F};
+    // place the layer on the z = -1 eye-space plane so that the
+    // projection matrix does not scale the calculated NDC size
+    model_mat = glm::translate(model_mat,
+        glm::vec3{x * projection_scale_x, y * projection_scale_y, -1.F});
     // NDC is [-1, 1] range, so double the size
-    model_mat = glm::scale(
-        model_mat, glm::vec3{
-                       2.F * static_cast<float>(*box.width) / viewport_width,
-                       2.F * static_cast<float>(*box.height) / viewport_height,
-                       1.F,
-                   });
+    model_mat =
+        glm::scale(model_mat, glm::vec3{
+                                  2.F * static_cast<float>(*box.width) /
+                                      viewport_width * projection_scale_x,
+                                  2.F * static_cast<float>(*box.height) /
+                                      viewport_height * projection_scale_y,
+                                  1.F,
+                              });
     surface->upload_texture_if_needed();
-    server::get().rect_renderer.render(model_mat, surface->texture());
+    server::get().rect_renderer.render(
+        proj_mat * model_mat, surface->texture());
     surface->finish_rendering();
   }
 }

@@ -22,6 +22,7 @@ class Texture {
   void upload(void* data, uint32_t wl_shm_format,
       const common::unit::Pixel& width, const common::unit::Pixel& height,
       int32_t stride);
+  void invalidate();
 
  private:
   GLuint texture_ = 0;

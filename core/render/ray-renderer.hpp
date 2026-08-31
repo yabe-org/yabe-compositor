@@ -17,6 +17,7 @@ class RayRenderer {
 
   void render(const glm::mat4& vp_mat, const glm::vec3& start_pos,
       const glm::vec3& direction, float length);
+  void invalidate();
 
  private:
   bool initialized_ = false;

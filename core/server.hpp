@@ -57,8 +57,14 @@ class Server {
 
   void draw_content(const glm::mat4& proj_mat, const glm::mat4& view_mat);
 
-  bool is_initialized_     = false;
-  bool is_first_rendering_ = true;
+  bool       is_initialized_             = false;
+  bool       is_first_rendering_         = true;
+  // some OpenXR platform (e.g. Meta Quest) does not fully stop the app process
+  // while it releases OpenGL context. So, after being called terminate(),
+  // we should invalidate OpenGL resources and re-create them
+  // when the process is resumed
+  bool       should_invalidate_graphics_ = false;
+  std::mutex rendering_mutex_;
 
   render::RayRenderer ray_renderer_;
   wl_display*         wl_display_             = nullptr;

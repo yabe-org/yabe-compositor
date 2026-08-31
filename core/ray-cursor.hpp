@@ -29,6 +29,7 @@ class RayCursor {
   void reset_cursor();
 
   void draw_cursor(const glm::mat4& vp_mat);
+  void invalidate_graphics();
 
   [[nodiscard]] glm::vec3 origin() const {
     return this->origin_;

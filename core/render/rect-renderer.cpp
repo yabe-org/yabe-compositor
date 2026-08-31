@@ -69,6 +69,10 @@ void RectRenderer::render(const glm::mat4& mvp_mat, const Texture& texture) {
   glUseProgram(0);
 }
 
+void RectRenderer::invalidate() {
+  this->initialized_ = false;
+}
+
 void RectRenderer::init() {
   // If compilation fails, the compositor won't work,
   // so use `.value()` so that it throws an exception

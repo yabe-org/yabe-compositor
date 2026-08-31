@@ -48,6 +48,7 @@ void Server::init() {
   }
 
   LOG_INFO("Server is initialized");
+  const std::lock_guard rendering_lock(this->rendering_mutex_);
   this->is_initialized_ = true;
 }
 
@@ -74,19 +75,24 @@ uint32_t Server::set_socket_fd(std::optional<int> fd) {
 }
 
 void Server::start() {
-  if (!this->is_initialized_) {
-    throw std::runtime_error("Server is not initialized");
+  {
+    const std::lock_guard rendering_lock(this->rendering_mutex_);
+    if (!this->is_initialized_) {
+      throw std::runtime_error("Server is not initialized");
+    }
   }
   wl_display_run(this->wl_display_);
 
+  const std::lock_guard rendering_lock(this->rendering_mutex_);
+  this->is_initialized_ = false;
   wl_display_destroy_clients(this->wl_display_);
   wl_event_source_remove(this->task_source_);
   this->task_source_ = nullptr;
   close(this->task_dispatch_event_fd_);
   this->task_dispatch_event_fd_ = -1;
   wl_display_destroy(this->wl_display_);
-  this->wl_display_     = nullptr;
-  this->is_initialized_ = false;
+  this->wl_display_                 = nullptr;
+  this->should_invalidate_graphics_ = true;
 }
 
 void Server::add_client_fd(int fd) {
@@ -124,6 +130,21 @@ void Server::enqueue_rendering_thread_task(std::function<void()> task) {
 }
 
 void Server::draw(const float* proj_mat, const float* view_mat) {
+  const std::lock_guard rendering_lock(this->rendering_mutex_);
+  if (!this->is_initialized_) {
+    return;
+  }
+  if (this->should_invalidate_graphics_) {
+    {
+      const std::lock_guard lock(this->rendering_thread_tasks_.mutex);
+      this->rendering_thread_tasks_.tasks.clear();
+    }
+    this->rect_renderer.invalidate();
+    this->ray_renderer_.invalidate();
+    this->ray_cursor.invalidate_graphics();
+    this->is_first_rendering_         = true;
+    this->should_invalidate_graphics_ = false;
+  }
   this->thread_for_rendering_thread_tasks_         = std::thread([this]() {
     this->rendering_thread_tasks_.consume();
   });

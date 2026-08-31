@@ -178,4 +178,8 @@ void Texture::upload(void* data, uint32_t wl_shm_format,
   glTexImage2D(GL_TEXTURE_2D, 0, gl_format->format, *width, *height, 0,
       gl_format->format, gl_format->type, data);
 }
+
+void Texture::invalidate() {
+  this->texture_ = 0;
+}
 }  // namespace yabe::core::render

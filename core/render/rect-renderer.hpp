@@ -19,6 +19,7 @@ class RectRenderer {
 
   /// must be called in the rendering thread
   void render(const glm::mat4& mvp_mat, const Texture& texture);
+  void invalidate();
 
  private:
   bool initialized_ = false;

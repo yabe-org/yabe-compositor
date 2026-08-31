@@ -107,6 +107,11 @@ void RayCursor::draw_cursor(const glm::mat4& vp_mat) {
   }
 }
 
+void RayCursor::invalidate_graphics() {
+  this->default_cursor_texture_.invalidate();
+  this->is_default_cursor_texture_uploaded_ = false;
+}
+
 glm::quat RayCursor::rotation() const {
   return glm::angleAxis(this->azimuth_, glm::vec3{0.F, 1.F, 0.F}) *
          glm::angleAxis((std::numbers::pi_v<float> / 2.F) - this->polar_,

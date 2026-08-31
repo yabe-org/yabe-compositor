@@ -63,6 +63,10 @@ void RayRenderer::render(const glm::mat4& vp_mat, const glm::vec3& start_pos,
   glDrawArrays(GL_LINES, 0, 2);
 }
 
+void RayRenderer::invalidate() {
+  this->initialized_ = false;
+}
+
 void RayRenderer::init() {
   this->vert_shader_ = compile_glsl(GL_VERTEX_SHADER, vert_shader).value();
   this->frag_shader_ = compile_glsl(GL_FRAGMENT_SHADER, frag_shader).value();

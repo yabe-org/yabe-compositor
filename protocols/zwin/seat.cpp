@@ -1,10 +1,10 @@
 #include "seat.hpp"
 
+#include <wayland-server-core.h>
 #include <zwin-protocol.h>
 
 #include "core/server.hpp"
 #include "protocols/zwin/ray.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::zwin::seat {
 namespace {

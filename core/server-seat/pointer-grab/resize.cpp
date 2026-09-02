@@ -1,13 +1,13 @@
 #include "resize.hpp"
 
 #include <linux/input-event-codes.h>
+#include <xdg-shell-protocol.h>
 
 #include <memory>
 
 #include "common/unit.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg/shell/xdg-toplevel.hpp"
-#include "xdg-shell-protocol.h"
 
 namespace yabe::core::server_seat::pointer_grab {
 ResizePointerGrab* ResizePointerGrab::start(

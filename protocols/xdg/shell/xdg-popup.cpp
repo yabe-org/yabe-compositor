@@ -1,5 +1,7 @@
 #include "xdg-popup.hpp"
 
+#include <xdg-shell-protocol.h>
+
 #include <optional>
 
 #include "common/common.hpp"
@@ -7,7 +9,6 @@
 #include "core/server.hpp"
 #include "core/toplevel.hpp"
 #include "protocols/xdg/shell/xdg-positioner.hpp"
-#include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg::shell::xdg_popup {
 XdgPopup::XdgPopup(wl_resource*               resource,

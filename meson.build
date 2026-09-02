@@ -21,19 +21,23 @@ lua_sp               = subproject('lua', default_options: ['default_library=stat
 srcs = [
   files('yabe-compositor.cpp'),
 ]
+inc = [
+  include_directories('.'),
+]
 subdir('common')
 subdir('core')
 subdir('protocols')
 
 deps = [
-    dependency('wayland-server', static: true),
-    dependency('glm', static: true),
-    dependency('xkbcommon', static: true),
-    dependency('lua', static: true),
+    dependency('wayland-server', static: true, include_type: 'system'),
+    dependency('glm', static: true, include_type: 'system'),
+    dependency('xkbcommon', static: true, include_type: 'system'),
+    dependency('lua', static: true, include_type: 'system'),
 ]
 yabe_compositor_lib = static_library('yabe_compositor',
   srcs,
   dependencies: deps,
+  include_directories: inc,
   link_whole: [
     wayland_sp.get_variable('wayland_server'),
     libffi_sp.get_variable('ffi_lib'),
@@ -42,11 +46,6 @@ yabe_compositor_lib = static_library('yabe_compositor',
   ],
 )
 
-# `srcs` has file pathes related to root directory,
-# but they cannot be resolved from tools/,
-# so convert here by files()
-# Note that files() does not support generated files
-# setting_meta_srcs = [files(srcs), generated_srcs]
 subdir('tools')
 
 if get_option('tests')

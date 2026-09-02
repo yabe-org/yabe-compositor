@@ -3,12 +3,12 @@
 #include <GLES3/gl32.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <zwin-gles-v32-protocol.h>
 
 #include <mutex>
 
 #include "common/common.hpp"
 #include "common/weak-resource.hpp"
-#include "zwin-gles-v32-protocol.h"
 
 namespace yabe::proto::zwin::gles_v32 {
 class Buffer {

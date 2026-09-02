@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <xkbcommon/xkbcommon-names.h>
 #include <xkbcommon/xkbcommon.h>
 
@@ -11,7 +12,6 @@
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"
 #include "core/surface.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat {
 enum class ModKeys : uint8_t {

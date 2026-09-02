@@ -1,5 +1,6 @@
 #include "surface.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
 
@@ -12,7 +13,6 @@
 #include "common/time.hpp"
 #include "core/server.hpp"
 #include "protocols/wayland/output.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::core {
 Surface::Surface(wl_resource* resource) : resource_(resource) {

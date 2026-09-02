@@ -50,6 +50,7 @@ foreach name, path : {
     )
   endif
 endforeach
+inc += include_directories('.', is_system: true)
 
 srcs += files(
   'protocols.cpp',

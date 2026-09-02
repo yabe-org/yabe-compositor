@@ -1,10 +1,11 @@
 #include "client-ray.hpp"
 
+#include <wayland-server-core.h>
+#include <zwin-protocol.h>
+
 #include "common/common.hpp"
 #include "common/time.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
-#include "zwin-protocol.h"
 
 namespace yabe::core::client_seat {
 namespace {

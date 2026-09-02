@@ -1,5 +1,6 @@
 #include "vertex-array.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server.h>
 #include <zwin-gles-v32-protocol.h>
 
@@ -9,7 +10,6 @@
 #include "buffer.hpp"
 #include "common/convert-wl-array.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::zwin::gles_v32 {
 VertexArray::~VertexArray() {

@@ -2,6 +2,8 @@
 
 #include <linux/input-event-codes.h>
 #include <sys/types.h>
+#include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #include <memory>
@@ -13,8 +15,6 @@
 #include "core/server.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/data-device/data-offer.hpp"
-#include "wayland-server-core.h"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat::pointer_grab {
 DragAndDropPointerGrab* DragAndDropPointerGrab::start(

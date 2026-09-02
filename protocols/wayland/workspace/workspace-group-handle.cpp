@@ -1,11 +1,11 @@
 #include "workspace-group-handle.hpp"
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wl-workspace-protocol.h>
 
 #include "core/server.hpp"
 #include "protocols/wayland/workspace/workspace-handle.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::wayland::workspace {
 WorkspaceGroupHandle::WorkspaceGroupHandle(wl_resource* resource)

@@ -1,11 +1,12 @@
 #include "bounded-node.hpp"
 
+#include <zwin-protocol.h>
+
 #include <memory>
 
 #include "common/common.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/shell/bounded.hpp"
-#include "zwin-protocol.h"
 
 namespace yabe::core::scene {
 BoundedNode::BoundedNode(

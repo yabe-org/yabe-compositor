@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wayland-server.h>
+#include <xdg-shell-protocol.h>
 
 #include <cstdint>
 #include <memory>
@@ -10,7 +11,6 @@
 #include "core/toplevel.hpp"
 #include "protocols/xdg/shell/xdg-positioner.hpp"
 #include "protocols/xdg/shell/xdg-surface.hpp"
-#include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg::shell::xdg_popup {
 class XdgPopup : public core::SurfaceRole {

@@ -1,6 +1,7 @@
 #include "toplevel-group-node.hpp"
 
 #include <linux/input-event-codes.h>
+#include <wayland-server-protocol.h>
 
 #include <core/server.hpp>
 #include <cstdint>
@@ -12,7 +13,6 @@
 #include "common/coordinate.hpp"
 #include "common/unit.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::scene {
 namespace {

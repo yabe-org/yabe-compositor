@@ -1,11 +1,11 @@
 #include "seat.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server.h>
 
 #include "core/server.hpp"
 #include "keyboard.hpp"
 #include "pointer.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::wayland::seat {
 namespace {

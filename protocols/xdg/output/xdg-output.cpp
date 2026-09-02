@@ -1,9 +1,9 @@
 #include "xdg-output.hpp"
 
+#include <wayland-server-protocol.h>
 #include <xdg-output-protocol.h>
 
 #include "protocols/wayland/output.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::xdg::output::xdg_output {
 namespace {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <wayland-server-protocol.h>
 #include <wayland-server.h>
 #include <wlr-layer-shell-protocol.h>
 
@@ -12,7 +13,6 @@
 #include "common/unit.hpp"
 #include "core/layer-manager.hpp"
 #include "core/surface.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::wlr::layer_shell::layer_surface {
 class LayerSurface : public core::SurfaceRole {

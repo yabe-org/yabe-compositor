@@ -1,9 +1,10 @@
 #include "client-pointer.hpp"
 
+#include <wayland-server-core.h>
+
 #include "common/common.hpp"
 #include "common/time.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::core::client_seat {
 void ClientPointer::add_pointer(wl_resource* resource) {

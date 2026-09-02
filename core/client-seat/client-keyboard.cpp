@@ -1,8 +1,9 @@
 #include "client-keyboard.hpp"
 
+#include <wayland-server-core.h>
+
 #include "common/common.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::core::client_seat {
 void ClientKeyboard::add_keyboard(wl_resource* resource) {

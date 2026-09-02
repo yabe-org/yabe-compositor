@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wayland-server-protocol.h>
+
 #include <memory>
 
 #include "common/common.hpp"
@@ -7,7 +9,6 @@
 #include "core/data-device/data-source.hpp"
 #include "core/surface.hpp"
 #include "pointer-grab.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::server_seat::pointer_grab {
 class DragAndDropPointerGrab final : public PointerGrab {

@@ -1,8 +1,9 @@
 #include "data-device.hpp"
 
+#include <wayland-server-protocol.h>
+
 #include "core/server-seat/pointer-grab/drag-and-drop.hpp"
 #include "core/server.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::data_device {
 DataDevice::DataDevice(wl_resource* resource) : resource_(resource) {

@@ -11,7 +11,6 @@
 #include "common/common.hpp"
 #include "common/is-vector.hpp"
 #include "core/setting/schema/table.hpp"
-#include "lua.h"
 
 namespace yabe::core::setting {
 namespace schema {

@@ -1,5 +1,6 @@
 #include "buffer.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server.h>
 #include <zwin-gles-v32-protocol.h>
 
@@ -8,7 +9,6 @@
 #include "common/common.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/shm/shm-buffer.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::zwin::gles_v32 {
 Buffer::~Buffer() {

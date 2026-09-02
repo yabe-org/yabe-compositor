@@ -1,12 +1,12 @@
 #include "subcompositor.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
 #include <wayland-server.h>
 
 #include "core/server.hpp"
 #include "core/surface.hpp"
 #include "subsurface.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::wayland::subcompositor {
 namespace {

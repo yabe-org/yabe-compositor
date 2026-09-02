@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wayland-server.h>
+#include <xdg-shell-protocol.h>
 
 #include <cstdint>
 
@@ -8,7 +9,6 @@
 #include "common/common.hpp"
 #include "common/edge.hpp"
 #include "common/unit.hpp"
-#include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg::shell::xdg_positioner {
 class XdgPositioner {

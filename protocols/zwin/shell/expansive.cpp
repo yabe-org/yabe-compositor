@@ -1,8 +1,9 @@
 #include "expansive.hpp"
 
+#include <zwin-shell-protocol.h>
+
 #include "core/server.hpp"
 #include "protocols/zwin/region.hpp"
-#include "zwin-shell-protocol.h"
 
 namespace yabe::proto::zwin::shell {
 Expansive::Expansive(

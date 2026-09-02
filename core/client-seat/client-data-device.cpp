@@ -1,8 +1,9 @@
 #include "client-data-device.hpp"
 
+#include <wayland-server-protocol.h>
+
 #include "common/time.hpp"
 #include "core/server.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core::client_seat {
 void ClientDataDevice::add_data_device(wl_resource* resource) {

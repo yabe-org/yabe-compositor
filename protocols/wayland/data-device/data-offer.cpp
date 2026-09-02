@@ -2,12 +2,12 @@
 
 #include <wayland-server-core.h>
 #include <wayland-server-protocol-core.h>
+#include <wayland-server-protocol.h>
 
 #include <memory>
 
 #include "core/data-device/data-offer.hpp"
 #include "core/server.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::wayland::data_device_manager::data_offer {
 namespace {

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 
 #include <cstdint>
 #include <memory>
 
 #include "common/common.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::wayland::workspace {
 class WorkspaceHandle;

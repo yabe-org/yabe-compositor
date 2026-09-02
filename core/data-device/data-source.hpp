@@ -1,12 +1,13 @@
 #pragma once
 
+#include <wayland-server-protocol.h>
+#include <wayland-server.h>
+
 #include <functional>
 #include <string>
 #include <vector>
 
 #include "common/common.hpp"
-#include "wayland-server-protocol.h"
-#include "wayland-server.h"
 
 namespace yabe::core::data_device {
 class DataSource {

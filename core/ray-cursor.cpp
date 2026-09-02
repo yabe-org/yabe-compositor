@@ -1,5 +1,7 @@
 #include "ray-cursor.hpp"
 
+#include <wayland-server-protocol.h>
+
 #include <glm/ext.hpp>
 #include <memory>
 #include <numbers>
@@ -8,7 +10,6 @@
 #include "core/render/rect-renderer.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::core {
 namespace {

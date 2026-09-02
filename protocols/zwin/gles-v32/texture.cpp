@@ -1,5 +1,6 @@
 #include "texture.hpp"
 
+#include <wayland-server-protocol.h>
 #include <wayland-server.h>
 #include <zwin-gles-v32-protocol.h>
 
@@ -11,7 +12,6 @@
 #include "common/weak-resource.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/shm/shm-buffer.hpp"
-#include "wayland-server-protocol.h"
 
 namespace yabe::proto::zwin::gles_v32 {
 Texture::~Texture() {

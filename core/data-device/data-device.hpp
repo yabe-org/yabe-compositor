@@ -1,13 +1,14 @@
 #pragma once
 
+#include <wayland-server-protocol.h>
+#include <wayland-server.h>
+
 #include <memory>
 #include <optional>
 
 #include "common/common.hpp"
 #include "core/data-device/data-source.hpp"
 #include "core/surface.hpp"
-#include "wayland-server-protocol.h"
-#include "wayland-server.h"
 
 namespace yabe::core::data_device {
 class DataDevice : public std::enable_shared_from_this<DataDevice> {

@@ -1,11 +1,10 @@
 #include "xdg-positioner.hpp"
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <xdg-shell-protocol.h>
 
 #include <cassert>
-
-#include "wayland-server-protocol.h"
 
 namespace yabe::common {
 template <>

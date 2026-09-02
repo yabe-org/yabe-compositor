@@ -1,6 +1,8 @@
 #include "xdg-toplevel.hpp"
 
+#include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
+#include <xdg-shell-protocol.h>
 
 #include <memory>
 
@@ -10,8 +12,6 @@
 #include "core/server.hpp"
 #include "core/toplevel.hpp"
 #include "protocols/xdg/shell/xdg-surface.hpp"
-#include "wayland-server-core.h"
-#include "xdg-shell-protocol.h"
 
 namespace yabe::proto::xdg::shell::xdg_toplevel {
 XdgToplevel::XdgToplevel(

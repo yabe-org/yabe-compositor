@@ -7,7 +7,6 @@
 #include <stdexcept>
 
 #include "core/server.hpp"
-#include "glm/ext/vector_float3.hpp"
 #include "shader.hpp"
 
 namespace yabe::core::render {

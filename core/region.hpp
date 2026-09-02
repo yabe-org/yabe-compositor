@@ -1,9 +1,10 @@
 #pragma once
 
+#include <wayland-server.h>
+
 #include <vector>
 
 #include "common/unit.hpp"
-#include "wayland-server.h"
 
 namespace yabe::core {
 class Region {

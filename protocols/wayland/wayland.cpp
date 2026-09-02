@@ -1,6 +1,7 @@
 #include "wayland.hpp"
 
 #include <wayland-server-protocol.h>
+#include <wl-workspace-protocol.h>
 
 #include "common/common.hpp"
 #include "compositor.hpp"
@@ -8,7 +9,6 @@
 #include "output.hpp"
 #include "seat/seat.hpp"
 #include "subcompositor/subcompositor.hpp"
-#include "wl-workspace-protocol.h"
 #include "workspace/workspace.hpp"
 
 namespace yabe::proto::wayland {

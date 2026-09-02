@@ -1,10 +1,11 @@
 #include "bounded.hpp"
 
+#include <zwin-shell-protocol.h>
+
 #include "common/convert-wl-array.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/region.hpp"
-#include "zwin-shell-protocol.h"
 
 namespace yabe::proto::zwin::shell {
 Bounded::Bounded(wl_resource*             resource,

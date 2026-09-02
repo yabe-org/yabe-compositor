@@ -1,12 +1,12 @@
 #include "region.hpp"
 
+#include <wayland-server-core.h>
 #include <zwin-protocol.h>
 
 #include <memory>
 
 #include "common/convert-wl-array.hpp"
 #include "core/server.hpp"
-#include "wayland-server-core.h"
 
 namespace yabe::proto::zwin::compositor {
 void Region::add_cuboid(

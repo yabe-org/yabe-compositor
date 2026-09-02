@@ -34,17 +34,19 @@ deps = [
     dependency('xkbcommon', static: true, include_type: 'system'),
     dependency('lua', static: true, include_type: 'system'),
 ]
-yabe_compositor_lib = static_library('yabe_compositor',
-  srcs,
-  dependencies: deps,
-  include_directories: inc,
-  link_whole: [
-    wayland_sp.get_variable('wayland_server'),
-    libffi_sp.get_variable('ffi_lib'),
-    xkbcommon_sp.get_variable('libxkbcommon'),
-    lua_sp.get_variable('lua_lib'),
-  ],
-)
+if get_option('library')
+  yabe_compositor_lib = static_library('yabe_compositor',
+    srcs,
+    dependencies: deps,
+    include_directories: inc,
+    link_whole: [
+      wayland_sp.get_variable('wayland_server'),
+      libffi_sp.get_variable('ffi_lib'),
+      xkbcommon_sp.get_variable('libxkbcommon'),
+      lua_sp.get_variable('lua_lib'),
+    ],
+  )
+endif
 
 subdir('tools')
 

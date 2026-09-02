@@ -5,6 +5,12 @@ option(
   description: 'Build tests with GoogleTest',
 )
 option(
+  'library',
+  type: 'boolean',
+  value: true,
+  description: 'Generate libyabe_compositor.a',
+)
+option(
   'generate-setting-meta-file',
   type: 'boolean',
   value: false,

@@ -13,18 +13,11 @@
 
 namespace yabe::core::scene {
 void Scene::insert(std::shared_ptr<SceneNode>&& node) {
-  auto insert_pos = this->nodes_.end();
-  if (this->active_node_.lock()) {
-    // active node is always at the end of the list,
-    // so if it exists, new node should be inserted before it
-    if (insert_pos != this->nodes_.begin()) {
-      --insert_pos;
-    }
-  } else {
+  if (!this->active_node_.lock()) {
     this->set_active_node(node);
   }
   const std::lock_guard<std::mutex> lock(this->mutex_);
-  this->nodes_.emplace(insert_pos, std::move(node));
+  this->nodes_.emplace_back(std::move(node));
 }
 
 void Scene::erase(const std::shared_ptr<SceneNode>& node) {

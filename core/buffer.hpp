@@ -2,6 +2,9 @@
 
 #include <wayland-server-core.h>
 
+#include <mutex>
+
+#include "common/common.hpp"
 #include "common/weak-resource.hpp"
 
 namespace yabe::core {
@@ -9,21 +12,20 @@ namespace yabe::core {
 // If resource is non-null, shm_buffer might be null (e.g. after uploading)
 class Buffer {
  public:
+  DISABLE_MOVE_AND_COPY(Buffer);
   explicit Buffer(wl_resource* buffer_resource);
   ~Buffer();
-  Buffer(const Buffer&);
-  Buffer& operator=(const Buffer&);
-  Buffer(Buffer&&)            = delete;
-  Buffer& operator=(Buffer&&) = delete;
 
   void set_resource(wl_resource* resource);
-  void unref_shm_buffer();
 
   [[nodiscard]] wl_resource* resource() const {
     return this->resource_.get();
   }
   [[nodiscard]] wl_shm_buffer* shm_buffer() const {
     return this->shm_buffer_;
+  }
+  [[nodiscard]] std::lock_guard<std::mutex> lock_resource() {
+    return this->resource_.lock();
   }
 
   bool operator==(const Buffer& other) const {

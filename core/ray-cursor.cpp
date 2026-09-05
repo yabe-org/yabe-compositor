@@ -89,7 +89,6 @@ void RayCursor::draw_cursor(const glm::mat4& vp_mat) {
     drag_and_drop_icon_surface->upload_texture_if_needed();
     server::get().rect_renderer.render(vp_mat * this->cursor_model_mat(),
         drag_and_drop_icon_surface->texture());
-    drag_and_drop_icon_surface->finish_rendering();
   }
 
   if (this->cursor_surface_) {
@@ -97,7 +96,6 @@ void RayCursor::draw_cursor(const glm::mat4& vp_mat) {
       cursor_surface->upload_texture_if_needed();
       server::get().rect_renderer.render(
           vp_mat * this->cursor_model_mat(), cursor_surface->texture());
-      cursor_surface->finish_rendering();
     }
   } else {
     if (!this->is_default_cursor_texture_uploaded_) {

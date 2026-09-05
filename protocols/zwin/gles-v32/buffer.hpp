@@ -5,6 +5,7 @@
 #include <wayland-util.h>
 #include <zwin-gles-v32-protocol.h>
 
+#include <memory>
 #include <mutex>
 
 #include "common/common.hpp"
@@ -28,12 +29,8 @@ class Buffer {
     GLenum               target = -1;
     GLenum               usage  = -1;
     common::WeakResource data;  // zwn_buffer
-    void                 reset() {
-      this->target = -1;
-      this->usage  = -1;
-      this->data.set(nullptr);
-    }
-  } pending_, committed_;
+  };
+  std::shared_ptr<State> pending_, committed_;
 
   GLuint     buffer_ = 0;
   std::mutex mutex_;

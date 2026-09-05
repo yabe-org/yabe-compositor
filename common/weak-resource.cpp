@@ -2,6 +2,8 @@
 
 #include <wayland-util.h>
 
+#include <mutex>
+
 namespace yabe::common {
 WeakResource::WeakResource() {
   this->destroy_listener_.notify = [](wl_listener* listener, void* /*data*/) {
@@ -28,6 +30,7 @@ WeakResource::~WeakResource() {
   wl_list_remove(&this->destroy_listener_.link);
 }
 void WeakResource::set(wl_resource* resource) {
+  const std::lock_guard lock(this->mutex_);
   wl_list_remove(&this->destroy_listener_.link);
   wl_list_init(&this->destroy_listener_.link);
   this->resource_ = resource;

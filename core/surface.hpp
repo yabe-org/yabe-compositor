@@ -42,7 +42,6 @@ class Surface : public std::enable_shared_from_this<Surface> {
   void commit();
 
   void upload_texture_if_needed();
-  void finish_rendering();
 
   void set_role(std::weak_ptr<SurfaceRole>&& role) {
     this->role_ = std::move(role);
@@ -98,19 +97,19 @@ class Surface : public std::enable_shared_from_this<Surface> {
     // even if the buffer is not nullopt, Buffer::resource is nullable
     // in order to distinguish between "attach() is not called"
     // and "null buffer is attached (the content is removed)"
-    std::optional<Buffer>       buffer;
+    std::optional<std::shared_ptr<Buffer>> buffer;
     // if pending_.input_region is nullopt and:
     //   - has_pending_input_region_ == true  : the input region is cleared
     //   - has_pending_input_region_ == false : the input region is not changed
-    std::optional<Region>       input_region;
-    std::vector<wl_resource*>   frame_callbacks;
-    std::optional<wl_resource*> release_callback;
+    std::optional<Region>                  input_region;
+    std::vector<wl_resource*>              frame_callbacks;
+    std::optional<wl_resource*>            release_callback;
   } pending_, current_;
   bool has_pending_input_region_ = false;
 
-  render::Texture       texture_;
-  bool                  is_texture_uploaded_ = false;
-  std::optional<Buffer> uploaded_buffer_;
+  render::Texture         texture_;
+  bool                    is_texture_uploaded_ = false;
+  std::shared_ptr<Buffer> uploaded_buffer_;
 
   std::weak_ptr<SurfaceRole>                         role_;
   std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =

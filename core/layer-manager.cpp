@@ -106,7 +106,6 @@ void LayerManager::draw_layer(Layer layer, const glm::mat4& proj_mat) const {
     surface->upload_texture_if_needed();
     server::get().rect_renderer.render(
         proj_mat * model_mat, surface->texture());
-    surface->finish_rendering();
   }
 }
 }  // namespace yabe::core

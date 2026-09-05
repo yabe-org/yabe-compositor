@@ -30,20 +30,26 @@ void Texture::image_2d(GLenum target, GLint level, GLint internal_format,
   const std::lock_guard lock(this->mutex_);
   this->pending_.emplace_back(
       [target, level, internal_format, width, height, border, format, type,
-          data_resource = common::WeakResource(zwn_buffer_resource)] {
-        if (!data_resource.get()) {
-          return;
+          data_resource = std::make_shared<common::WeakResource>(
+              zwn_buffer_resource)] mutable {
+        {
+          // The SHM buffer can be freed as soon as this lock is released.
+          const auto data_lock = data_resource->lock();
+          if (auto* buffer = shm::get_buffer(data_resource->get())) {
+            auto* data = shm::get_buffer_data(buffer);
+            shm::buffer_begin_access(buffer);
+            glTexImage2D(target, level, internal_format, width, height, border,
+                format, type, data);
+            shm::buffer_end_access(buffer);
+          } else if (data_resource->get()) {
+            LOG_ERR("zwn_texture: Failed to get Buffer from zwn_buffer");
+          }
         }
-        auto* buffer = shm::get_buffer(data_resource.get());
-        if (!buffer) {
-          LOG_ERR("zwn_texture: Failed to get Buffer from zwn_buffer");
-          return;
-        }
-        auto* data = shm::get_buffer_data(buffer);
-        shm::buffer_begin_access(buffer);
-        glTexImage2D(target, level, internal_format, width, height, border,
-            format, type, data);
-        shm::buffer_end_access(buffer);
+        // The listener must outlive its lock and be removed on the Wayland
+        // thread.
+        core::server::get().enqueue_wayland_thread_task(
+            [data_resource = std::move(data_resource)] {
+            });
       });
 }
 

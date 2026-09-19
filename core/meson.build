@@ -11,6 +11,7 @@ srcs += files(
   'client-seat/client-keyboard.cpp',
   'client-seat/client-pointer.cpp',
   'client-seat/client-ray.cpp',
+  'client-seat/client-text-input.cpp',
 
   'setting/engine.cpp',
   'setting/setting.cpp',

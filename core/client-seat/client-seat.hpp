@@ -6,6 +6,7 @@
 #include "client-keyboard.hpp"
 #include "client-pointer.hpp"
 #include "client-ray.hpp"
+#include "client-text-input.hpp"
 #include "common/common.hpp"
 
 namespace yabe::core::client_seat {
@@ -19,5 +20,6 @@ class ClientSeat {
   ClientPointer    pointer;
   ClientDataDevice data_device;
   ClientRay        ray;
+  ClientTextInput  text_input;
 };
 }  // namespace yabe::core::client_seat

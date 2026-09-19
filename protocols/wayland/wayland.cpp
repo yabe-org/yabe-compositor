@@ -1,5 +1,6 @@
 #include "wayland.hpp"
 
+#include <text-input-protocol.h>
 #include <wayland-server-protocol.h>
 #include <wl-workspace-protocol.h>
 
@@ -9,6 +10,7 @@
 #include "output.hpp"
 #include "seat/seat.hpp"
 #include "subcompositor/subcompositor.hpp"
+#include "text-input/text-input-manager.hpp"
 #include "workspace/workspace.hpp"
 
 namespace yabe::proto::wayland {
@@ -43,6 +45,12 @@ bool init(wl_display* display) {
           ext_workspace_manager_v1_interface.version, nullptr,
           workspace::bind)) {
     LOG_ERR("Failed to create global (workspace)");
+    return false;
+  }
+  if (!wl_global_create(display, &zwp_text_input_manager_v3_interface,
+          zwp_text_input_manager_v3_interface.version, nullptr,
+          text_input::bind)) {
+    LOG_ERR("Failed to create global (text_input)");
     return false;
   }
   return true;

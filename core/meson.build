@@ -37,6 +37,7 @@ srcs += files(
   'scene/toplevel-group-node.cpp',
 
   'server-seat/server-data-device.cpp',
+  'server-seat/server-input-method.cpp',
   'server-seat/server-keyboard.cpp',
   'server-seat/server-pointer.cpp',
   'server-seat/server-seat.cpp',

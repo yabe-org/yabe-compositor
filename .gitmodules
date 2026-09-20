@@ -4,3 +4,6 @@
 [submodule "3rdparty/zwin"]
 	path = 3rdparty/zwin
 	url = https://github.com/watasuke102/zwin
+[submodule "3rdparty/wlroots"]
+	path = 3rdparty/wlroots
+	url = https://gitlab.freedesktop.org/wlroots/wlroots.git

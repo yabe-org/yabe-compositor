@@ -15,6 +15,7 @@
 #include <stdexcept>
 
 #include "common/common.hpp"
+#include "common/time.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat {
@@ -186,9 +187,10 @@ void ServerKeyboard::handle_keyboard_key(uint32_t key, bool is_pressed) {
     return;
   }
 
+  const auto  time        = common::now_msec();
   const auto& client_seat = this->get_focused_client_seat();
   if (client_seat) {
-    client_seat.value()->keyboard.send_key(key, is_pressed);
+    client_seat.value()->keyboard.send_key(time, key, is_pressed);
   }
 }
 void ServerKeyboard::update_modifiers() {

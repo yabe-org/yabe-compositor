@@ -35,10 +35,10 @@ void ClientKeyboard::send_leave(wl_resource* surface_resource) {
   }
 }
 
-void ClientKeyboard::send_key(uint32_t key, uint32_t state) {
+void ClientKeyboard::send_key(uint32_t time, uint32_t key, uint32_t state) {
   const auto serial = server::get().next_serial();
   for (auto* resource : this->keyboards_) {
-    wl_keyboard_send_key(resource, serial, 0, key, state);
+    wl_keyboard_send_key(resource, serial, time, key, state);
   }
 }
 

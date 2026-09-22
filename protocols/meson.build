@@ -79,6 +79,7 @@ srcs += files(
 
   'wlr/input-method/input-method-manager.cpp',
   'wlr/input-method/input-method.cpp',
+  'wlr/input-method/keyboard-grab.cpp',
   'wlr/layer-shell.cpp',
   'wlr/layer-surface.cpp',
   'wlr/wlr.cpp',

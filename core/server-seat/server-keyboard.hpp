@@ -12,6 +12,7 @@
 #include "common/common.hpp"
 #include "core/client-seat/client-seat.hpp"
 #include "core/surface.hpp"
+#include "protocols/wlr/input-method/keyboard-grab.hpp"
 
 namespace yabe::core::server_seat {
 enum class ModKeys : uint8_t {
@@ -43,6 +44,14 @@ class ServerKeyboard {
   void handle_keyboard_key(uint32_t key, bool is_pressed);
 
   void send_init_events(wl_resource* resource);
+
+  void set_keyboard_grab(
+      std::shared_ptr<proto::wlr::input_method::KeyboardGrab>& grab);
+  void try_remove_keyboard_grab(
+      std::shared_ptr<proto::wlr::input_method::KeyboardGrab> grab);
+
+  void set_keyboard_grab(wl_resource* grab);
+  void try_remove_keyboard_grab(wl_resource* grab);
 
   /// @return true if the focused surface is changed
   bool set_focused_surface(std::weak_ptr<Surface> surface);
@@ -85,6 +94,8 @@ class ServerKeyboard {
   int32_t repeat_delay_ = 500;
 
   std::vector<uint32_t> pressed_keys_;
+
+  std::weak_ptr<proto::wlr::input_method::KeyboardGrab> keyboard_grab_;
 
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>>
                          get_focused_client_seat() const;

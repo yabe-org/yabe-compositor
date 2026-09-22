@@ -147,20 +147,30 @@ void ServerKeyboard::init_keymap(const char* rules, const char* model,
   this->keymap_fd_   = fd;
   this->keymap_size_ = size;
 
-  server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
-    client_seat.keyboard.send_keymap(
+  if (const auto grab = this->keyboard_grab_.lock()) {
+    grab->send_keymap(
         XKB_KEYMAP_FORMAT_TEXT_V1, this->keymap_fd_, this->keymap_size_);
-  });
+  } else {
+    server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
+      client_seat.keyboard.send_keymap(
+          XKB_KEYMAP_FORMAT_TEXT_V1, this->keymap_fd_, this->keymap_size_);
+    });
+  }
 }
 
 void ServerKeyboard::set_repeat_info(int32_t rate, int32_t delay) {
   this->repeat_rate_  = rate;
   this->repeat_delay_ = delay;
 
-  server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
-    client_seat.keyboard.send_repeat_info(
-        this->repeat_rate_, this->repeat_delay_);
-  });
+  if (const auto grab = this->keyboard_grab_.lock()) {
+    grab->send_keymap(
+        XKB_KEYMAP_FORMAT_TEXT_V1, this->keymap_fd_, this->keymap_size_);
+  } else {
+    server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
+      client_seat.keyboard.send_repeat_info(
+          this->repeat_rate_, this->repeat_delay_);
+    });
+  }
 }
 
 void ServerKeyboard::handle_keyboard_key(uint32_t key, bool is_pressed) {
@@ -189,7 +199,9 @@ void ServerKeyboard::handle_keyboard_key(uint32_t key, bool is_pressed) {
 
   const auto  time        = common::now_msec();
   const auto& client_seat = this->get_focused_client_seat();
-  if (client_seat) {
+  if (const auto grab = this->keyboard_grab_.lock()) {
+    grab->send_key(server::get().next_serial(), time, key, is_pressed);
+  } else if (client_seat) {
     client_seat.value()->keyboard.send_key(time, key, is_pressed);
   }
 }
@@ -212,10 +224,15 @@ void ServerKeyboard::update_modifiers() {
   this->mods_latched_   = latched;
   this->mods_locked_    = locked;
   this->mods_group_     = group;
-  server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
-    client_seat.keyboard.send_modifiers(this->mods_depressed_,
+  if (const auto grab = this->keyboard_grab_.lock()) {
+    grab->send_modifiers(server::get().next_serial(), this->mods_depressed_,
         this->mods_latched_, this->mods_locked_, this->mods_group_);
-  });
+  } else {
+    server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
+      client_seat.keyboard.send_modifiers(this->mods_depressed_,
+          this->mods_latched_, this->mods_locked_, this->mods_group_);
+    });
+  }
 }
 
 void ServerKeyboard::send_init_events(wl_resource* resource) {
@@ -241,6 +258,26 @@ void ServerKeyboard::send_init_events(wl_resource* resource) {
   }
 }
 
+void ServerKeyboard::set_keyboard_grab(
+    std::shared_ptr<proto::wlr::input_method::KeyboardGrab>& grab) {
+  this->keyboard_grab_ = grab;
+}
+void ServerKeyboard::try_remove_keyboard_grab(
+    std::shared_ptr<proto::wlr::input_method::KeyboardGrab> grab) {
+  if (this->keyboard_grab_.lock() != grab) {
+    return;
+  }
+  this->keyboard_grab_.reset();
+  // if keymap/modifier is changed while grab is active,
+  // it is not sent to wl_keyboard
+  server::get().seat.foreach ([this](client_seat::ClientSeat& client_seat) {
+    client_seat.keyboard.send_keymap(
+        XKB_KEYMAP_FORMAT_TEXT_V1, this->keymap_fd_, this->keymap_size_);
+    client_seat.keyboard.send_modifiers(this->mods_depressed_,
+        this->mods_latched_, this->mods_locked_, this->mods_group_);
+  });
+}
+
 std::optional<std::shared_ptr<client_seat::ClientSeat>>
 ServerKeyboard::get_focused_client_seat() const {
   auto focused_surface = this->focused_surface_.lock();
@@ -262,6 +299,7 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
         server::get().seat.get_client_seat(focused_surface->client());
     if (client_seat) {
       client_seat.value()->keyboard.send_leave(focused_surface->resource());
+      client_seat.value()->text_input.send_leave(focused_surface);
     }
   }
   this->focused_surface_ = surface;
@@ -274,6 +312,7 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
           focused_surface->resource(), &pressed_keys);
       client_seat.value()->keyboard.send_modifiers(this->mods_depressed_,
           this->mods_latched_, this->mods_locked_, this->mods_group_);
+      client_seat.value()->text_input.send_enter(focused_surface);
     }
   }
   return true;

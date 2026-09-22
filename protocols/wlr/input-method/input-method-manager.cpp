@@ -3,7 +3,7 @@
 #include <input-method-protocol.h>
 #include <wayland-server-core.h>
 
-#include <wlr/input-method/input-method.hpp>
+#include "protocols/wlr/input-method/input-method.hpp"
 
 namespace yabe::proto::wlr::input_method {
 namespace {

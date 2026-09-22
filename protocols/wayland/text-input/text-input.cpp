@@ -40,9 +40,29 @@ void TextInput::set_cursor_rectangle(
 }
 
 void TextInput::commit() {
-  this->current_       = this->pending_;
-  // cause should be reset on commit according to the spec
-  this->pending_.cause = ZWP_TEXT_INPUT_V3_CHANGE_CAUSE_INPUT_METHOD;
+  this->current_ = this->pending_;
+  this->pending_ = {};
+
+  auto& input_method = core::server::get().seat.input_method;
+  if (this->current_.is_enabled.has_value()) {
+    if (*this->current_.is_enabled) {
+      input_method.send_activate();
+    } else {
+      input_method.send_deactivate();
+    }
+  }
+  if (this->current_.text) {
+    input_method.send_surrounding_text(this->current_.text->c_str(),
+        *this->current_.cursor, *this->current_.anchor);
+  }
+  if (this->current_.cause) {
+    input_method.send_text_change_cause(*this->current_.cause);
+  }
+  if (this->current_.hint) {
+    input_method.send_content_type(
+        *this->current_.hint, *this->current_.purpose);
+  }
+  input_method.send_done();
 }
 
 namespace {

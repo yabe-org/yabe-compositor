@@ -26,16 +26,14 @@ class TextInput {
 
  private:
   struct {
-    bool                           is_enabled = false;
-    std::string                    text;
-    int32_t                        cursor = 0;
-    int32_t                        anchor = 0;
-    zwp_text_input_v3_change_cause cause =
-        ZWP_TEXT_INPUT_V3_CHANGE_CAUSE_INPUT_METHOD;
-    uint32_t                          hint = 0;
-    zwp_text_input_v3_content_purpose purpose =
-        ZWP_TEXT_INPUT_V3_CONTENT_PURPOSE_NORMAL;
-    common::Box2D cursor_rect{};
+    std::optional<bool>                              is_enabled;
+    std::optional<std::string>                       text;
+    std::optional<int32_t>                           cursor;
+    std::optional<int32_t>                           anchor;
+    std::optional<zwp_text_input_v3_change_cause>    cause;
+    std::optional<uint32_t>                          hint;
+    std::optional<zwp_text_input_v3_content_purpose> purpose;
+    std::optional<common::Box2D>                     cursor_rect;
   } pending_, current_;
 };
 

@@ -3,7 +3,7 @@
 #include <virtual-keyboard-protocol.h>
 #include <wayland-server-core.h>
 
-#include <wlr/virtual-keyboard/virtual-keyboard.hpp>
+#include "virtual-keyboard.hpp"
 
 namespace yabe::proto::wlr::virtual_keyboard {
 namespace {

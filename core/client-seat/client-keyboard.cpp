@@ -4,6 +4,7 @@
 
 #include "common/common.hpp"
 #include "core/server.hpp"
+#include "core/surface.hpp"
 
 namespace yabe::core::client_seat {
 void ClientKeyboard::add_keyboard(wl_resource* resource) {
@@ -14,24 +15,37 @@ void ClientKeyboard::remove_keyboard(wl_resource* resource) {
   this->keyboards_.remove(resource);
 }
 
+void ClientKeyboard::set_current_keyboard(
+    const std::shared_ptr<Keyboard>& keyboard) {
+  if (this->current_keyboard_.lock() == keyboard) {
+    return;
+  }
+  this->current_keyboard_ = keyboard;
+  this->send_keymap(keyboard->keymap_format(), keyboard->keymap_fd(),
+      keyboard->keymap_size());
+  this->send_repeat_info(keyboard->repeat_rate(), keyboard->repeat_delay());
+  this->send_modifiers(keyboard->mods().depressed, keyboard->mods().latched,
+      keyboard->mods().locked, keyboard->mods().group);
+}
+
 void ClientKeyboard::send_keymap(uint32_t format, int32_t fd, uint32_t size) {
   for (auto* resource : this->keyboards_) {
     wl_keyboard_send_keymap(resource, format, fd, size);
   }
 }
 
-void ClientKeyboard::send_enter(wl_resource* surface_resource, wl_array* keys) {
+void ClientKeyboard::send_enter(
+    const std::shared_ptr<Surface>& surface, wl_array* keys) {
   const auto serial = server::get().next_serial();
   for (auto* resource : this->keyboards_) {
-    wl_keyboard_send_enter(resource, serial, surface_resource,
-        keys);  // NOLINT
+    wl_keyboard_send_enter(resource, serial, surface->resource(), keys);
   }
 }
 
-void ClientKeyboard::send_leave(wl_resource* surface_resource) {
+void ClientKeyboard::send_leave(const std::shared_ptr<Surface>& surface) {
   const auto serial = server::get().next_serial();
   for (auto* resource : this->keyboards_) {
-    wl_keyboard_send_leave(resource, serial, surface_resource);
+    wl_keyboard_send_leave(resource, serial, surface->resource());
   }
 }
 

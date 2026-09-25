@@ -13,6 +13,19 @@ namespace yabe::proto::wlr::input_method {
 KeyboardGrab::KeyboardGrab(wl_resource* resource) : resource_(resource) {
 }
 
+void KeyboardGrab::set_current_keyboard(
+    const std::shared_ptr<core::Keyboard>& keyboard) {
+  if (this->current_keyboard_.lock() == keyboard) {
+    return;
+  }
+  this->current_keyboard_ = keyboard;
+  this->send_keymap(keyboard->keymap_format(), keyboard->keymap_fd(),
+      keyboard->keymap_size());
+  this->send_repeat_info(keyboard->repeat_rate(), keyboard->repeat_delay());
+  this->send_modifiers(keyboard->mods().depressed, keyboard->mods().latched,
+      keyboard->mods().locked, keyboard->mods().group);
+}
+
 void KeyboardGrab::send_keymap(uint32_t format, int32_t fd, uint32_t size) {
   zwp_input_method_keyboard_grab_v2_send_keymap(
       this->resource_, format, fd, size);
@@ -26,10 +39,11 @@ void KeyboardGrab::send_key(
   zwp_input_method_keyboard_grab_v2_send_key(
       this->resource_, serial, time, key, state);
 }
-void KeyboardGrab::send_modifiers(uint32_t serial, uint32_t mods_depressed,
+void KeyboardGrab::send_modifiers(uint32_t mods_depressed,
     uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
-  zwp_input_method_keyboard_grab_v2_send_modifiers(this->resource_, serial,
-      mods_depressed, mods_latched, mods_locked, group);
+  zwp_input_method_keyboard_grab_v2_send_modifiers(this->resource_,
+      core::server::get().next_serial(), mods_depressed, mods_latched,
+      mods_locked, group);
 }
 
 namespace {

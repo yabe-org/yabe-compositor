@@ -4,11 +4,10 @@
 #include <virtual-keyboard-protocol.h>
 #include <wlr-layer-shell-protocol.h>
 
-#include <wlr/virtual-keyboard/virtual-keyboard-manager.hpp>
-
 #include "common/common.hpp"
 #include "input-method/input-method-manager.hpp"
 #include "layer-shell.hpp"
+#include "virtual-keyboard/virtual-keyboard-manager.hpp"
 
 namespace yabe::proto::wlr {
 bool init(wl_display* display) {

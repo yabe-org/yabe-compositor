@@ -20,6 +20,10 @@ class KeyboardGrab : public std::enable_shared_from_this<KeyboardGrab> {
   void send_modifiers(uint32_t serial, uint32_t mods_depressed,
       uint32_t mods_latched, uint32_t mods_locked, uint32_t group);
 
+  [[nodiscard]] wl_client* owner() const {
+    return wl_resource_get_client(this->resource_);
+  }
+
  private:
   wl_resource* resource_;
 };

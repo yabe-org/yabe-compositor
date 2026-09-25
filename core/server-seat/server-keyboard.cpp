@@ -123,7 +123,10 @@ void ServerKeyboard::send_key(std::shared_ptr<Keyboard> keyboard, uint32_t time,
     uint32_t key, bool is_pressed) {
   this->set_current_keyboard(keyboard);
   if (const auto grab = this->keyboard_grab_.lock()) {
-    grab->send_key(server::get().next_serial(), time, key, is_pressed);
+    const auto keyboard_owner = keyboard->owner();
+    if (!keyboard_owner || keyboard_owner != grab->owner()) {
+      grab->send_key(server::get().next_serial(), time, key, is_pressed);
+    }
     return;
   }
   if (const auto client_seat = get_focused_client_seat()) {
@@ -135,8 +138,11 @@ void ServerKeyboard::send_modifiers(std::shared_ptr<Keyboard> keyboard,
     uint32_t group) {
   this->set_current_keyboard(keyboard);
   if (const auto grab = this->keyboard_grab_.lock()) {
-    grab->send_modifiers(server::get().next_serial(), mods_depressed,
-        mods_latched, mods_locked, group);
+    const auto keyboard_owner = keyboard->owner();
+    if (!keyboard_owner || keyboard_owner != grab->owner()) {
+      grab->send_modifiers(server::get().next_serial(), mods_depressed,
+          mods_latched, mods_locked, group);
+    }
   } else {
     server::get().seat.foreach (
         [mods_depressed, mods_latched, mods_locked, group](

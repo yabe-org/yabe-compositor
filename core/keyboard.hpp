@@ -1,9 +1,11 @@
 #pragma once
 
+#include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "common/common.hpp"
@@ -35,6 +37,7 @@ class Keyboard : public std::enable_shared_from_this<Keyboard> {
   Keyboard();
   ~Keyboard();
 
+  void set_owner(wl_client* client);
   void set_keymap(uint32_t format, int original_fd, size_t size);
   void set_repeat_info(int32_t rate, int32_t delay);
 
@@ -60,6 +63,9 @@ class Keyboard : public std::enable_shared_from_this<Keyboard> {
     return xkb_state_key_get_one_sym(this->xkb_state_, xkb_keycode);
   }
 
+  [[nodiscard]] std::optional<wl_client*> owner() const {
+    return this->owner_;
+  }
   [[nodiscard]] uint32_t keymap_format() const {
     return this->keymap_format_;
   }
@@ -83,6 +89,8 @@ class Keyboard : public std::enable_shared_from_this<Keyboard> {
   [[nodiscard]] wl_array get_pressed_keys() const;
 
  private:
+  std::optional<wl_client*> owner_;
+
   xkb_context* xkb_context_ = nullptr;  // can be null
   xkb_keymap*  xkb_keymap_  = nullptr;
   xkb_state*   xkb_state_   = nullptr;

@@ -3,6 +3,7 @@
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <wayland-server-core.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <cstring>
@@ -63,6 +64,9 @@ Keyboard::~Keyboard() {
   xkb_context_unref(this->xkb_context_);
 }
 
+void Keyboard::set_owner(wl_client* client) {
+  this->owner_ = client;
+}
 void Keyboard::set_keymap(uint32_t format, int original_fd, size_t size) {
   int fd = fcntl(original_fd, F_DUPFD_CLOEXEC, 0);
   if (fd < 0) {

@@ -1,6 +1,7 @@
 srcs += files(
   'buffer.cpp',
   'layer-manager.cpp',
+  'keyboard.cpp',
   'ray-cursor.cpp',
   'region.cpp',
   'server.cpp',

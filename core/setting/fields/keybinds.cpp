@@ -72,8 +72,9 @@ bool Keybinds::try_register_keybind(
       .dispatcher_id = dispatcher_id,
   };
   for (const auto& key : key_strings) {
-    const auto mod_mask =
-        server::get().seat.keyboard.try_convert_to_mod_mask(key.c_str());
+    const auto mod_mask = server::get()
+                              .seat.keyboard.external_keyboard()
+                              ->try_convert_to_mod_mask(key.c_str());
     if (mod_mask != 0) {
       keybind.modifier_mask |= mod_mask;
       continue;

@@ -8,7 +8,7 @@
 #include "common/common.hpp"
 
 namespace yabe::proto::wlr::input_method {
-class KeyboardGrab : std::enable_shared_from_this<KeyboardGrab> {
+class KeyboardGrab : public std::enable_shared_from_this<KeyboardGrab> {
  public:
   DISABLE_MOVE_AND_COPY(KeyboardGrab);
   explicit KeyboardGrab(wl_resource* resource);

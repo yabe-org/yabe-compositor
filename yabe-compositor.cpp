@@ -86,7 +86,7 @@ void yabe_compositor_axis(uint32_t axis, float value) {
 
 void yabe_compositor_key(uint32_t key, bool is_pressed) {
   yabe::core::server::get().enqueue_wayland_thread_task([key, is_pressed]() {
-    yabe::core::server::get().seat.keyboard.handle_keyboard_key(
+    yabe::core::server::get().seat.keyboard.handle_external_keyboard_key(
         key, is_pressed);
   });
 }

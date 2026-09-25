@@ -11,7 +11,6 @@
 
 #include "core/data-device/data-offer.hpp"
 #include "core/data-device/data-source.hpp"
-#include "core/server-seat/server-keyboard.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 #include "protocols/wayland/data-device/data-offer.hpp"
@@ -191,13 +190,14 @@ void DragAndDropPointerGrab::renew_action() {
 
 namespace {
 wl_data_device_manager_dnd_action get_action_selected_by_keyboard() {
-  if (server::get().seat.keyboard.is_mod_pressed(ModKeys::SHIFT)) {
+  const auto keyboard = server::get().seat.keyboard.current_keyboard();
+  if (keyboard->is_mod_pressed(ModKeys::SHIFT)) {
     return WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE;
   }
-  if (server::get().seat.keyboard.is_mod_pressed(ModKeys::CTRL)) {
+  if (keyboard->is_mod_pressed(ModKeys::CTRL)) {
     return WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY;
   }
-  if (server::get().seat.keyboard.is_key_pressed(XKB_KEY_Q)) {
+  if (keyboard->is_key_pressed(XKB_KEY_Q)) {
     return WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK;
   }
   return WL_DATA_DEVICE_MANAGER_DND_ACTION_NONE;

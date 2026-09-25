@@ -32,9 +32,7 @@ class ServerSeat {
   template <typename Func>
   void foreach (Func func) {
     for (auto& [client, client_seat] : this->client_seats_) {
-      if (client_seat) {
-        func(*client_seat);
-      }
+      func(client_seat);
     }
   }
 

@@ -39,6 +39,6 @@ void create(wl_client* client, int version, uint32_t id) {
     return;
   }
   client_seat.value()->keyboard.add_keyboard(resource);
-  core::server::get().seat.keyboard.send_init_events(resource);
+  core::server::get().seat.keyboard.initialize_wl_keyboard(resource);
 }
 }  // namespace yabe::proto::wayland::seat::keyboard

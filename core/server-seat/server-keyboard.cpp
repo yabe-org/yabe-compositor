@@ -143,13 +143,10 @@ void ServerKeyboard::send_modifiers(std::shared_ptr<Keyboard> keyboard,
       grab->send_modifiers(mods_depressed, mods_latched, mods_locked, group);
       return;
     }
-  } else {
-    server::get().seat.foreach (
-        [mods_depressed, mods_latched, mods_locked, group](
-            std::shared_ptr<client_seat::ClientSeat>& client_seat) {
-          client_seat->keyboard.send_modifiers(
-              mods_depressed, mods_latched, mods_locked, group);
-        });
+  }
+  if (const auto client_seat = get_focused_client_seat()) {
+    client_seat.value()->keyboard.send_modifiers(
+        mods_depressed, mods_latched, mods_locked, group);
   }
 }
 void ServerKeyboard::handle_keyboard_keymap_changed(
@@ -284,10 +281,8 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
   if (client_seat) {
     auto pressed_keys = current_keyboard->get_pressed_keys();
     client_seat.value()->keyboard.send_enter(focused_surface, &pressed_keys);
-    client_seat.value()->keyboard.send_modifiers(
-        current_keyboard->mods().depressed, current_keyboard->mods().latched,
-        current_keyboard->mods().locked, current_keyboard->mods().group);
     client_seat.value()->text_input.send_enter(focused_surface);
+    client_seat.value()->keyboard.set_current_keyboard(current_keyboard);
   }
   return true;
 }

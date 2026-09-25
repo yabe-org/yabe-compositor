@@ -1,7 +1,10 @@
 #include "wlr.hpp"
 
 #include <input-method-protocol.h>
+#include <virtual-keyboard-protocol.h>
 #include <wlr-layer-shell-protocol.h>
+
+#include <wlr/virtual-keyboard/virtual-keyboard-manager.hpp>
 
 #include "common/common.hpp"
 #include "input-method/input-method-manager.hpp"
@@ -18,6 +21,12 @@ bool init(wl_display* display) {
           zwp_input_method_manager_v2_interface.version, nullptr,
           input_method::bind)) {
     LOG_ERR("Failed to create global (input_method)");
+    return false;
+  }
+  if (!wl_global_create(display, &zwp_virtual_keyboard_manager_v1_interface,
+          zwp_virtual_keyboard_manager_v1_interface.version, nullptr,
+          virtual_keyboard::bind)) {
+    LOG_ERR("Failed to create global (virtual_keyboard)");
     return false;
   }
 

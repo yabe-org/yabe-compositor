@@ -5,15 +5,16 @@ wayland_protocols_dep      = dependency('wayland-protocols')
 wayland_protocols_base_dir = wayland_protocols_dep.get_variable('pkgdatadir')
 
 foreach name, path : {
-  'input-method'   : join_paths(meson.project_source_root(), '3rdparty/wlroots/protocol/input-method-unstable-v2.xml'),
-  'text-input'     : join_paths(wayland_protocols_base_dir,  'unstable/text-input/text-input-unstable-v3.xml'),
-  'xdg-shell'      : join_paths(wayland_protocols_base_dir,  'stable/xdg-shell/xdg-shell.xml'),
-  'xdg-output'     : join_paths(wayland_protocols_base_dir,  'unstable/xdg-output/xdg-output-unstable-v1.xml'),
-  'wl-workspace'   : join_paths(wayland_protocols_base_dir,  'staging/ext-workspace/ext-workspace-v1.xml'),
-  'wlr-layer-shell': join_paths(meson.project_source_root(), '3rdparty/wlr-protocols/unstable/wlr-layer-shell-unstable-v1.xml'),
-  'zwin'           : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin.xml'),
-  'zwin-shell'     : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-shell.xml'),
-  'zwin-gles-v32'  : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-gles-v32.xml'),
+  'text-input'       : join_paths(wayland_protocols_base_dir,  'unstable/text-input/text-input-unstable-v3.xml'),
+  'xdg-shell'        : join_paths(wayland_protocols_base_dir,  'stable/xdg-shell/xdg-shell.xml'),
+  'xdg-output'       : join_paths(wayland_protocols_base_dir,  'unstable/xdg-output/xdg-output-unstable-v1.xml'),
+  'wl-workspace'     : join_paths(wayland_protocols_base_dir,  'staging/ext-workspace/ext-workspace-v1.xml'),
+  'input-method'     : join_paths(meson.project_source_root(), '3rdparty/wlroots/protocol/input-method-unstable-v2.xml'),
+  'virtual-keyboard' : join_paths(meson.project_source_root(), '3rdparty/wlroots/protocol/virtual-keyboard-unstable-v1.xml'),
+  'wlr-layer-shell'  : join_paths(meson.project_source_root(), '3rdparty/wlr-protocols/unstable/wlr-layer-shell-unstable-v1.xml'),
+  'zwin'             : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin.xml'),
+  'zwin-shell'       : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-shell.xml'),
+  'zwin-gles-v32'    : join_paths(meson.project_source_root(), '3rdparty/zwin/protocol/zwin-gles-v32.xml'),
 }
   filename = name + '-protocol'
   srcs += custom_target(
@@ -80,6 +81,8 @@ srcs += files(
   'wlr/input-method/input-method-manager.cpp',
   'wlr/input-method/input-method.cpp',
   'wlr/input-method/keyboard-grab.cpp',
+  'wlr/virtual-keyboard/virtual-keyboard-manager.cpp',
+  'wlr/virtual-keyboard/virtual-keyboard.cpp',
   'wlr/layer-shell.cpp',
   'wlr/layer-surface.cpp',
   'wlr/wlr.cpp',

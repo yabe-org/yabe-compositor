@@ -209,6 +209,16 @@ void ServerKeyboard::send_initial_events(
 void ServerKeyboard::set_keyboard_grab(
     std::shared_ptr<proto::wlr::input_method::KeyboardGrab>& grab) {
   this->keyboard_grab_ = grab;
+  grab->send_keymap(this->current_keyboard()->keymap_format(),
+      this->current_keyboard()->keymap_fd(),
+      this->current_keyboard()->keymap_size());
+  grab->send_repeat_info(this->current_keyboard()->repeat_rate(),
+      this->current_keyboard()->repeat_delay());
+  grab->send_modifiers(server::get().next_serial(),
+      this->current_keyboard()->mods().depressed,
+      this->current_keyboard()->mods().latched,
+      this->current_keyboard()->mods().locked,
+      this->current_keyboard()->mods().group);
 }
 void ServerKeyboard::try_remove_keyboard_grab(
     std::shared_ptr<proto::wlr::input_method::KeyboardGrab> grab) {

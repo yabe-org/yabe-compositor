@@ -53,8 +53,10 @@ class ServerKeyboard {
   }
 
   [[nodiscard]] std::shared_ptr<Keyboard> current_keyboard() {
-    auto keyboard = this->current_keyboard_.lock();
-    return keyboard ? keyboard : this->external_keyboard_;
+    if (!this->current_keyboard_.lock()) {
+      this->set_current_keyboard(this->external_keyboard_);
+    }
+    return this->current_keyboard_.lock();
   }
   [[nodiscard]] const std::shared_ptr<Keyboard>& external_keyboard() {
     return this->external_keyboard_;

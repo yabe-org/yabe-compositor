@@ -126,8 +126,8 @@ void ServerKeyboard::send_key(std::shared_ptr<Keyboard> keyboard, uint32_t time,
     const auto keyboard_owner = keyboard->owner();
     if (!keyboard_owner || keyboard_owner != grab->owner()) {
       grab->send_key(server::get().next_serial(), time, key, is_pressed);
+      return;
     }
-    return;
   }
   if (const auto client_seat = get_focused_client_seat()) {
     client_seat.value()->keyboard.send_key(time, key, is_pressed);
@@ -141,6 +141,7 @@ void ServerKeyboard::send_modifiers(std::shared_ptr<Keyboard> keyboard,
     const auto keyboard_owner = keyboard->owner();
     if (!keyboard_owner || keyboard_owner != grab->owner()) {
       grab->send_modifiers(mods_depressed, mods_latched, mods_locked, group);
+      return;
     }
   } else {
     server::get().seat.foreach (

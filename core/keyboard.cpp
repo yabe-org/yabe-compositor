@@ -68,6 +68,9 @@ void Keyboard::set_owner(wl_client* client) {
   this->owner_ = client;
 }
 void Keyboard::set_keymap(uint32_t format, int original_fd, size_t size) {
+  if (this->keymap_fd_ == original_fd && this->keymap_size_ == size) {
+    return;
+  }
   int fd = fcntl(original_fd, F_DUPFD_CLOEXEC, 0);
   if (fd < 0) {
     LOG_DBG("Failed to duplicate given fd");
@@ -116,6 +119,9 @@ void Keyboard::set_keymap(uint32_t format, int original_fd, size_t size) {
       this->shared_from_this());
 }
 void Keyboard::set_repeat_info(int32_t rate, int32_t delay) {
+  if (this->repeat_rate_ == rate && this->repeat_delay_ == delay) {
+    return;
+  }
   this->repeat_rate_  = rate;
   this->repeat_delay_ = delay;
   server::get().seat.keyboard.handle_keyboard_repeat_info_changed(

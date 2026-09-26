@@ -5,8 +5,11 @@
 
 #include <memory>
 #include <optional>
+#include <wlr/input-method/input-popup.hpp>
 
+#include "common/box.hpp"
 #include "common/common.hpp"
+#include "core/surface.hpp"
 #include "protocols/wlr/input-method/input-method.hpp"
 
 namespace yabe::core::server_seat {
@@ -27,6 +30,16 @@ class ServerInputMethod {
   void try_clear_current_input_method(
       std::shared_ptr<proto::wlr::input_method::InputMethod>& resource);
 
+  void set_input_popup(
+      std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method,
+      std::shared_ptr<proto::wlr::input_method::InputPopup>&  popup);
+  void try_clear_current_input_popup(
+      std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method);
+  [[nodiscard]] bool has_input_popup() {
+    return this->input_popup_.lock() != nullptr;
+  }
+  void renew_popup_parent(std::shared_ptr<core::Surface>& focused_surface);
+
   void set_commit_string(
       std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method,
       const char*                                             text);
@@ -38,6 +51,7 @@ class ServerInputMethod {
       uint32_t before_length, uint32_t after_length);
   void commit(
       std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method);
+  void set_cursor_rect(const common::Box2D& rect);
 
   void send_activate();
   void send_deactivate();
@@ -48,7 +62,14 @@ class ServerInputMethod {
       uint32_t hint, zwp_text_input_v3_content_purpose purpose);
   void send_done();
 
+  [[nodiscard]]
+  const std::optional<common::Box2D>& current_cursor_rect() {
+    return this->cursor_rect_;
+  }
+
  private:
+  void reposition_popup();
+
   struct {
     std::optional<std::string> commit_string;
     std::optional<std::string> preedit_string;
@@ -57,7 +78,9 @@ class ServerInputMethod {
     std::optional<uint32_t>    before_length = 0;
     std::optional<uint32_t>    after_length  = 0;
   } pending_, current_;
+  std::optional<common::Box2D> cursor_rect_;
 
   std::weak_ptr<proto::wlr::input_method::InputMethod> input_method_;
+  std::weak_ptr<proto::wlr::input_method::InputPopup>  input_popup_;
 };
 }  // namespace yabe::core::server_seat

@@ -3,6 +3,7 @@
 #include <text-input-protocol.h>
 #include <wayland-server-core.h>
 
+#include "common/common.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wayland::text_input {
@@ -40,29 +41,40 @@ void TextInput::set_cursor_rectangle(
 }
 
 void TextInput::commit() {
-  this->current_ = this->pending_;
-  this->pending_ = {};
-
   auto& input_method = core::server::get().seat.input_method;
-  if (this->current_.is_enabled.has_value()) {
+  if (this->pending_.is_enabled.has_value()) {
+    this->current_.is_enabled = this->pending_.is_enabled;
     if (*this->current_.is_enabled) {
       input_method.send_activate();
     } else {
       input_method.send_deactivate();
     }
   }
-  if (this->current_.text) {
+  if (this->pending_.cursor_rect) {
+    this->current_.cursor_rect = this->pending_.cursor_rect;
+    if (this->current_.is_enabled.value_or(false)) {
+      input_method.set_cursor_rect(*this->current_.cursor_rect);
+    }
+  }
+  if (this->pending_.text) {
+    this->current_.text   = this->pending_.text;
+    this->current_.cursor = this->pending_.cursor;
+    this->current_.anchor = this->pending_.anchor;
     input_method.send_surrounding_text(this->current_.text->c_str(),
         *this->current_.cursor, *this->current_.anchor);
   }
-  if (this->current_.cause) {
+  if (this->pending_.cause) {
+    this->current_.cause = this->pending_.cause;
     input_method.send_text_change_cause(*this->current_.cause);
   }
-  if (this->current_.hint) {
+  if (this->pending_.hint) {
+    this->current_.hint    = this->pending_.hint;
+    this->current_.purpose = this->pending_.purpose;
     input_method.send_content_type(
         *this->current_.hint, *this->current_.purpose);
   }
   input_method.send_done();
+  this->pending_ = {};
 }
 
 namespace {

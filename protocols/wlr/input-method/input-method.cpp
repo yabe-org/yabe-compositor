@@ -5,8 +5,10 @@
 #include <wayland-server.h>
 
 #include <memory>
+#include <wlr/input-method/input-popup.hpp>
 
 #include "core/server.hpp"
+#include "core/surface.hpp"
 #include "protocols/wlr/input-method/keyboard-grab.hpp"
 
 namespace yabe::proto::wlr::input_method {
@@ -51,9 +53,21 @@ constexpr struct zwp_input_method_v2_interface kImpl{
           }
         },
     .get_input_popup_surface =
-        [](wl_client* /*client*/, wl_resource* /*resource*/, uint32_t /*id*/,
-            wl_resource* /*surface*/) {
-          // TODO
+        [](wl_client* client, wl_resource* resource, uint32_t id,
+            wl_resource* surface_resource) {
+          auto self = core::server::get().resources.get<InputMethod>(resource);
+          if (!self) {
+            return;
+          }
+          if (core::server::get().seat.input_method.has_input_popup()) {
+            return;
+          }
+          auto surface = core::server::get().resources.get<core::Surface>(
+              surface_resource);
+          if (surface) {
+            create_input_popup(
+                client, wl_resource_get_version(resource), id, self, surface);
+          }
         },
     .grab_keyboard =
         [](wl_client* client, wl_resource* resource, uint32_t id) {

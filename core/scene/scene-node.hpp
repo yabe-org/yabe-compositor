@@ -48,6 +48,9 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const glm::vec3& origin, const glm::vec3& direction,
       const SceneNode* parent, const glm::mat4& parent_world_transform);
 
+  [[nodiscard]] const std::weak_ptr<SceneNode>& parent() const {
+    return this->parent_;
+  }
   [[nodiscard]] common::Geometry& geometry() {
     return this->geometry_;
   }

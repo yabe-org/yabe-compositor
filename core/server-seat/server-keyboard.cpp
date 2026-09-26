@@ -266,11 +266,13 @@ bool ServerKeyboard::set_focused_surface(std::weak_ptr<Surface> surface) {
       client_seat.value()->text_input.send_leave(focused_surface);
     }
   }
-  this->focused_surface_     = surface;
-  const auto focused_surface = surface.lock();
+  this->focused_surface_ = surface;
+  auto focused_surface   = surface.lock();
   if (!focused_surface) {
     return true;
   }
+  server::get().seat.input_method.renew_popup_parent(
+      focused_surface);
   auto current_keyboard = this->current_keyboard_.lock();
   if (!current_keyboard) {
     set_current_keyboard(this->external_keyboard_);

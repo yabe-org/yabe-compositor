@@ -4,6 +4,7 @@
 
 #include <optional>
 
+#include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat {
@@ -19,6 +20,75 @@ void ServerInputMethod::try_clear_current_input_method(
   if (is_current_input_method(resource)) {
     this->input_method_ = {};
   }
+}
+
+void ServerInputMethod::set_input_popup(
+    std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method,
+    std::shared_ptr<proto::wlr::input_method::InputPopup>&  popup) {
+  if (!is_current_input_method(input_method)) {
+    return;
+  }
+  this->input_popup_ = popup;
+  if (this->cursor_rect_) {
+    popup->send_text_input_rectangle(*this->cursor_rect_);
+  }
+  auto focused_surface =
+      server::get().seat.keyboard.get_focused_surface().lock();
+  if (focused_surface) {
+    this->renew_popup_parent(focused_surface);
+  }
+}
+void ServerInputMethod::try_clear_current_input_popup(
+    std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method) {
+  if (is_current_input_method(input_method)) {
+    this->input_popup_ = {};
+  }
+}
+void ServerInputMethod::renew_popup_parent(
+    std::shared_ptr<core::Surface>& focused_surface) {
+  if (!focused_surface || !focused_surface->surface_node()) {
+    return;
+  }
+  const auto popup = this->input_popup_.lock();
+  if (!popup) {
+    return;
+  }
+  const auto surface = popup->surface().lock();
+  if (!surface) {
+    return;
+  }
+  if (surface->surface_node()) {
+    if (*surface->surface_node() ==
+        focused_surface->surface_node().value()->parent().lock()) {
+      return;
+    }
+    surface->unmap();
+  }
+  surface->map(
+      focused_surface->surface_node(), scene::SurfaceNode::Anchor::TOP_LEFT);
+  this->reposition_popup();
+}
+void ServerInputMethod::reposition_popup() {
+  if (!this->cursor_rect_) {
+    return;
+  }
+  const auto popup = this->input_popup_.lock();
+  if (!popup) {
+    return;
+  }
+  const auto surface = popup->surface().lock();
+  if (!surface) {
+    return;
+  }
+  const auto node = surface->surface_node();
+  if (!node) {
+    return;
+  }
+  node.value()->move_absolute({
+      +*this->cursor_rect_->x.to_world_unit(),
+      -*(this->cursor_rect_->y + this->cursor_rect_->height).to_world_unit(),
+      0.F,
+  });
 }
 
 void ServerInputMethod::set_commit_string(
@@ -80,6 +150,13 @@ void ServerInputMethod::commit(
         *this->current_.before_length, *this->current_.after_length);
   }
   client_seat.value()->text_input.send_done(input_method->serial());
+}
+void ServerInputMethod::set_cursor_rect(const common::Box2D& rect) {
+  this->cursor_rect_ = rect;
+  if (const auto popup = this->input_popup_.lock()) {
+    popup->send_text_input_rectangle(rect);
+  }
+  this->reposition_popup();
 }
 
 void ServerInputMethod::send_activate() {

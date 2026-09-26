@@ -80,6 +80,7 @@ srcs += files(
 
   'wlr/input-method/input-method-manager.cpp',
   'wlr/input-method/input-method.cpp',
+  'wlr/input-method/input-popup.cpp',
   'wlr/input-method/keyboard-grab.cpp',
   'wlr/virtual-keyboard/virtual-keyboard-manager.cpp',
   'wlr/virtual-keyboard/virtual-keyboard.cpp',

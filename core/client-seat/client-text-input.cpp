@@ -2,6 +2,9 @@
 
 #include <text-input-protocol.h>
 
+#include "core/server.hpp"
+#include "protocols/wayland/text-input/text-input.hpp"
+
 namespace yabe::core::client_seat {
 void ClientTextInput::add_text_input(wl_resource* resource) {
   LOG_DBG("add text_input#{}", wl_resource_get_id(resource));
@@ -41,9 +44,14 @@ void ClientTextInput::send_delete_surrounding_text(
         resource, before_length, after_length);
   }
 }
-void ClientTextInput::send_done(uint32_t serial) {
+void ClientTextInput::send_done() {
   for (auto* resource : this->text_inputs_) {
-    zwp_text_input_v3_send_done(resource, serial);
+    const auto text_input =
+        server::get().resources.get<proto::wayland::text_input::TextInput>(
+            resource);
+    if (text_input) {
+      zwp_text_input_v3_send_done(resource, text_input->serial());
+    }
   }
 }
 void ClientTextInput::send_action(uint32_t action, uint32_t serial) {

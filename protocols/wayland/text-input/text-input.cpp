@@ -41,6 +41,7 @@ void TextInput::set_cursor_rectangle(
 }
 
 void TextInput::commit() {
+  ++this->serial_;
   auto& input_method = core::server::get().seat.input_method;
   if (this->pending_.is_enabled.has_value()) {
     this->current_.is_enabled = this->pending_.is_enabled;

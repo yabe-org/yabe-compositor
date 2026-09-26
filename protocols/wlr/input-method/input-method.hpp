@@ -12,14 +12,11 @@ class InputMethod {
   explicit InputMethod(wl_resource* resource);
   ~InputMethod() = default;
 
-  uint32_t serial();
-
   [[nodiscard]] wl_resource* resource() const {
     return this->resource_;
   }
 
  private:
-  uint32_t     serial_ = 0;
   wl_resource* resource_;
 };
 

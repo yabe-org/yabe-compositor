@@ -24,7 +24,12 @@ class TextInput {
       int32_t x, int32_t y, int32_t width, int32_t height);
   void commit();
 
+  [[nodiscard]] uint32_t serial() const {
+    return this->serial_;
+  }
+
  private:
+  uint32_t serial_ = 0;
   struct {
     std::optional<bool>                              is_enabled;
     std::optional<std::string>                       text;

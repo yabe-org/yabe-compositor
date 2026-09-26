@@ -149,7 +149,7 @@ void ServerInputMethod::commit(
     client_seat.value()->text_input.send_delete_surrounding_text(
         *this->current_.before_length, *this->current_.after_length);
   }
-  client_seat.value()->text_input.send_done(input_method->serial());
+  client_seat.value()->text_input.send_done();
 }
 void ServerInputMethod::set_cursor_rect(const common::Box2D& rect) {
   this->cursor_rect_ = rect;

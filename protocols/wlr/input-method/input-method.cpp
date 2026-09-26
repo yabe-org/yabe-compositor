@@ -14,9 +14,6 @@
 namespace yabe::proto::wlr::input_method {
 InputMethod::InputMethod(wl_resource* resource) : resource_(resource) {
 }
-uint32_t InputMethod::serial() {
-  return this->serial_++;
-}
 
 namespace {
 constexpr struct zwp_input_method_v2_interface kImpl{

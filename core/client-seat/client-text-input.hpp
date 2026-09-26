@@ -26,7 +26,7 @@ class ClientTextInput {
   void send_commit_string(const char* text);
   void send_delete_surrounding_text(
       uint32_t before_length, uint32_t after_length);
-  void send_done(uint32_t serial);
+  void send_done();
   void send_action(uint32_t action, uint32_t serial);
   void send_language(const char* language);
   void send_preedit_hint(uint32_t start, uint32_t end, uint32_t hint);

@@ -5,12 +5,12 @@
 
 #include <memory>
 #include <optional>
-#include <wlr/input-method/input-popup.hpp>
 
 #include "common/box.hpp"
 #include "common/common.hpp"
 #include "core/surface.hpp"
 #include "protocols/wlr/input-method/input-method.hpp"
+#include "protocols/wlr/input-method/input-popup.hpp"
 
 namespace yabe::core::server_seat {
 class ServerInputMethod {

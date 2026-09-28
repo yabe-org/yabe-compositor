@@ -3,11 +3,11 @@
 #include <wayland-server-core.h>
 
 #include <memory>
-#include <wlr/input-method/input-method.hpp>
 
 #include "common/box.hpp"
 #include "common/common.hpp"
 #include "core/surface.hpp"
+#include "protocols/wlr/input-method/input-method.hpp"
 
 namespace yabe::proto::wlr::input_method {
 class InputPopup : public core::SurfaceRole {

@@ -5,10 +5,10 @@
 #include <wayland-server.h>
 
 #include <memory>
-#include <wlr/input-method/input-popup.hpp>
 
 #include "core/server.hpp"
 #include "core/surface.hpp"
+#include "protocols/wlr/input-method/input-popup.hpp"
 #include "protocols/wlr/input-method/keyboard-grab.hpp"
 
 namespace yabe::proto::wlr::input_method {

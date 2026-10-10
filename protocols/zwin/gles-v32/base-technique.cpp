@@ -4,6 +4,7 @@
 #include <wayland-server.h>
 #include <zwin-gles-v32-protocol.h>
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <utility>
@@ -202,12 +203,31 @@ void BaseTechnique::commit() {
       this->current_.textures.insert_or_assign(
           binding, std::move(texture_binding));
     }
-    this->current_.uniforms.insert(this->current_.uniforms.end(),
-        std::make_move_iterator(this->pending_.uniforms.begin()),
-        std::make_move_iterator(this->pending_.uniforms.end()));
-    this->current_.draws.insert(this->current_.draws.end(),
-        std::make_move_iterator(this->pending_.draws.begin()),
-        std::make_move_iterator(this->pending_.draws.end()));
+    for (auto& uniform : this->pending_.uniforms) {
+      const auto [location, name] = std::visit(
+          [](const auto& u) {
+            return std::pair{u.location, u.name};
+          },
+          uniform);
+      const auto it = std::ranges::find_if(
+          this->current_.uniforms, [&](const Uniform& current) {
+            return std::visit(
+                [&](const auto& u) {
+                  return name.empty() ?
+                             u.name.empty() && u.location == location :
+                             u.name == name;
+                },
+                current);
+          });
+      if (it != this->current_.uniforms.end()) {
+        *it = std::move(uniform);
+      } else {
+        this->current_.uniforms.emplace_back(std::move(uniform));
+      }
+    }
+    if (!this->pending_.draws.empty()) {
+      this->current_.draws = std::move(this->pending_.draws);
+    }
     this->pending_.reset();
   }
   if (const auto program = this->current_.program.lock()) {

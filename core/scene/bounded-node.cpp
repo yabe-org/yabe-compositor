@@ -4,7 +4,6 @@
 
 #include <memory>
 
-#include "common/common.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/shell/bounded.hpp"
 
@@ -12,6 +11,7 @@ namespace yabe::core::scene {
 BoundedNode::BoundedNode(
     const std::shared_ptr<proto::zwin::shell::Bounded>& bounded)
     : bounded_(bounded) {
+  this->geometry().scale() = bounded->half_size() * 2.F;
 }
 
 void BoundedNode::enter(const glm::vec3& origin, const glm::vec3& direction,
@@ -97,8 +97,7 @@ void BoundedNode::draw_self(const glm::mat4& proj_mat,
   if (!bounded) {
     return;
   }
-  const auto model_mat = world_transform * this->geometry().transform_mat();
-  bounded->draw(proj_mat, view_mat, model_mat);
+  bounded->draw(proj_mat, view_mat, world_transform);
 }
 
 [[nodiscard]] std::optional<SceneIntersection>
@@ -111,16 +110,15 @@ BoundedNode::check_intersection_self(const glm::vec3& origin,
   if (!bounded->region()) {
     return std::nullopt;
   }
-  const auto model_mat = world_transform * this->geometry().transform_mat();
   const auto outer_distance = common::intersection::with_obb(
-      origin, direction, bounded->half_size(), model_mat);
+      origin, direction, bounded->half_size(), world_transform);
   if (!outer_distance.has_value()) {
     return std::nullopt;
   }
 
   std::optional<float> inner_min_distance;
   for (const auto& region : bounded->region().value().cuboids()) {
-    const auto inner_mat = model_mat *
+    const auto inner_mat = world_transform *
                            glm::translate(glm::mat4(1.F), region.center) *
                            glm::toMat4(region.rotation);
     const auto result    = common::intersection::with_obb(

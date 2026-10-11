@@ -96,8 +96,7 @@ void ExpansiveNode::draw_self(const glm::mat4& proj_mat,
   if (!expansive) {
     return;
   }
-  const auto model_mat = world_transform * this->geometry().transform_mat();
-  expansive->draw(proj_mat, view_mat, model_mat);
+  expansive->draw(proj_mat, view_mat, world_transform);
 }
 
 std::optional<SceneIntersection> ExpansiveNode::check_intersection_self(
@@ -107,11 +106,9 @@ std::optional<SceneIntersection> ExpansiveNode::check_intersection_self(
   if (!expansive || !expansive->region()) {
     return std::nullopt;
   }
-  const auto model_mat = world_transform * this->geometry().transform_mat();
-
   std::optional<float> min_distance;
   for (const auto& region : expansive->region().value().cuboids()) {
-    const auto region_mat = model_mat *
+    const auto region_mat = world_transform *
                             glm::translate(glm::mat4(1.F), region.center) *
                             glm::toMat4(region.rotation);
     const auto result     = common::intersection::with_obb(

@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <ranges>
+
 #include "core/render/texture.hpp"
+#include "core/scene/decoration-node.hpp"
 #include "scene-node.hpp"
 
 namespace yabe::core::scene {
@@ -15,11 +19,6 @@ class ToplevelGroupNode : public SceneNode {
   void init(std::list<std::shared_ptr<SceneNode>>& node);
   void reconfigure();
 
-  void leave() override;
-  void motion(const glm::vec3& origin, const glm::vec3& direction,
-      const glm::vec3& pos) override;
-  void button(uint32_t button, bool is_pressed) override;
-
  private:
   void prepare_for_draw() override;
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,
@@ -29,9 +28,14 @@ class ToplevelGroupNode : public SceneNode {
       const glm::mat4& world_transform) override;
   void handle_child_erased() override;
 
-  bool is_cursor_on_decoration_ = false;
+  [[nodiscard]] auto toplevels() const {
+    return this->children_ | std::views::filter([](const auto& c) {
+      return !std::dynamic_pointer_cast<DecorationNode>(c);
+    });
+  }
 
-  render::Texture bg_texture_;
-  bool            is_texture_uploaded_ = false;
+  std::shared_ptr<DecorationNode> decoration_;
+  render::Texture                 bg_texture_;
+  bool                            is_texture_uploaded_ = false;
 };
 }  // namespace yabe::core::scene

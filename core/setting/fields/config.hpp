@@ -65,10 +65,16 @@ constexpr auto kConfigTable = schema::table(
       schema::field<"padding", double>(
          "padding around the group",
          0.01
+      )
+  )),
+  schema::field<"decoration">(schema::table(
+      schema::field<"height", int>(
+         "height of the decoration bar (px)",
+         15
       ),
-      schema::field<"decoration_height", double>(
-         "height of the decoration bar, which is used to move the group",
-         0.008
+      schema::field<"offset", int>(
+         "space between the window and the decoration (px)",
+         50
       )
   )),
   schema::field<"pixels_per_meter", double>(

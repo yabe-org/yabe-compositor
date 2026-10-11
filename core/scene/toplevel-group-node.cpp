@@ -1,18 +1,20 @@
 #include "toplevel-group-node.hpp"
 
-#include <linux/input-event-codes.h>
 #include <wayland-server-protocol.h>
 
 #include <core/server.hpp>
 #include <cstdint>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <iterator>
+#include <memory>
 #include <numbers>
 #include <optional>
+#include <ranges>
 
 #include "common/coordinate.hpp"
 #include "common/unit.hpp"
-#include "core/server-seat/pointer-grab/move.hpp"
+#include "core/scene/decoration-node.hpp"
 
 namespace yabe::core::scene {
 namespace {
@@ -20,6 +22,8 @@ constexpr std::array<uint8_t, 4> kTextureColor{
     0x79, 0xc3, 0x98, 0xFF};  // ARGB, little endian
 }  // namespace
 void ToplevelGroupNode::init(std::list<std::shared_ptr<SceneNode>>& nodes) {
+  this->decoration_ = std::make_shared<DecorationNode>();
+  this->add_child(this->decoration_);
   for (auto& n : nodes) {
     this->add_child(n);
   }
@@ -29,8 +33,8 @@ void ToplevelGroupNode::init(std::list<std::shared_ptr<SceneNode>>& nodes) {
   float                min_azimuth = std::numeric_limits<float>::max();
   float                max_azimuth = std::numeric_limits<float>::lowest();
   std::optional<float> base_azimuth;
-  for (const auto& child : this->children_) {
-    const auto pos   = child->geometry().pos();
+  for (const auto& toplevel : this->toplevels()) {
+    const auto pos   = toplevel->geometry().pos();
     auto       coord = common::coordinate::CartesianCoord(pos).to_spherical();
     if (base_azimuth) {
       coord.azimuth =
@@ -59,62 +63,39 @@ void ToplevelGroupNode::init(std::list<std::shared_ptr<SceneNode>>& nodes) {
 void ToplevelGroupNode::reconfigure() {
   float width      = 0.F;
   float max_height = -1.F;
-  for (const auto& child : this->children_) {
-    width += child->geometry().scale().x;
-    max_height = std::max(max_height, child->geometry().scale().y);
+  for (const auto& toplevel : this->toplevels()) {
+    width += toplevel->geometry().scale().x;
+    max_height = std::max(max_height, toplevel->geometry().scale().y);
   }
   const auto padding = static_cast<float>(
       server::get().setting.config.get<"surface_grouping", "padding">());
   const auto spacing = static_cast<float>(
       server::get().setting.config.get<"surface_grouping", "window_spacing">());
-  const auto decoration_height = static_cast<float>(server::get()
-          .setting.config.get<"surface_grouping", "decoration_height">());
-
-  width += (static_cast<float>(spacing) *
-               static_cast<float>(this->children_.size() - 1)) +
-           (2 * padding);
+  width +=
+      (static_cast<float>(spacing) *
+          static_cast<float>(std::ranges::distance(this->toplevels()) - 1)) +
+      (2 * padding);
   this->geometry().scale() = glm::vec3{
       width,
-      max_height + (2 * padding) + decoration_height,
+      max_height + (2 * padding),
       1.F,
   };
 
   // arrange children like a flexbox
   glm::vec3 next_surface_pos{
       -(width / 2.F) + padding,
-      (decoration_height / 2.F),
+      0.F,
       0.F,
   };
-  for (auto& child : this->children_) {
-    next_surface_pos.x += child->geometry().scale().x / 2.F;
-    child->move_absolute(next_surface_pos);
-    child->geometry().rotation() = glm::quat();
-    next_surface_pos.x += (child->geometry().scale().x / 2.F) + spacing;
+  for (const auto& toplevel : this->toplevels()) {
+    next_surface_pos.x += toplevel->geometry().scale().x / 2.F;
+    toplevel->move_absolute(next_surface_pos);
+    toplevel->geometry().rotation() = glm::quat();
+    next_surface_pos.x += (toplevel->geometry().scale().x / 2.F) + spacing;
   }
 
   this->look_at_camera();
-}
-
-void ToplevelGroupNode::leave() {
-  this->is_cursor_on_decoration_ = false;
-}
-void ToplevelGroupNode::motion(const glm::vec3& /*origin*/,
-    const glm::vec3& /*direction*/, const glm::vec3& pos) {
-  const auto distance_from_bottom = this->geometry().scale().y - pos.y;
-  const auto decoration_height    = static_cast<float>(server::get()
-          .setting.config.get<"surface_grouping", "decoration_height">());
-  this->is_cursor_on_decoration_  = distance_from_bottom < decoration_height;
-}
-void ToplevelGroupNode::button(uint32_t button, bool is_pressed) {
-  if (button != BTN_LEFT || !is_pressed) {
-    return;
-  }
-  if (!this->is_cursor_on_decoration_) {
-    return;
-  }
-  core::server::get().seat.pointer.start_grab(
-      core::server_seat::pointer_grab::MovePointerGrab::start(
-          this->shared_from_this()));
+  this->decoration_->reconfigure();
 }
 
 void ToplevelGroupNode::prepare_for_draw() {
@@ -161,7 +142,7 @@ std::optional<SceneIntersection> ToplevelGroupNode::check_intersection_self(
 }
 
 void ToplevelGroupNode::handle_child_erased() {
-  if (this->children_.empty()) {
+  if (std::ranges::empty(this->toplevels())) {
     server::get().enqueue_wayland_thread_task(
         [node = this->shared_from_this()] {
           core::server::get().workspace.current_scene().erase(node);

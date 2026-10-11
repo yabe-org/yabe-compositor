@@ -31,6 +31,7 @@ srcs += files(
   'render/texture.cpp',
 
   'scene/bounded-node.cpp',
+  'scene/decoration-node.cpp',
   'scene/expansive-node.cpp',
   'scene/scene-node.cpp',
   'scene/scene.cpp',

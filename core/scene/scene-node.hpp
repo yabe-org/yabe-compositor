@@ -62,6 +62,11 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   [[nodiscard]] virtual wl_client* data_device_target() const {
     return nullptr;
   }
+  /// the node that should become active when this node is clicked
+  /// nullptr means that the current active node should be kept
+  [[nodiscard]] virtual std::shared_ptr<SceneNode> activation_target() {
+    return this->shared_from_this();
+  }
   [[nodiscard]] bool has_child() const {
     return !this->children_.empty();
   }

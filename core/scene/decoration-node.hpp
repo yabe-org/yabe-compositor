@@ -15,6 +15,8 @@ class DecorationNode : public SceneNode {
 
   void button(uint32_t button, bool is_pressed) override;
 
+  [[nodiscard]] std::shared_ptr<SceneNode> activation_target() override;
+
  private:
   void prepare_for_draw() override;
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,

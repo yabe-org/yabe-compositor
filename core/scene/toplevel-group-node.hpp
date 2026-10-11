@@ -19,6 +19,10 @@ class ToplevelGroupNode : public SceneNode {
   void init(std::list<std::shared_ptr<SceneNode>>& node);
   void reconfigure();
 
+  [[nodiscard]] std::shared_ptr<SceneNode> activation_target() override {
+    return nullptr;
+  }
+
  private:
   void prepare_for_draw() override;
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,

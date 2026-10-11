@@ -27,8 +27,12 @@ void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
   const auto pointer_focused_scene_node =
       server::get().seat.pointer.get_focused_scene_node().lock();
   if (is_pressed) {
-    server::get().workspace.current_scene().set_active_node(
-        pointer_focused_scene_node);
+    if (!pointer_focused_scene_node) {
+      server::get().workspace.current_scene().set_active_node({});
+    } else if (const auto target =
+                   pointer_focused_scene_node->activation_target()) {
+      server::get().workspace.current_scene().set_active_node(target);
+    }
   }
   if (!pointer_focused_scene_node) {
     if (is_pressed && button == BTN_RIGHT &&

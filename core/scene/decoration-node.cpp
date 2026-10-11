@@ -50,6 +50,14 @@ void DecorationNode::button(uint32_t button, bool is_pressed) {
       core::server_seat::pointer_grab::MovePointerGrab::start(parent));
 }
 
+std::shared_ptr<SceneNode> DecorationNode::activation_target() {
+  const auto parent = this->parent().lock();
+  if (!parent) {
+    return nullptr;
+  }
+  return parent->activation_target();
+}
+
 void DecorationNode::prepare_for_draw() {
   if (!this->is_texture_uploaded_) {
     const common::unit::Pixel size{1};

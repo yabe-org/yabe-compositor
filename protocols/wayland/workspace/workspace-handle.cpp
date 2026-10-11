@@ -16,6 +16,11 @@ void WorkspaceHandle::activate() const {
   core::server::get().workspace.set_current_scene_index(this->index_);
 }
 
+void WorkspaceHandle::send_state(bool is_active) {
+  ext_workspace_handle_v1_send_state(
+      this->resource_, is_active ? EXT_WORKSPACE_HANDLE_V1_STATE_ACTIVE : 0);
+}
+
 namespace {
 constexpr struct ext_workspace_handle_v1_interface kImpl = {
     .destroy =
@@ -74,10 +79,9 @@ std::shared_ptr<WorkspaceHandle> create_workspace_handle(wl_client* client,
   // according to the protocol, id and coordinates are optional
   ext_workspace_handle_v1_send_name(
       resource, std::to_string(workspace_index).c_str());
-  ext_workspace_handle_v1_send_state(
-      resource, is_active ? EXT_WORKSPACE_HANDLE_V1_STATE_ACTIVE : 0);
   ext_workspace_handle_v1_send_capabilities(
       resource, EXT_WORKSPACE_HANDLE_V1_WORKSPACE_CAPABILITIES_ACTIVATE);
+  self->send_state(is_active);
 
   return self;
 }

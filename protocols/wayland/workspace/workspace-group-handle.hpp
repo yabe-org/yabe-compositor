@@ -7,10 +7,9 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "workspace.hpp"
 
 namespace yabe::proto::wayland::workspace {
-class WorkspaceHandle;
-
 class WorkspaceGroupHandle {
  public:
   DISABLE_MOVE_AND_COPY(WorkspaceGroupHandle);
@@ -29,5 +28,6 @@ class WorkspaceGroupHandle {
 };
 
 std::shared_ptr<WorkspaceGroupHandle> create_workspace_group_handle(
-    wl_client* client, uint32_t version, wl_resource* workspace_manager);
+    wl_client* client, uint32_t version,
+    const std::shared_ptr<WorkspaceManager>& manager);
 }  // namespace yabe::proto::wayland::workspace

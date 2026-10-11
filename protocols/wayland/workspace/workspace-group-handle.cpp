@@ -4,6 +4,8 @@
 #include <wayland-server-protocol.h>
 #include <wl-workspace-protocol.h>
 
+#include <memory>
+
 #include "core/server.hpp"
 #include "protocols/wayland/workspace/workspace-handle.hpp"
 
@@ -12,12 +14,12 @@ WorkspaceGroupHandle::WorkspaceGroupHandle(wl_resource* resource)
     : resource_(resource) {
 }
 void WorkspaceGroupHandle::output_enter(wl_resource* output) const {
-  ext_workspace_group_handle_v1_send_output_enter(resource_, output);
+  ext_workspace_group_handle_v1_send_output_enter(this->resource_, output);
 }
 void WorkspaceGroupHandle::workspace_enter(
     const std::shared_ptr<WorkspaceHandle>& workspace) const {
   ext_workspace_group_handle_v1_send_workspace_enter(
-      resource_, workspace->resource());
+      this->resource_, workspace->resource());
 }
 
 namespace {
@@ -40,7 +42,8 @@ void handle_destruction(wl_resource* resource) {
 }  // namespace
 
 std::shared_ptr<WorkspaceGroupHandle> create_workspace_group_handle(
-    wl_client* client, uint32_t version, wl_resource* workspace_manager) {
+    wl_client* client, uint32_t version,
+    const std::shared_ptr<WorkspaceManager>& manager) {
   wl_resource* resource = wl_resource_create(client,
       &ext_workspace_group_handle_v1_interface, static_cast<int>(version), 0);
   if (resource == nullptr) {
@@ -53,7 +56,7 @@ std::shared_ptr<WorkspaceGroupHandle> create_workspace_group_handle(
   core::server::get().resources.add(resource, self);
 
   // NOLINTNEXTLINE(readability-suspicious-call-argument)
-  ext_workspace_manager_v1_send_workspace_group(workspace_manager, resource);
+  ext_workspace_manager_v1_send_workspace_group(manager->resource(), resource);
   const auto output = core::server::get().output_map.find(client);
   if (output != core::server::get().output_map.end()) {
     self->output_enter(output->second);

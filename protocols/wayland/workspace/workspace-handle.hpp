@@ -18,6 +18,8 @@ class WorkspaceHandle {
 
   void activate() const;
 
+  void send_state(bool is_active);
+
   [[nodiscard]] wl_resource* resource() const {
     return resource_;
   }

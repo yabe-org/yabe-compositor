@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "core/scene/decoration-node.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
@@ -16,7 +17,9 @@
 namespace yabe::proto::xdg::shell::xdg_toplevel {
 XdgToplevel::XdgToplevel(
     wl_resource* resource, std::weak_ptr<xdg_surface::XdgSurface>&& surface)
-    : resource_(resource), xdg_surface_(std::move(surface)) {
+    : resource_(resource)
+    , decoration_(std::make_shared<core::scene::DecorationNode>())
+    , xdg_surface_(std::move(surface)) {
   LOG_DBG("xdg_toplevel#{}: created", wl_resource_get_id(resource));
 }
 XdgToplevel::~XdgToplevel() {
@@ -46,7 +49,12 @@ void XdgToplevel::commit() {
 }
 
 void XdgToplevel::map() {
-  this->xdg_surface_.lock()->wl_surface().lock()->map();
+  const auto surface = this->xdg_surface_.lock()->wl_surface().lock();
+  if (!surface) {
+    return;
+  }
+  surface->map();
+  surface->surface_node().value()->add_child(this->decoration_);
 }
 void XdgToplevel::set_activated(bool is_activated) {
   this->is_activated_ = is_activated;

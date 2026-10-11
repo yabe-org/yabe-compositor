@@ -3,6 +3,7 @@
 #include <zwin-shell-protocol.h>
 
 #include "common/convert-wl-array.hpp"
+#include "core/scene/decoration-node.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server.hpp"
 #include "protocols/zwin/region.hpp"
@@ -45,6 +46,8 @@ void Bounded::map() {
   }
   this->scene_node_ =
       std::make_shared<core::scene::BoundedNode>(this->shared_from_this());
+  this->decoration_ = std::make_shared<core::scene::DecorationNode>();
+  this->scene_node_.value()->add_child(this->decoration_);
   core::server::get().workspace.current_scene().insert(
       this->scene_node_.value());
 }

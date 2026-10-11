@@ -8,6 +8,7 @@
 
 #include "common/common.hpp"
 #include "core/scene/bounded-node.hpp"
+#include "core/scene/decoration-node.hpp"
 #include "protocols/zwin/region.hpp"
 #include "protocols/zwin/shell/app.hpp"
 #include "protocols/zwin/virtual-object.hpp"
@@ -50,6 +51,7 @@ class Bounded : public std::enable_shared_from_this<Bounded>, public ZwinApp {
 
   std::optional<compositor::Region> region_;
 
+  std::shared_ptr<core::scene::DecorationNode>             decoration_;
   std::optional<std::shared_ptr<core::scene::BoundedNode>> scene_node_ =
       std::nullopt;
 };

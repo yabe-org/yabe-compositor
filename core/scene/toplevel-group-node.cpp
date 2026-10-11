@@ -95,7 +95,6 @@ void ToplevelGroupNode::reconfigure() {
   }
 
   this->look_at_camera();
-  this->decoration_->reconfigure();
 }
 
 void ToplevelGroupNode::prepare_for_draw() {

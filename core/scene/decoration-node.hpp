@@ -11,8 +11,6 @@ class DecorationNode : public SceneNode {
   DecorationNode()           = default;
   ~DecorationNode() override = default;
 
-  void reconfigure();
-
   void button(uint32_t button, bool is_pressed) override;
 
   [[nodiscard]] std::shared_ptr<SceneNode> activation_target() override;

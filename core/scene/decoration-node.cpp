@@ -16,28 +16,6 @@ constexpr std::array<uint8_t, 4> kTextureColor{
     0x79, 0xc3, 0x98, 0xFF};  // ARGB, little endian
 }  // namespace
 
-void DecorationNode::reconfigure() {
-  const auto parent = this->parent().lock();
-  if (!parent) {
-    return;
-  }
-  const common::unit::Pixel offset(
-      server::get().setting.config.get<"decoration", "offset">());
-  const common::unit::Pixel height(
-      server::get().setting.config.get<"decoration", "height">());
-  this->geometry().pos() = glm::vec3{
-      0.F,
-      -(parent->geometry().scale().y / 2.F) - (*height.to_world_unit() / 2.F) -
-          *offset.to_world_unit(),
-      0.F,
-  };
-  this->geometry().scale() = glm::vec3{
-      parent->geometry().scale().x,
-      *height.to_world_unit(),
-      1.F,
-  };
-}
-
 void DecorationNode::button(uint32_t button, bool is_pressed) {
   if (button != BTN_LEFT || !is_pressed) {
     return;
@@ -65,9 +43,42 @@ void DecorationNode::prepare_for_draw() {
         (void*)(&kTextureColor), WL_SHM_FORMAT_ARGB8888, size, size, 1);
     this->is_texture_uploaded_ = true;
   }
+  // update geometry here because it's difficult to detect
+  // when the node size is changed in current implementation
+  // ex: XdgToplevel has a DecorationNode but the Surface size is
+  //     not yet changed at XdgToplevel::commit()
+  const auto parent = this->parent().lock();
+  if (!parent) {
+    return;
+  }
+  const common::unit::Pixel offset(
+      server::get().setting.config.get<"decoration", "offset">());
+  const common::unit::Pixel height(
+      server::get().setting.config.get<"decoration", "height">());
+  this->geometry().pos() = glm::vec3{
+      0.F,
+      -(parent->geometry().scale().y / 2.F) - (*height.to_world_unit() / 2.F) -
+          *offset.to_world_unit(),
+      0.F,
+  };
+  this->geometry().scale() = glm::vec3{
+      parent->geometry().scale().x,
+      *height.to_world_unit(),
+      1.F,
+  };
 }
 void DecorationNode::draw_self(const glm::mat4& proj_mat,
     const glm::mat4& view_mat, const glm::mat4& world_transform) {
+  const auto parent = this->parent().lock();
+  if (!parent) {
+    return;
+  }
+  // if the parent is owned by another parent
+  // (ex: Toplevel is wrapped by ToplevelGroup),
+  // decoration should be hidden
+  if (parent->parent().lock()) {
+    return;
+  }
   const auto model_mat = proj_mat * view_mat * world_transform *
                          glm::scale(glm::mat4(1.F), this->geometry().scale());
   server::get().rect_renderer.render(model_mat, this->texture_);

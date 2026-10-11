@@ -24,6 +24,8 @@ class DecorationNode : public SceneNode {
       const glm::vec3& origin, const glm::vec3& direction,
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
 
+  [[nodiscard]] bool is_hidden() REQUIRES(Scene::mutex);
+
   render::Texture texture_;
   bool            is_texture_uploaded_ = false;
 };

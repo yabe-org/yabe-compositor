@@ -4,6 +4,7 @@
 #include <wayland-server-protocol.h>
 
 #include <glm/ext.hpp>
+#include <optional>
 
 #include "common/unit.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
@@ -23,11 +24,13 @@ void DecorationNode::button(uint32_t button, bool is_pressed) {
   std::shared_ptr<SceneNode> parent;
   {
     const auto lock = Scene::mutex.lock();
-    parent          = this->parent().lock();
+    if (this->is_hidden()) {
+      return;
+    }
+    parent = this->parent().lock();
   }
-  if (!parent) {
-    return;
-  }
+  // parent is valid; ensured by is_hidden()
+  // (it returns true if the parent is invalid)
   core::server::get().seat.pointer.start_grab(
       core::server_seat::pointer_grab::MovePointerGrab::start(parent));
 }
@@ -77,14 +80,7 @@ void DecorationNode::prepare_for_draw() {
 }
 void DecorationNode::draw_self(const glm::mat4& proj_mat,
     const glm::mat4& view_mat, const glm::mat4& world_transform) {
-  const auto parent = this->parent().lock();
-  if (!parent) {
-    return;
-  }
-  // if the parent is owned by another parent
-  // (ex: Toplevel is wrapped by ToplevelGroup),
-  // decoration should be hidden
-  if (parent->parent().lock()) {
+  if (this->is_hidden()) {
     return;
   }
   const auto model_mat = proj_mat * view_mat * world_transform *
@@ -95,6 +91,9 @@ void DecorationNode::draw_self(const glm::mat4& proj_mat,
 std::optional<SceneIntersection> DecorationNode::check_intersection_self(
     const glm::vec3& origin, const glm::vec3& direction,
     const glm::mat4& world_transform) {
+  if (this->is_hidden()) {
+    return std::nullopt;
+  }
   const auto geom_mat =
       world_transform * glm::scale(glm::mat4(1.F), this->geometry().scale());
   glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
@@ -118,5 +117,16 @@ std::optional<SceneIntersection> DecorationNode::check_intersection_self(
       .intersect_info = {.distance = result->distance,
                          .pos                     = glm::vec3{x, y, 0.F}},
   };
+}
+
+bool DecorationNode::is_hidden() {
+  const auto parent = this->parent().lock();
+  if (!parent) {
+    return true;
+  }
+  // if the parent is owned by another parent
+  // (ex: Toplevel is wrapped by ToplevelGroup),
+  // decoration should be hidden
+  return parent->parent().lock() != nullptr;
 }
 }  // namespace yabe::core::scene

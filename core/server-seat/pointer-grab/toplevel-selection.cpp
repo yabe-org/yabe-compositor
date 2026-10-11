@@ -52,7 +52,10 @@ void ToplevelSelectionPointerGrab::button(uint32_t button, bool is_pressed) {
   }
 
   auto group_node = std::make_shared<scene::ToplevelGroupNode>();
-  group_node->init(extracted_nodes);
+  {
+    const auto lock = scene::Scene::mutex.lock();
+    group_node->init(extracted_nodes);
+  }
   server::get().workspace.current_scene().insert(std::move(group_node));
   server::get().seat.pointer.end_grab();
 }

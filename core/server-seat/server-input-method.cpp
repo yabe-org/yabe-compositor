@@ -58,8 +58,14 @@ void ServerInputMethod::renew_popup_parent(
     return;
   }
   if (surface->surface_node()) {
-    if (*surface->surface_node() ==
-        focused_surface->surface_node().value()->parent().lock()) {
+    bool is_parent_focused = false;
+    {
+      const auto lock = scene::Scene::mutex.lock();
+      is_parent_focused =
+          *surface->surface_node() ==
+          focused_surface->surface_node().value()->parent().lock();
+    }
+    if (is_parent_focused) {
       return;
     }
     surface->unmap();

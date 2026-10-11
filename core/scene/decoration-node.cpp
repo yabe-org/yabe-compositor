@@ -20,7 +20,11 @@ void DecorationNode::button(uint32_t button, bool is_pressed) {
   if (button != BTN_LEFT || !is_pressed) {
     return;
   }
-  const auto parent = this->parent().lock();
+  std::shared_ptr<SceneNode> parent;
+  {
+    const auto lock = Scene::mutex.lock();
+    parent          = this->parent().lock();
+  }
   if (!parent) {
     return;
   }
@@ -29,7 +33,11 @@ void DecorationNode::button(uint32_t button, bool is_pressed) {
 }
 
 std::shared_ptr<SceneNode> DecorationNode::activation_target() {
-  const auto parent = this->parent().lock();
+  std::shared_ptr<SceneNode> parent;
+  {
+    const auto lock = Scene::mutex.lock();
+    parent          = this->parent().lock();
+  }
   if (!parent) {
     return nullptr;
   }

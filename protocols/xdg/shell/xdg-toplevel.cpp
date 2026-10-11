@@ -54,6 +54,7 @@ void XdgToplevel::map() {
     return;
   }
   surface->map();
+  const auto lock = core::scene::Scene::mutex.lock();
   surface->surface_node().value()->add_child(this->decoration_);
 }
 void XdgToplevel::set_activated(bool is_activated) {

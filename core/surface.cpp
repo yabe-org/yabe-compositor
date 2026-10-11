@@ -173,6 +173,7 @@ void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,
     scale.y     = *this->texture_height_.to_world_unit();
   }
   if (parent.has_value()) {
+    const auto lock = scene::Scene::mutex.lock();
     parent.value()->add_child(this->surface_node_.value());
   } else {
     server::get().workspace.current_scene().insert(this->surface_node_.value());

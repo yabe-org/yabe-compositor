@@ -28,15 +28,20 @@ void SceneNode::add_child(std::shared_ptr<SceneNode> child) {
 }
 // NOLINTNEXTLINE(misc-no-recursion): ???
 bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
-  return std::ranges::any_of(this->children_, [&](const auto& it) {
-    if (it == child) {
-      it->parent_.reset();
-      this->children_.remove(it);
+  // do not use a lambda (e.g. std::ranges::any_of) because Thread Safety
+  // Analysis does not know that the lambda is called with the lock held
+  for (auto it = this->children_.begin(); it != this->children_.end(); ++it) {
+    if (*it == child) {
+      child->parent_.reset();
+      this->children_.erase(it);
       this->handle_child_erased();
       return true;
     }
-    return it->try_erace_child(child);
-  });
+    if ((*it)->try_erace_child(child)) {
+      return true;
+    }
+  }
+  return false;
 }
 bool SceneNode::try_raise_child_to_front(
     const std::shared_ptr<SceneNode>& child) {

@@ -16,12 +16,12 @@ void Scene::insert(std::shared_ptr<SceneNode>&& node) {
   if (!this->active_node_.lock()) {
     this->set_active_node(node);
   }
-  const std::lock_guard<std::mutex> lock(this->mutex_);
+  const auto lock = Scene::mutex.lock();
   this->nodes_.emplace_back(std::move(node));
 }
 
 void Scene::erase(const std::shared_ptr<SceneNode>& node) {
-  const std::lock_guard<std::mutex> lock(this->mutex_);
+  const auto lock = Scene::mutex.lock();
   for (auto& it : this->nodes_) {
     if (it == node) {
       this->nodes_.remove(it);
@@ -34,8 +34,8 @@ void Scene::erase(const std::shared_ptr<SceneNode>& node) {
 }
 
 void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
-  const std::lock_guard<std::mutex> lock(this->mutex_);
-  auto it = std::find(this->nodes_.begin(), this->nodes_.end(), node);
+  const auto lock = Scene::mutex.lock();
+  auto       it   = std::find(this->nodes_.begin(), this->nodes_.end(), node);
   if (it != this->nodes_.end()) {
     this->nodes_.splice(this->nodes_.end(), this->nodes_, it);
     return;
@@ -91,7 +91,7 @@ void Scene::focus_to_active_node() {
 
 std::list<std::shared_ptr<SceneNode>>
 Scene::extract_lasso_selected_surface_nodes(std::span<RayState> lasso_points) {
-  const std::lock_guard<std::mutex>     lock(this->mutex_);
+  const auto                            lock = Scene::mutex.lock();
   std::list<std::shared_ptr<SceneNode>> result;
   for (auto node_it = this->nodes_.begin(); node_it != this->nodes_.end();) {
     {
@@ -196,7 +196,7 @@ Scene::extract_lasso_selected_surface_nodes(std::span<RayState> lasso_points) {
 }
 
 void Scene::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat) {
-  const std::lock_guard<std::mutex> lock(this->mutex_);
+  const auto lock = Scene::mutex.lock();
   for (const auto& node : this->nodes_) {
     node->draw(proj_mat, view_mat, nullptr, glm::mat4(1.F));
   }
@@ -204,7 +204,7 @@ void Scene::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat) {
 
 std::optional<SceneIntersection> Scene::get_nearest_intersection(
     const glm::vec3& origin, const glm::vec3& direction) {
-  const std::lock_guard<std::mutex> lock(this->mutex_);
+  const auto lock = Scene::mutex.lock();
   for (const auto& node : this->nodes_ | std::views::reverse) {
     const auto intersection =
         node->check_intersection(origin, direction, nullptr, glm::mat4(1.F));

@@ -10,6 +10,10 @@ add_project_arguments([
   '-DGLM_ENABLE_EXPERIMENTAL',
   '-Wno-gnu-zero-variadic-macro-arguments',
 ], language: 'cpp')
+if meson.get_compiler('cpp').get_id() == 'clang'
+  # check annotations in common/thread-safety.hpp
+  add_project_arguments('-Wthread-safety', language: 'cpp')
+endif
 
 libffi_sp            = subproject('libffi', default_options: ['tests=false'])
 wayland_sp           = subproject('wayland', default_options: ['tests=false', 'documentation=false', 'scanner=false', 'dtd_validation=false', 'default_library=static'])

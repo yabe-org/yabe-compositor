@@ -37,15 +37,15 @@ class SurfaceNode : public SceneNode {
   [[nodiscard]] std::shared_ptr<Surface> surface() const {
     return this->surface_.lock();
   }
-  [[nodiscard]] glm::mat4 model_mat() const;
+  [[nodiscard]] glm::mat4 model_mat() const REQUIRES(Scene::mutex);
 
  private:
-  void prepare_for_draw() override;
+  void prepare_for_draw() override REQUIRES(Scene::mutex);
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,
-      const glm::mat4& world_transform) override;
+      const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
   [[nodiscard]] std::optional<SceneIntersection> check_intersection_self(
       const glm::vec3& origin, const glm::vec3& direction,
-      const glm::mat4& world_transform) override;
+      const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
   [[nodiscard]] glm::mat4 resolve_world_transform(const SceneNode* parent,
       const glm::mat4& parent_world_transform) const override;
 

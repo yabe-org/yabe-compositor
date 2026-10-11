@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wayland-server-core.h>
+
 #include <list>
 #include <memory>
 

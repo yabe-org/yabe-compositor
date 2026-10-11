@@ -47,7 +47,10 @@ void Bounded::map() {
   this->scene_node_ =
       std::make_shared<core::scene::BoundedNode>(this->shared_from_this());
   this->decoration_ = std::make_shared<core::scene::DecorationNode>();
-  this->scene_node_.value()->add_child(this->decoration_);
+  {
+    const auto lock = core::scene::Scene::mutex.lock();
+    this->scene_node_.value()->add_child(this->decoration_);
+  }
   core::server::get().workspace.current_scene().insert(
       this->scene_node_.value());
 }

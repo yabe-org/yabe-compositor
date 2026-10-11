@@ -19,6 +19,9 @@ std::optional<SurfaceInfo> with_surface(const glm::vec3& origin,
     const glm::vec3& direction, const glm::vec3& vert_left_bottom,
     const glm::vec3& vert_right_bottom, const glm::vec3& vert_left_top);
 
+std::optional<SurfaceInfo> with_surface(const glm::vec3& origin,
+    const glm::vec3& direction, const glm::mat4& geometry_matrix);
+
 /// return distance if the vector is intersected with oriented bounding box
 /// @param origin    The starting point of the vector
 /// @param direction The direction of the vector

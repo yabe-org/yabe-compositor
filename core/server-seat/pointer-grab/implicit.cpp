@@ -36,12 +36,9 @@ void ImplicitPointerGrab::move_relative(float dx, float dy) {
     const auto lock = scene::Scene::mutex.lock();
     geom_mat        = scene_node->model_mat();
   }
-  glm::vec3 vert_left_bottom  = geom_mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
-  glm::vec3 vert_right_bottom = geom_mat * glm::vec4(+0.5F, -0.5F, 0.F, 1.F);
-  glm::vec3 vert_left_top     = geom_mat * glm::vec4(-0.5F, +0.5F, 0.F, 1.F);
-  auto      result            = common::intersection::with_surface(
-      server::get().ray_cursor.origin(), server::get().ray_cursor.direction(),
-      vert_left_bottom, vert_right_bottom, vert_left_top);
+  auto result =
+      common::intersection::with_surface(server::get().ray_cursor.origin(),
+          server::get().ray_cursor.direction(), geom_mat);
   if (!result.has_value()) {
     server::get().seat.pointer.end_grab();
     return;

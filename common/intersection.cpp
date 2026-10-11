@@ -40,6 +40,15 @@ std::optional<SurfaceInfo> with_surface(const glm::vec3& o,
   };
 }
 
+std::optional<SurfaceInfo> with_surface(
+    const glm::vec3& origin, const glm::vec3& direction, const glm::mat4& mat) {
+  glm::vec3 vert_left_bottom  = mat * glm::vec4(-0.5F, -0.5F, 0.F, 1.F);
+  glm::vec3 vert_right_bottom = mat * glm::vec4(+0.5F, -0.5F, 0.F, 1.F);
+  glm::vec3 vert_left_top     = mat * glm::vec4(-0.5F, +0.5F, 0.F, 1.F);
+  return common::intersection::with_surface(
+      origin, direction, vert_left_bottom, vert_right_bottom, vert_left_top);
+}
+
 // based
 // https://www.opengl-tutorial.org/jp/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/
 std::optional<float> with_obb(const glm::vec3& origin,

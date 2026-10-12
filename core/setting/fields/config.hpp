@@ -67,13 +67,19 @@ constexpr auto kConfigTable = schema::table(
          0.01
       )
   )),
+  schema::field<"window">(schema::table(
+      schema::field<"resize_handle_threshold", int>(
+         "length to show the resize handle (px). set zero to disable",
+         50
+      )
+  )),
   schema::field<"decoration">(schema::table(
       schema::field<"height", int>(
          "height of the decoration bar (px)",
          50
       ),
       schema::field<"offset", int>(
-         "space between the window and the decoration (px)",
+         "space between contents (ex: window) and the decoration (px)",
          15
       )
   )),

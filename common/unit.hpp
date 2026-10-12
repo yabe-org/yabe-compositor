@@ -10,6 +10,8 @@ struct Pixel;
 struct WorldUnit {
   float value;
 
+  auto operator<=>(const WorldUnit& other) const = default;
+
   WorldUnit operator+(const WorldUnit& other) const {
     return WorldUnit{this->value + other.value};
   }

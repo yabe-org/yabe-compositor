@@ -7,6 +7,7 @@
 
 #include "common/common.hpp"
 #include "core/scene/decoration-node.hpp"
+#include "core/scene/resize-handle-node.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/surface.hpp"
 #include "core/toplevel.hpp"
@@ -41,11 +42,14 @@ class XdgToplevel : public core::SurfaceRole,
  private:
   void send_configure(int32_t width, int32_t height);
 
-  wl_resource*                                 resource_;
-  std::shared_ptr<core::scene::DecorationNode> decoration_;
-  std::weak_ptr<xdg_surface::XdgSurface>       xdg_surface_;
-  bool                                         is_initial_commit_sent_ = false;
-  bool                                         is_activated_           = false;
+  wl_resource* resource_;
+
+  std::shared_ptr<core::scene::DecorationNode>   decoration_;
+  std::shared_ptr<core::scene::ResizeHandleNode> resize_handle_;
+  std::weak_ptr<xdg_surface::XdgSurface>         xdg_surface_;
+
+  bool is_initial_commit_sent_ = false;
+  bool is_activated_           = false;
 };
 
 wl_resource* create(wl_client* client, int version, uint32_t id,

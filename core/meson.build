@@ -33,6 +33,7 @@ srcs += files(
   'scene/bounded-node.cpp',
   'scene/decoration-node.cpp',
   'scene/expansive-node.cpp',
+  'scene/resize-handle-node.cpp',
   'scene/scene-node.cpp',
   'scene/scene.cpp',
   'scene/surface-node.cpp',

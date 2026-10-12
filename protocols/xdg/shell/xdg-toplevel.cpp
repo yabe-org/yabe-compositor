@@ -8,6 +8,7 @@
 
 #include "common/common.hpp"
 #include "core/scene/decoration-node.hpp"
+#include "core/scene/resize-handle-node.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
@@ -54,8 +55,12 @@ void XdgToplevel::map() {
     return;
   }
   surface->map();
+  const auto node = surface->surface_node().value();
+  this->resize_handle_ =
+      std::make_shared<core::scene::ResizeHandleNode>(this->shared_from_this());
   const auto lock = core::scene::Scene::mutex.lock();
-  surface->surface_node().value()->add_child(this->decoration_);
+  node->add_child(this->decoration_);
+  node->add_child(this->resize_handle_);
 }
 void XdgToplevel::set_activated(bool is_activated) {
   this->is_activated_ = is_activated;

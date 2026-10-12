@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "common/edge.hpp"
 #include "common/unit.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
 #include "protocols/xdg/shell/xdg-toplevel.hpp"
@@ -16,7 +17,7 @@ class ResizePointerGrab final : public PointerGrab {
   // But how can I retrieve XdgToplevel from Toplevel?
   static ResizePointerGrab* start(
       std::weak_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel>&& toplevel,
-      uint32_t                                                      edges);
+      common::Edge                                                  edges);
 
   void cleanup() override;
   void move_relative(float dx, float dy) override;
@@ -26,7 +27,7 @@ class ResizePointerGrab final : public PointerGrab {
   explicit ResizePointerGrab() = default;
   ~ResizePointerGrab()         = default;
 
-  uint32_t            edges_ = 0;
+  common::Edge        edges_;
   common::unit::Pixel initial_width_{0};
   common::unit::Pixel initial_height_{0};
   glm::vec3           initial_toplevel_pos_{0.F};

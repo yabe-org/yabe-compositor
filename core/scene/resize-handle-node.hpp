@@ -4,6 +4,8 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "common/edge.hpp"
+#include "common/thread-safety.hpp"
 #include "scene-node.hpp"
 
 namespace yabe::proto::xdg::shell::xdg_toplevel {
@@ -35,8 +37,8 @@ class ResizeHandleNode : public SceneNode {
       const glm::vec3& origin, const glm::vec3& direction,
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
 
-  // same as the argument of ResizePointerGrab::start
-  std::atomic<uint32_t>                                       edges_{0};
+  common::Mutex       mutex_;
+  common::Edge edges_ GUARDED_BY(mutex_);
   std::weak_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel> toplevel_;
 };
 }  // namespace yabe::core::scene

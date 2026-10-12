@@ -23,6 +23,10 @@ class Edge {
   template <typename T>
   void set(T value);
 
+  void reset() {
+    this->edges_.reset();
+  }
+
   bool at(Pos pos) {
     return this->edges_.test(static_cast<size_t>(pos));
   }

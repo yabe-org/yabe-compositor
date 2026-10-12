@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "common/edge.hpp"
 #include "core/scene/decoration-node.hpp"
 #include "core/scene/resize-handle-node.hpp"
 #include "core/server-seat/pointer-grab/move.hpp"
@@ -96,9 +97,21 @@ void XdgToplevel::start_move() {
           surface_node.value()));
 }
 void XdgToplevel::start_resize(uint32_t edges) {
+  common::Edge resize_edge;
+  if (edges & XDG_TOPLEVEL_RESIZE_EDGE_RIGHT) {
+    resize_edge.set(common::Edge::RIGHT);
+  } else if (edges & XDG_TOPLEVEL_RESIZE_EDGE_LEFT) {
+    resize_edge.set(common::Edge::LEFT);
+  }
+  if (edges & XDG_TOPLEVEL_RESIZE_EDGE_TOP) {
+    resize_edge.set(common::Edge::TOP);
+  } else if (edges & XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM) {
+    resize_edge.set(common::Edge::BOTTOM);
+  }
+
   core::server::get().seat.pointer.start_grab(
       core::server_seat::pointer_grab::ResizePointerGrab::start(
-          this->shared_from_this(), edges));
+          this->shared_from_this(), resize_edge));
 }
 
 void XdgToplevel::request_resize(

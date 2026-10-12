@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "common/edge.hpp"
 #include "common/unit.hpp"
 #include "core/server.hpp"
 #include "protocols/xdg/shell/xdg-toplevel.hpp"
@@ -12,7 +13,7 @@
 namespace yabe::core::server_seat::pointer_grab {
 ResizePointerGrab* ResizePointerGrab::start(
     std::weak_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel>&& toplevel,
-    uint32_t                                                      edges) {
+    common::Edge                                                  edges) {
   static ResizePointerGrab instance;
   server::get().seat.pointer.unfocus_surface();
   instance.resizing_toplevel_ = std::move(toplevel);
@@ -44,14 +45,14 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
 
   // dx, dy are in OpenGL coordinate (+Y is upper)
   // and adjusted as a polar angles
-  if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_RIGHT) {
+  if (this->edges_.at(common::Edge::RIGHT)) {
     this->move_amount_x_ += dx;
-  } else if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_LEFT) {
+  } else if (this->edges_.at(common::Edge::LEFT)) {
     this->move_amount_x_ -= dx;
   }
-  if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_TOP) {
+  if (this->edges_.at(common::Edge::TOP)) {
     this->move_amount_y_ += dy;
-  } else if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM) {
+  } else if (this->edges_.at(common::Edge::BOTTOM)) {
     this->move_amount_y_ -= dy;
   }
 
@@ -77,10 +78,10 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
       *surface_delta_height / 2.F,
       0.F,
   };
-  if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_LEFT) {
+  if (this->edges_.at(common::Edge::LEFT)) {
     move_amount.x *= -1.F;
   }
-  if (this->edges_ & XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM) {
+  if (this->edges_.at(common::Edge::BOTTOM)) {
     move_amount.y *= -1.F;
   }
   surface_node->move_absolute(this->initial_toplevel_pos_ + move_amount);

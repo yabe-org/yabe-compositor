@@ -7,6 +7,7 @@
 #include <glm/ext.hpp>
 #include <optional>
 
+#include "common/edge.hpp"
 #include "common/unit.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
@@ -21,30 +22,36 @@ ResizeHandleNode::ResizeHandleNode(
 
 void ResizeHandleNode::motion(const glm::vec3& /*origin*/,
     const glm::vec3& /*direction*/, const glm::vec3& pos) {
-  uint32_t edge = 0;
+  const auto lock = this->mutex_.lock();
   if (pos.x < 0.F) {
-    edge |= XDG_TOPLEVEL_RESIZE_EDGE_LEFT;
+    this->edges_.set(common::Edge::LEFT);
   } else if (pos.x > 0.F) {
-    edge |= XDG_TOPLEVEL_RESIZE_EDGE_RIGHT;
+    this->edges_.set(common::Edge::RIGHT);
   }
   if (pos.y < 0.F) {
-    edge |= XDG_TOPLEVEL_RESIZE_EDGE_TOP;
+    this->edges_.set(common::Edge::TOP);
   } else if (pos.y > 0.F) {
-    edge |= XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM;
+    this->edges_.set(common::Edge::BOTTOM);
   }
-  this->edges_.store(edge);
 }
 void ResizeHandleNode::button(uint32_t button, bool is_pressed) {
   if (button != BTN_LEFT || !is_pressed) {
     return;
   }
-  const auto toplevel = this->toplevel_.lock();
+  const auto   toplevel = this->toplevel_.lock();
+  // ResizePointerGrab calls leave(), which tries to acquire mutex!
+  common::Edge edges;
+  {
+    const auto lock = this->mutex_.lock();
+    edges           = this->edges_;
+  }
   core::server::get().seat.pointer.start_grab(
       core::server_seat::pointer_grab::ResizePointerGrab::start(
-          toplevel, this->edges_.load()));
+          toplevel, edges));
 }
 void ResizeHandleNode::leave() {
-  this->edges_.store(0);
+  const auto lock = this->mutex_.lock();
+  this->edges_.reset();
 }
 
 std::shared_ptr<SceneNode> ResizeHandleNode::activation_target() {

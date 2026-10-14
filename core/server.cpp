@@ -143,6 +143,7 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
       this->rendering_thread_tasks_.tasks.clear();
     }
     this->rect_renderer.invalidate();
+    this->resize_handle_renderer.invalidate();
     this->ray_renderer_.invalidate();
     this->ray_cursor.invalidate_graphics();
     this->is_first_rendering_         = true;

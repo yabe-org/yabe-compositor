@@ -26,6 +26,9 @@ class Edge {
   void reset() {
     this->edges_.reset();
   }
+  [[nodiscard]] bool empty() const {
+    return this->edges_.none();
+  }
 
   bool at(Pos pos) {
     return this->edges_.test(static_cast<size_t>(pos));

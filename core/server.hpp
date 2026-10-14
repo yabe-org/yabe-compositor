@@ -14,6 +14,7 @@
 #include "core/render/lasso-renderer.hpp"
 #include "core/render/ray-renderer.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/render/resize-handle-renderer.hpp"
 #include "core/resource-storage.hpp"
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
@@ -47,7 +48,8 @@ class Server {
   Workspace               workspace;
   LayerManager            layer_manager;
 
-  render::RectRenderer rect_renderer;
+  render::RectRenderer         rect_renderer;
+  render::ResizeHandleRenderer resize_handle_renderer;
 
   std::unordered_map<wl_client*, wl_resource*> output_map;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <atomic>
+#include <chrono>
 #include <memory>
 
 #include "common/common.hpp"
@@ -37,8 +37,16 @@ class ResizeHandleNode : public SceneNode {
       const glm::vec3& origin, const glm::vec3& direction,
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
 
-  common::Mutex       mutex_;
-  common::Edge edges_ GUARDED_BY(mutex_);
+  common::Mutex              mutex_;
+  common::Edge edges_        GUARDED_BY(mutex_);
+  // percentage of intersected pos.
+  //   - if x < 0, intersected pos is left side
+  //   - if x > 1, intersected pos is right side
+  glm::vec2 intersected_pos_ GUARDED_BY(mutex_);
+
+  std::chrono::steady_clock::time_point alpha_updated_at_;
+  float                                 alpha_ = 0.F;
+
   std::weak_ptr<proto::xdg::shell::xdg_toplevel::XdgToplevel> toplevel_;
 };
 }  // namespace yabe::core::scene

@@ -27,6 +27,7 @@ srcs += files(
   'render/lasso-renderer.cpp',
   'render/ray-renderer.cpp',
   'render/rect-renderer.cpp',
+  'render/resize-handle-renderer.cpp',
   'render/shader.cpp',
   'render/texture.cpp',
 

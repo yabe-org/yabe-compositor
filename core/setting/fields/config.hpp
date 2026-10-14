@@ -68,9 +68,9 @@ constexpr auto kConfigTable = schema::table(
       )
   )),
   schema::field<"window">(schema::table(
-      schema::field<"resize_handle_thickness", double>(
-         "line width of the resize handle",
-         4.0
+      schema::field<"resize_handle_thickness", int>(
+         "line width of the resize handle (px)",
+         5
       ),
       schema::field<"resize_handle_threshold", int>(
          "length to activate the resize handle (px). set zero to disable",

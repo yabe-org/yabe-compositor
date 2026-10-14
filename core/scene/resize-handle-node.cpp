@@ -35,9 +35,8 @@ void ResizeHandleNode::motion(const glm::vec3& /*origin*/,
   } else if (pos.y > 1.F) {
     this->edges_.set(common::Edge::BOTTOM);
   }
-  // convert window coordinate space
-  // (0 -> 1, top to bottom) to (-0.5 -> +0.5, bottom to top)
-  this->intersected_pos_ = {pos.x - 0.5F, -(pos.y - 0.5F)};
+  this->intersected_pos_.x = pos.x;
+  this->intersected_pos_.y = pos.y;
 }
 void ResizeHandleNode::button(uint32_t button, bool is_pressed) {
   if (button != BTN_LEFT || !is_pressed) {
@@ -79,7 +78,7 @@ void ResizeHandleNode::prepare_for_draw() {
   const common::unit::Pixel threshold{
       server::get().setting.config.get<"window", "resize_handle_threshold">()};
   // show handle at the middle of the threshold,
-  // so there is no multiplier while actual interactable area is 2*thtreshold
+  // so there is no multiplier while actual interactable area is 2*threshold
   this->geometry().scale() = glm::vec3{
       parent->geometry().scale().x + *threshold.to_world_unit(),
       parent->geometry().scale().y + *threshold.to_world_unit(),
@@ -102,14 +101,28 @@ void ResizeHandleNode::prepare_for_draw() {
 }
 void ResizeHandleNode::draw_self(const glm::mat4& proj_mat,
     const glm::mat4& view_mat, const glm::mat4& world_transform) {
-  const auto model_mat = proj_mat * view_mat * world_transform *
-                         glm::scale(glm::mat4(1.F), this->geometry().scale());
-  glm::vec2  pos{0.F};
+  glm::vec2 pos{0.F};
   {
     const auto lock = this->mutex_.lock();
     pos             = this->intersected_pos_;
   }
-  server::get().resize_handle_renderer.render(model_mat, pos, this->alpha_);
+  const auto parent = this->parent().lock();
+  if (!parent) {
+    return;
+  }
+
+  // convert window coordinate space
+  // (0  -> 1,      left-top based, top to bottom) to
+  // (-0.5 -> +0.5, center   based, bottom to top)
+  const auto world_pos =
+      world_transform * glm::scale(glm::mat4(1.F), parent->geometry().scale()) *
+      glm::vec4(pos.x - 0.5F, -(pos.y - 0.5F), 0.F, 1.F);
+  const glm::vec2 half_size{
+      this->geometry().scale().x / 2.F,
+      this->geometry().scale().y / 2.F,
+  };
+  server::get().resize_handle_renderer.render(proj_mat * view_mat,
+      world_transform, half_size, glm::vec3(world_pos), this->alpha_);
 }
 
 std::optional<SceneIntersection> ResizeHandleNode::check_intersection_self(

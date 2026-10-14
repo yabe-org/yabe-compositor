@@ -15,8 +15,10 @@ class ResizeHandleRenderer {
   ResizeHandleRenderer() = default;
   ~ResizeHandleRenderer();
 
-  void render(
-      const glm::mat4& mvp_mat, const glm::vec2& intersected_pos, float alpha);
+  /// @param intersected_pos the position in world space
+  void render(const glm::mat4& vp_mat, const glm::mat4& world_transform,
+      const glm::vec2& half_size, const glm::vec3& intersected_pos,
+      float alpha);
   void invalidate();
 
  private:
@@ -26,7 +28,10 @@ class ResizeHandleRenderer {
   GLuint vert_shader_              = 0;
   GLuint frag_shader_              = 0;
   GLuint program_                  = 0;
-  GLint  mvp_mat_location_         = 0;
+  GLint  vp_mat_location_          = 0;
+  GLint  world_transform_location_ = 0;
+  GLint  half_size_location_       = 0;
+  GLint  thickness_location_       = 0;
   GLint  alpha_location_           = 0;
   GLint  intersected_pos_location_ = 0;
 

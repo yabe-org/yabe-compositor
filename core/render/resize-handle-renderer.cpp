@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <stdexcept>
 
+#include "common/unit.hpp"
 #include "core/server.hpp"
 #include "shader.hpp"
 
@@ -15,34 +16,39 @@ namespace yabe::core::render {
 namespace {
 // clang-format off
 const char* vert_shader = GLSL(
-  layout(location = 0) in vec3 pos;
+  layout(location = 0) in vec3 vert;
 
-  uniform mat4 mvp_mat;
+  uniform mat4 vp_mat;
+  uniform mat4 world_transform;
+  uniform vec2 half_size;
+  uniform float thickness;
 
-  out vec2  frag_pos;
+  out vec4  frag_pos;
 
   void main() {
-    gl_Position = mvp_mat * vec4(pos, 1.0);
-    frag_pos = pos.xy;
+    vec2 pos = vert.xy * (half_size + (thickness * vert.z));
+    frag_pos = world_transform * vec4(pos, 0.0, 1.0);
+    gl_Position = vp_mat * frag_pos;
   }
 );
 const char* frag_shader = GLSL(
   precision highp float;
 
-  uniform vec2  intersected_pos;
+  uniform vec3  intersected_pos;
   uniform float alpha;
 
-  in  vec2 frag_pos;
+  in  vec4 frag_pos;
   out vec4 frag_color;
 
   float lorentz(float x) {
     return 1.0 / (1.0 + x * x);
   }
 
+  // TODO: make color, length, multiplier (64.0) configurable
   void main() {
     vec3 color = vec3(0.9, 0.9, 0.9);
-    const float opaque_handle_length = 0.15;
-    float d = distance(intersected_pos, frag_pos);
+    const float opaque_handle_length = 0.04;
+    float d = distance(intersected_pos, frag_pos.xyz);
     // if distance < opaque_handle_length then alpha = 1.0; else alpha = lorentz_func
     float actual_alpha = mix(
         1.0,
@@ -68,29 +74,29 @@ ResizeHandleRenderer::~ResizeHandleRenderer() {
   glDeleteBuffers(1, &this->vbo_);
 }
 
-void ResizeHandleRenderer::render(
-    const glm::mat4& mvp_mat, const glm::vec2& intersected_pos, float alpha) {
+void ResizeHandleRenderer::render(const glm::mat4& vp_mat,
+    const glm::mat4& world_transform, const glm::vec2& half_size,
+    const glm::vec3& intersected_pos, float alpha) {
   if (!this->initialized_) {
     this->init();
   }
 
-  float original_line_width = 1.F;
-  glGetFloatv(GL_LINE_WIDTH, &original_line_width);
-  const auto line_width =
-      server::get().setting.config.get<"window", "resize_handle_thickness">();
-  glLineWidth(static_cast<float>(line_width));
-
+  const common::unit::Pixel thickness{
+      server::get().setting.config.get<"window", "resize_handle_thickness">()};
   glUseProgram(this->program_);
   glBindVertexArray(this->vao_);
   glUniform1f(this->alpha_location_, alpha);
-  glUniform2f(
-      this->intersected_pos_location_, intersected_pos.x, intersected_pos.y);
+  glUniform1f(this->thickness_location_, *thickness.to_world_unit());
+  glUniform2fv(this->half_size_location_, 1, glm::value_ptr(half_size));
+  glUniform3fv(
+      this->intersected_pos_location_, 1, glm::value_ptr(intersected_pos));
   glUniformMatrix4fv(
-      this->mvp_mat_location_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
-  glDrawArrays(GL_LINE_LOOP, 0, 4);
+      this->vp_mat_location_, 1, GL_FALSE, glm::value_ptr(vp_mat));
+  glUniformMatrix4fv(this->world_transform_location_, 1, GL_FALSE,
+      glm::value_ptr(world_transform));
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 10);
   glBindVertexArray(0);
   glUseProgram(0);
-  glLineWidth(original_line_width);
 }
 
 void ResizeHandleRenderer::invalidate() {
@@ -110,19 +116,25 @@ void ResizeHandleRenderer::init() {
         "Failed to link ResizeHandleRenderer shader program");
   }
 
-  this->mvp_mat_location_ = glGetUniformLocation(this->program_, "mvp_mat");
-  this->alpha_location_   = glGetUniformLocation(this->program_, "alpha");
+  this->vp_mat_location_ = glGetUniformLocation(this->program_, "vp_mat");
+  this->world_transform_location_ =
+      glGetUniformLocation(this->program_, "world_transform");
+  this->half_size_location_ = glGetUniformLocation(this->program_, "half_size");
+  this->thickness_location_ = glGetUniformLocation(this->program_, "thickness");
+  this->alpha_location_     = glGetUniformLocation(this->program_, "alpha");
   this->intersected_pos_location_ =
       glGetUniformLocation(this->program_, "intersected_pos");
 
   glGenVertexArrays(1, &this->vao_);
   glGenBuffers(1, &this->vbo_);
 
-  constexpr std::array<GLfloat, static_cast<std::size_t>(3 * 4)> kVertices = {
-      -0.5F, -0.5F, 0.0F,  // Bottom-Left
-      +0.5F, -0.5F, 0.0F,  // Bottom-Right
-      +0.5F, +0.5F, 0.0F,  // Top-Right
-      -0.5F, +0.5F, 0.0F   // Top-Left
+  constexpr std::array<GLfloat, static_cast<std::size_t>(3 * 10)> kVertices = {
+      // inner       , outer
+      -1.F, -1.F, 0.F, -1.F, -1.F, 1.F,  // Bottom-Left
+      +1.F, -1.F, 0.F, +1.F, -1.F, 1.F,  // Bottom-Right
+      +1.F, +1.F, 0.F, +1.F, +1.F, 1.F,  // Top-Right
+      -1.F, +1.F, 0.F, -1.F, +1.F, 1.F,  // Top-Left
+      -1.F, -1.F, 0.F, -1.F, -1.F, 1.F   // Bottom-Left (close)
   };
   glBindVertexArray(this->vao_);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);

@@ -58,6 +58,17 @@ void ResizeHandleNode::leave() {
   this->edges_.reset();
 }
 
+std::optional<common::Box2D> ResizeHandleNode::window_geometry() {
+  const auto xdg_toplevel = this->toplevel_.lock();
+  if (!xdg_toplevel) {
+    return std::nullopt;
+  }
+  const auto xdg_surface = xdg_toplevel->xdg_surface().lock();
+  if (!xdg_surface) {
+    return std::nullopt;
+  }
+  return xdg_surface->window_geometry();
+}
 std::shared_ptr<SceneNode> ResizeHandleNode::activation_target() {
   std::shared_ptr<SceneNode> parent;
   {
@@ -71,8 +82,8 @@ std::shared_ptr<SceneNode> ResizeHandleNode::activation_target() {
 }
 
 void ResizeHandleNode::prepare_for_draw() {
-  const auto parent = this->parent().lock();
-  if (!parent) {
+  const auto window = this->window_geometry();
+  if (!window) {
     return;
   }
   const common::unit::Pixel threshold{
@@ -80,8 +91,8 @@ void ResizeHandleNode::prepare_for_draw() {
   // show handle at the middle of the threshold,
   // so there is no multiplier while actual interactable area is 2*threshold
   this->geometry().scale() = glm::vec3{
-      parent->geometry().scale().x + *threshold.to_world_unit(),
-      parent->geometry().scale().y + *threshold.to_world_unit(),
+      *(window->width + threshold).to_world_unit(),
+      *(window->height + threshold).to_world_unit(),
       1.F,
   };
 
@@ -106,17 +117,19 @@ void ResizeHandleNode::draw_self(const glm::mat4& proj_mat,
     const auto lock = this->mutex_.lock();
     pos             = this->intersected_pos_;
   }
-  const auto parent = this->parent().lock();
-  if (!parent) {
+  const auto window = this->window_geometry();
+  if (!window) {
     return;
   }
 
+  const glm::vec3 window_size{
+      *window->width.to_world_unit(), *window->height.to_world_unit(), 1.F};
   // convert window coordinate space
   // (0  -> 1,      left-top based, top to bottom) to
   // (-0.5 -> +0.5, center   based, bottom to top)
-  const auto world_pos =
-      world_transform * glm::scale(glm::mat4(1.F), parent->geometry().scale()) *
-      glm::vec4(pos.x - 0.5F, -(pos.y - 0.5F), 0.F, 1.F);
+  const auto world_pos = world_transform *
+                         glm::scale(glm::mat4(1.F), window_size) *
+                         glm::vec4(pos.x - 0.5F, -(pos.y - 0.5F), 0.F, 1.F);
   const glm::vec2 half_size{
       this->geometry().scale().x / 2.F,
       this->geometry().scale().y / 2.F,
@@ -133,11 +146,14 @@ std::optional<SceneIntersection> ResizeHandleNode::check_intersection_self(
   if (*threshold <= 0) {
     return std::nullopt;
   }
-  const auto parent = this->parent().lock();
-  if (!parent) {
+
+  const auto window = this->window_geometry();
+  if (!window) {
     return std::nullopt;
   }
-  const auto scale    = parent->geometry().scale();
+
+  const glm::vec3 scale{
+      *window->width.to_world_unit(), *window->height.to_world_unit(), 1.F};
   const auto geom_mat = world_transform * glm::scale(glm::mat4(1.F), scale);
   auto result = common::intersection::with_surface(origin, direction, geom_mat);
   if (!result.has_value()) {

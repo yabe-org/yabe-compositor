@@ -24,6 +24,10 @@ class XdgSurface {
     return this->wl_surface_;
   }
 
+  [[nodiscard]] const common::Box2D& window_geometry() const {
+    return this->current_;
+  }
+
   [[nodiscard]] common::unit::Pixel width() const {
     return this->current_.width;
   }

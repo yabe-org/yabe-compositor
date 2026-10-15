@@ -2,7 +2,9 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 
+#include "common/box.hpp"
 #include "common/common.hpp"
 #include "common/edge.hpp"
 #include "common/thread-safety.hpp"
@@ -26,6 +28,8 @@ class ResizeHandleNode : public SceneNode {
   void button(uint32_t button, bool is_pressed) override;
   void leave() override;
 
+  [[nodiscard]] std::optional<common::Box2D> window_geometry();
+
   [[nodiscard]] std::shared_ptr<SceneNode> activation_target() override
       EXCLUDES(Scene::mutex);
 
@@ -39,7 +43,7 @@ class ResizeHandleNode : public SceneNode {
 
   common::Mutex              mutex_;
   common::Edge edges_        GUARDED_BY(mutex_);
-  // percentage of intersected pos.
+  // percentage of intersected pos (window coordinate, not surface)
   //   - if x < 0, intersected pos is left side
   //   - if x > 1, intersected pos is right side
   glm::vec2 intersected_pos_ GUARDED_BY(mutex_);

@@ -5,11 +5,11 @@
 
 #include <glm/glm.hpp>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <vector>
 
 #include "common/common.hpp"
+#include "common/thread-safety.hpp"
 #include "common/unit.hpp"
 #include "core/buffer.hpp"
 #include "core/region.hpp"
@@ -78,6 +78,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
     return this->texture_height_;
   }
   [[nodiscard]] const std::optional<Region>& input_region() const {
+    // input_region is accessed only from Wayland thread
+#pragma clang diagnostic ignored "-Wthread-safety"
     return this->current_.input_region;
   }
   [[nodiscard]] std::shared_ptr<Toplevel> get_toplevel() {
@@ -87,18 +89,19 @@ class Surface : public std::enable_shared_from_this<Surface> {
     return nullptr;
   }
 
-  [[nodiscard]] bool has_buffer() const {
+  [[nodiscard]] bool has_buffer() {
+    const auto lock = this->mutex_.lock();
     return this->current_.buffer.has_value();
   }
 
  private:
   common::unit::Pixel texture_width_{0}, texture_height_{0};
 
-  /// must be called in the rendering thread without buffer_mutex_
+  /// must be called in the rendering thread without locking mutex
   /// returns false if the buffer has been destroyed
   bool upload_texture(Buffer& buffer, Region& damage);
 
-  std::mutex buffer_mutex_;
+  common::Mutex mutex_;
   struct {
     // even if the buffer is not nullopt, Buffer::resource is nullable
     // in order to distinguish between "attach() is not called"
@@ -119,7 +122,7 @@ class Surface : public std::enable_shared_from_this<Surface> {
     //                holds the contents before A. So B must be uploaded in
     //                both A's and B's damage.
     Region                                 damage;
-  } pending_, current_;
+  } pending_, current_ GUARDED_BY(Surface::mutex_);
   bool has_pending_input_region_ = false;
 
   render::Texture         texture_;

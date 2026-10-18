@@ -53,7 +53,7 @@ void Surface::commit() {
       };
   std::optional<std::shared_ptr<Buffer>> buffer_to_release;
   {
-    const std::lock_guard lock(this->buffer_mutex_);
+    const auto lock = this->mutex_.lock();
     if (this->pending_.buffer.has_value()) {
       // if the current buffer exists, is not uploaded yet, and is different
       // from newly attached buffer, current buffer will no longer be used
@@ -118,7 +118,7 @@ void Surface::upload_texture_if_needed() {
   Region                      damage;
   bool                        should_upload = false;
   {
-    const std::lock_guard lock(this->buffer_mutex_);
+    const auto lock = this->mutex_.lock();
     if (!this->current_.buffer) {
       return;
     }
@@ -138,7 +138,7 @@ void Surface::upload_texture_if_needed() {
   if (should_upload && !this->upload_texture(*current_buffer, damage)) {
     // the buffer has been destroyed before uploading,
     // so the damage must be uploaded together with the next buffer
-    const std::lock_guard lock(this->buffer_mutex_);
+    const auto lock = this->mutex_.lock();
     damage.add(this->current_.damage);
     std::swap(damage, this->current_.damage);
   }
@@ -198,7 +198,7 @@ void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,
   }
   this->surface_node_ =
       std::make_shared<scene::SurfaceNode>(this->shared_from_this(), anchor);
-  if (this->current_.buffer.has_value()) {
+  if (this->has_buffer()) {
     auto& scale = this->surface_node_.value()->geometry().scale();
     scale.x     = *this->texture_width_.to_world_unit();
     scale.y     = *this->texture_height_.to_world_unit();

@@ -84,7 +84,15 @@ void Server::start() {
       throw std::runtime_error("Server is not initialized");
     }
   }
+  {
+    const auto lock   = this->is_started_mutex_.lock();
+    this->is_started_ = true;
+  }
   wl_display_run(this->wl_display_);
+  {
+    const auto lock   = this->is_started_mutex_.lock();
+    this->is_started_ = false;
+  }
 
   const std::lock_guard rendering_lock(this->rendering_mutex_);
   this->is_initialized_ = false;
@@ -96,6 +104,21 @@ void Server::start() {
   wl_display_destroy(this->wl_display_);
   this->wl_display_                 = nullptr;
   this->should_invalidate_graphics_ = true;
+}
+
+void Server::load_config(const char* config_contents) {
+  const auto lock = this->is_started_mutex_.lock();
+  if (!this->is_started_) {
+    this->setting.load_config(config_contents);
+    return;
+  }
+  if (!this->setting.config.get<"auto_reload_config">()) {
+    return;
+  }
+  this->enqueue_wayland_thread_task(
+      [this, config = std::string(config_contents)]() {
+        this->setting.load_config(config.c_str());
+      });
 }
 
 void Server::add_client_fd(int fd) {

@@ -4,11 +4,13 @@
 
 #include <functional>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
 #include "common/common.hpp"
+#include "common/thread-safety.hpp"
 #include "core/layer-manager.hpp"
 #include "core/ray-cursor.hpp"
 #include "core/render/lasso-renderer.hpp"
@@ -31,6 +33,9 @@ class Server {
   void     init();
   uint32_t set_socket_fd(std::optional<int> fd);
   void     start();
+  /// loads the config immediately before start(),
+  /// otherwise enqueues it to the Wayland thread
+  void     load_config(const char* config_contents);
   void     terminate();
   void     add_client_fd(int fd);
   void     enqueue_wayland_thread_task(std::function<void()> task);
@@ -68,6 +73,9 @@ class Server {
   // when the process is resumed
   bool       should_invalidate_graphics_ = false;
   std::mutex rendering_mutex_;
+
+  common::Mutex    is_started_mutex_;
+  bool is_started_ GUARDED_BY(is_started_mutex_) = false;
 
   render::RayRenderer   ray_renderer_;
   render::LassoRenderer lasso_renderer_;

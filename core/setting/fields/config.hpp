@@ -87,6 +87,10 @@ constexpr auto kConfigTable = schema::table(
          15
       )
   )),
+  schema::field<"auto_reload_config", bool>(
+     "Automatically reload config file if it is changed",
+     true
+  ),
   schema::field<"pixels_per_meter", double>(
      "Number of pixels per meter in the world",
      2500.0

@@ -33,7 +33,7 @@ void yabe_compositor_init(void (*print_log)(const char*),
 }
 
 void yabe_compositor_load_config(const char* config_contents) {
-  yabe::core::server::get().setting.load_config(config_contents);
+  yabe::core::server::get().load_config(config_contents);
 }
 
 uint32_t yabe_compositor_register_socket_fd(int fd) {

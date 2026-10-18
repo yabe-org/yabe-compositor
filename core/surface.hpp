@@ -39,6 +39,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
   void set_input_region(std::optional<Region> region);
   void set_release_callback(wl_resource* resource);
   void attach(wl_resource* resource);
+  /// x, y, width, height are buffer coordinates
+  void damage(int32_t x, int32_t y, int32_t width, int32_t height);
   void commit();
 
   void upload_texture_if_needed();
@@ -92,6 +94,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
  private:
   common::unit::Pixel texture_width_{0}, texture_height_{0};
 
+  /// must be called in the rendering thread without buffer_mutex_
+  /// returns false if the buffer has been destroyed
+  bool upload_texture(Buffer& buffer, Region& damage);
+
   std::mutex buffer_mutex_;
   struct {
     // even if the buffer is not nullopt, Buffer::resource is nullable
@@ -104,6 +110,15 @@ class Surface : public std::enable_shared_from_this<Surface> {
     std::optional<Region>                  input_region;
     std::vector<wl_resource*>              frame_callbacks;
     std::optional<wl_resource*>            release_callback;
+    // in buffer coordinates
+    //   - pending_ : discarded on commit if no buffer is attached
+    //   - current_ : the union of damages of all commits since the last
+    //                upload, not only the latest one.
+    //                If buffer A and then buffer B are committed before the
+    //                next upload, A is never uploaded and the texture still
+    //                holds the contents before A. So B must be uploaded in
+    //                both A's and B's damage.
+    Region                                 damage;
   } pending_, current_;
   bool has_pending_input_region_ = false;
 

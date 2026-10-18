@@ -26,9 +26,15 @@ constexpr struct wl_surface_interface kImpl = {
           }
         },
     .damage =
-        [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*x*/,
-            int32_t /*y*/, int32_t /*width*/, int32_t /*height*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
+            int32_t width, int32_t height) {
+          // surface-local coordinates are the same as buffer coordinates
+          // because buffer_scale and buffer_transform are not supported (TODO?)
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->damage(x, y, width, height);
+          }
         },
     .frame =
         [](wl_client* client, wl_resource* resource, uint32_t callback) {
@@ -81,9 +87,13 @@ constexpr struct wl_surface_interface kImpl = {
           // TODO
         },
     .damage_buffer =
-        [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*x*/,
-            int32_t /*y*/, int32_t /*width*/, int32_t /*height*/) {
-          // TODO
+        [](wl_client* /*client*/, wl_resource* resource, int32_t x, int32_t y,
+            int32_t width, int32_t height) {
+          const auto self =
+              core::server::get().resources.get<core::Surface>(resource);
+          if (self) {
+            self->damage(x, y, width, height);
+          }
         },
     .offset =
         [](wl_client* /*client*/, wl_resource* /*resource*/, int32_t /*dx*/,

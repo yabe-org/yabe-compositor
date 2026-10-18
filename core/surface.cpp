@@ -5,6 +5,7 @@
 #include <wayland-server.h>
 
 #include <glm/ext.hpp>
+#include <limits>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -34,6 +35,9 @@ void Surface::set_release_callback(wl_resource* resource) {
 }
 void Surface::attach(wl_resource* resource) {
   this->pending_.buffer = std::make_shared<Buffer>(resource);
+}
+void Surface::damage(int32_t x, int32_t y, int32_t width, int32_t height) {
+  this->pending_.damage.add(x, y, width, height);
 }
 
 void Surface::commit() {
@@ -69,7 +73,17 @@ void Surface::commit() {
       this->is_texture_uploaded_ = false;
       this->current_.buffer      = this->pending_.buffer;
       this->pending_.buffer      = std::nullopt;
+
+      if (is_valid_buffer(this->current_.buffer)) {
+        this->current_.damage.add(this->pending_.damage);
+      } else {
+        // the contents are removed, so the next buffer must be uploaded
+        // entirely regardless of its damage
+        this->current_.damage.add(0, 0, std::numeric_limits<int32_t>::max(),
+            std::numeric_limits<int32_t>::max());
+      }
     }
+    this->pending_.damage.clear();
 
     this->current_.frame_callbacks.insert(this->current_.frame_callbacks.end(),
         std::move_iterator(this->pending_.frame_callbacks.begin()),
@@ -101,6 +115,7 @@ void Surface::upload_texture_if_needed() {
   std::shared_ptr<Buffer>     current_buffer;
   std::vector<wl_resource*>   frame_callbacks;
   std::optional<wl_resource*> release_callback;
+  Region                      damage;
   bool                        should_upload = false;
   {
     const std::lock_guard lock(this->buffer_mutex_);
@@ -108,28 +123,24 @@ void Surface::upload_texture_if_needed() {
       return;
     }
     current_buffer = *this->current_.buffer;
-    const auto current_buffer_resource_lock =
-        this->current_.buffer.value()->lock_resource();
     frame_callbacks.swap(this->current_.frame_callbacks);
     release_callback.swap(this->current_.release_callback);
-    if (this->current_.buffer.value()->resource() &&
-        !this->is_texture_uploaded_) {
-      should_upload              = true;
-      this->is_texture_uploaded_ = true;
+    if (!this->is_texture_uploaded_) {
+      const auto current_buffer_resource_lock = current_buffer->lock_resource();
+      if (current_buffer->resource()) {
+        should_upload              = true;
+        this->is_texture_uploaded_ = true;
+        std::swap(damage, this->current_.damage);
+      }
     }
   }
 
-  if (should_upload) {
-    auto* shm_buffer      = current_buffer->shm_buffer();
-    this->texture_width_  = wl_shm_buffer_get_width(shm_buffer);
-    this->texture_height_ = wl_shm_buffer_get_height(shm_buffer);
-    auto* data            = wl_shm_buffer_get_data(shm_buffer);
-    auto  format          = wl_shm_buffer_get_format(shm_buffer);
-    auto  stride          = wl_shm_buffer_get_stride(shm_buffer);
-    wl_shm_buffer_begin_access(shm_buffer);
-    this->texture_.upload(
-        data, format, this->texture_width_, this->texture_height_, stride);
-    wl_shm_buffer_end_access(shm_buffer);
+  if (should_upload && !this->upload_texture(*current_buffer, damage)) {
+    // the buffer has been destroyed before uploading,
+    // so the damage must be uploaded together with the next buffer
+    const std::lock_guard lock(this->buffer_mutex_);
+    damage.add(this->current_.damage);
+    std::swap(damage, this->current_.damage);
   }
 
   if (this->surface_node_.has_value()) {
@@ -158,6 +169,26 @@ void Surface::upload_texture_if_needed() {
           wl_resource_destroy(release_callback.value());
         }
       });
+}
+
+bool Surface::upload_texture(Buffer& buffer, Region& damage) {
+  // hold the lock while uploading to prevent the buffer from being destroyed
+  const auto buffer_resource_lock = buffer.lock_resource();
+  auto*      shm_buffer           = buffer.shm_buffer();
+  if (!buffer.resource() || !shm_buffer) {
+    return false;
+  }
+  this->texture_width_  = wl_shm_buffer_get_width(shm_buffer);
+  this->texture_height_ = wl_shm_buffer_get_height(shm_buffer);
+  auto* data            = wl_shm_buffer_get_data(shm_buffer);
+  auto  format          = wl_shm_buffer_get_format(shm_buffer);
+  auto  stride          = wl_shm_buffer_get_stride(shm_buffer);
+  damage.intersect(0, 0, *this->texture_width_, *this->texture_height_);
+  wl_shm_buffer_begin_access(shm_buffer);
+  this->texture_.upload_damaged(data, format, this->texture_width_,
+      this->texture_height_, stride, damage.boxes());
+  wl_shm_buffer_end_access(shm_buffer);
+  return true;
 }
 
 void Surface::map(std::optional<std::shared_ptr<scene::SceneNode>> parent,

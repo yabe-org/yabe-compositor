@@ -161,12 +161,14 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   GLint                  previous_active_texture   = 0;
   GLint                  previous_texture_2d       = 0;
   GLint                  previous_unpack_alignment = 0;
-  GLint                  previous_unpack_row_length = 0;
-  GLint                  previous_blend_src_rgb     = 0;
-  GLint                  previous_blend_dst_rgb     = 0;
-  GLint                  previous_blend_src_alpha   = 0;
-  GLint                  previous_blend_dst_alpha   = 0;
-  std::array<GLfloat, 4> previous_clear_color       = {};
+  GLint                  previous_unpack_row_length  = 0;
+  GLint                  previous_unpack_skip_pixels = 0;
+  GLint                  previous_unpack_skip_rows   = 0;
+  GLint                  previous_blend_src_rgb      = 0;
+  GLint                  previous_blend_dst_rgb      = 0;
+  GLint                  previous_blend_src_alpha    = 0;
+  GLint                  previous_blend_dst_alpha    = 0;
+  std::array<GLfloat, 4> previous_clear_color        = {};
   glGetIntegerv(GL_CURRENT_PROGRAM, &previous_program);
   glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previous_vao);
   glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previous_array_buffer);
@@ -175,6 +177,8 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &previous_texture_2d);
   glGetIntegerv(GL_UNPACK_ALIGNMENT, &previous_unpack_alignment);
   glGetIntegerv(GL_UNPACK_ROW_LENGTH, &previous_unpack_row_length);
+  glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &previous_unpack_skip_pixels);
+  glGetIntegerv(GL_UNPACK_SKIP_ROWS, &previous_unpack_skip_rows);
   glGetIntegerv(GL_BLEND_SRC_RGB, &previous_blend_src_rgb);
   glGetIntegerv(GL_BLEND_DST_RGB, &previous_blend_dst_rgb);
   glGetIntegerv(GL_BLEND_SRC_ALPHA, &previous_blend_src_alpha);
@@ -210,6 +214,8 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   glClearColor(previous_clear_color[0], previous_clear_color[1],
       previous_clear_color[2], previous_clear_color[3]);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, previous_unpack_row_length);
+  glPixelStorei(GL_UNPACK_SKIP_PIXELS, previous_unpack_skip_pixels);
+  glPixelStorei(GL_UNPACK_SKIP_ROWS, previous_unpack_skip_rows);
   glPixelStorei(GL_UNPACK_ALIGNMENT, previous_unpack_alignment);
   glBindTexture(GL_TEXTURE_2D, previous_texture_2d);
   glActiveTexture(previous_active_texture);

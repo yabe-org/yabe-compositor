@@ -1,24 +1,28 @@
 #include "region.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
+#include <limits>
 
 namespace yabe::core {
 Region::Region(wl_resource* resource) : resource_(resource) {
 }
 
 void Region::add(int32_t x, int32_t y, int32_t width, int32_t height) {
-  Rect new_rect{
-      .begin_x = common::unit::Pixel(x),
-      .begin_y = common::unit::Pixel(y),
-      .end_x   = common::unit::Pixel(x + width),
-      .end_y   = common::unit::Pixel(y + height),
-  };
-  if (new_rect.is_empty()) {
+  this->add(Rect::from(x, y, width, height));
+}
+void Region::add(const Region& other) {
+  for (const auto& rect : other.rects_) {
+    this->add(rect);
+  }
+}
+void Region::add(const Rect& rect) {
+  if (rect.is_empty()) {
     return;
   }
 
-  std::vector<Rect> remaining_new_rects{new_rect};
+  std::vector<Rect> remaining_new_rects{rect};
   for (const auto& existing_rect : this->rects_) {
     std::vector<Rect> next;
     for (const auto& new_rect : remaining_new_rects) {
@@ -39,12 +43,7 @@ void Region::add(int32_t x, int32_t y, int32_t width, int32_t height) {
 }
 
 void Region::subtract(int32_t x, int32_t y, int32_t width, int32_t height) {
-  Rect sub_rect{
-      .begin_x = common::unit::Pixel(x),
-      .begin_y = common::unit::Pixel(y),
-      .end_x   = common::unit::Pixel(x + width),
-      .end_y   = common::unit::Pixel(y + height),
-  };
+  const auto sub_rect = Rect::from(x, y, width, height);
   if (sub_rect.is_empty()) {
     return;
   }
@@ -56,6 +55,29 @@ void Region::subtract(int32_t x, int32_t y, int32_t width, int32_t height) {
   }
   this->rects_ = std::move(new_rects);
 }
+// intersect() and boxes() allocate a new std::vector on every call.
+// This is acceptable because they are only called right before uploading a
+// newly committed buffer (not every frame), and the region has almost
+// always been updated since the last call, so there is nothing to cache.
+void Region::intersect(int32_t x, int32_t y, int32_t width, int32_t height) {
+  const auto        clip_rect = Rect::from(x, y, width, height);
+  std::vector<Rect> new_rects;
+  for (const auto& rect : this->rects_) {
+    if (!rect.intersects(clip_rect)) {
+      continue;
+    }
+    new_rects.push_back(Rect{
+        .begin_x = std::max(rect.begin_x, clip_rect.begin_x),
+        .begin_y = std::max(rect.begin_y, clip_rect.begin_y),
+        .end_x   = std::min(rect.end_x, clip_rect.end_x),
+        .end_y   = std::min(rect.end_y, clip_rect.end_y),
+    });
+  }
+  this->rects_ = std::move(new_rects);
+}
+void Region::clear() {
+  this->rects_.clear();
+}
 bool Region::contains(common::unit::Pixel x, common::unit::Pixel y) const {
   return std::ranges::any_of(
       this->rects_.begin(), this->rects_.end(), [x, y](const Rect& rect) {
@@ -64,6 +86,34 @@ bool Region::contains(common::unit::Pixel x, common::unit::Pixel y) const {
       });
 }
 
+std::vector<common::Box2D> Region::boxes() const {
+  std::vector<common::Box2D> result;
+  result.reserve(this->rects_.size());
+  for (const auto& rect : this->rects_) {
+    result.push_back(common::Box2D{
+        .x      = rect.begin_x,
+        .y      = rect.begin_y,
+        .width  = rect.end_x - rect.begin_x,
+        .height = rect.end_y - rect.begin_y,
+    });
+  }
+  return result;
+}
+
+Region::Rect Region::Rect::from(
+    int32_t x, int32_t y, int32_t width, int32_t height) {
+  const auto clamped_end = [](int32_t begin, int32_t length) {
+    return static_cast<int32_t>(
+        std::min<int64_t>(static_cast<int64_t>(begin) + length,
+            std::numeric_limits<int32_t>::max()));
+  };
+  return Rect{
+      .begin_x = common::unit::Pixel(x),
+      .begin_y = common::unit::Pixel(y),
+      .end_x   = common::unit::Pixel(clamped_end(x, width)),
+      .end_y   = common::unit::Pixel(clamped_end(y, height)),
+  };
+}
 bool Region::Rect::is_empty() const {
   return this->begin_x >= this->end_x || this->begin_y >= this->end_y;
 }

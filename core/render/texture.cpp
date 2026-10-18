@@ -151,18 +151,44 @@ Texture::~Texture() {
 void Texture::upload(void* data, uint32_t wl_shm_format,
     const common::unit::Pixel& width, const common::unit::Pixel& height,
     int32_t stride) {
+  const common::Box2D whole{.width = width, .height = height};
+  this->upload_damaged(data, wl_shm_format, width, height, stride, {whole});
+}
+
+void Texture::upload_damaged(void* data, uint32_t wl_shm_format,
+    const common::unit::Pixel& width, const common::unit::Pixel& height,
+    int32_t stride, const std::vector<common::Box2D>& damaged_boxes) {
   auto gl_format = get_gl_format(wl_shm_format);
   if (!gl_format.has_value()) {
     LOG_ERR(
         "unsupported wl_shm_format: {} ({:x})", wl_shm_format, wl_shm_format);
     return;
   }
+  const bool is_partial_update =
+      this->can_update_partially(wl_shm_format, width, height);
 
   if (this->texture_ == 0) {
     glGenTextures(1, &this->texture_);
   }
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, this->texture_);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / gl_format->bytes_per_pixel);
+  glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+  glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+
+  if (is_partial_update) {
+    for (const auto& box : damaged_boxes) {
+      glPixelStorei(GL_UNPACK_SKIP_PIXELS, *box.x);
+      glPixelStorei(GL_UNPACK_SKIP_ROWS, *box.y);
+      glTexSubImage2D(GL_TEXTURE_2D, 0, *box.x, *box.y, *box.width, *box.height,
+          gl_format->format, gl_format->type, data);
+    }
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    return;
+  }
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -173,10 +199,17 @@ void Texture::upload(void* data, uint32_t wl_shm_format,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, gl_format->swizzle_b);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, gl_format->swizzle_a);
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / gl_format->bytes_per_pixel);
   glTexImage2D(GL_TEXTURE_2D, 0, gl_format->format, *width, *height, 0,
       gl_format->format, gl_format->type, data);
+  this->width_         = width;
+  this->height_        = height;
+  this->wl_shm_format_ = wl_shm_format;
+}
+
+bool Texture::can_update_partially(uint32_t wl_shm_format,
+    const common::unit::Pixel& width, const common::unit::Pixel& height) const {
+  return this->texture_ != 0 && this->wl_shm_format_ == wl_shm_format &&
+         this->width_ == width && this->height_ == height;
 }
 
 void Texture::invalidate() {

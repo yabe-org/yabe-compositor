@@ -15,17 +15,27 @@ const char* vert_shader = GLSL(
   uniform mat4 vp_mat;
   uniform vec3 start_pos;
   uniform vec3 end_pos;
+  out vec3 pos;
+  out float ray_t;
 
   void main() {
-    vec3 pos = mix(start_pos, end_pos, t);
+    pos = mix(start_pos, end_pos, t);
+    ray_t = t;
     gl_Position = vp_mat * vec4(pos, 1.0);
   }
 );
 const char* frag_shader = GLSL(
-  precision mediump float;
+  precision highp float;
+  in  vec3 pos;
+  in  float ray_t;
   out vec4 frag_color;
+
   void main() {
-    frag_color = vec4(0.0, 0.9, 0.0, 0.8);
+    // opaque until t < edge
+    float edge = 0.40;
+    float alpha = mix(1.0, 1.0 - ((ray_t - edge) * (1.0 / edge))*0.95, step(edge, ray_t));
+    vec3 color = vec3(0.11, 0.93, 0.07 + (0.79 * (ray_t + 0.24)));
+    frag_color = vec4(color * alpha, alpha);
   }
 );
 // clang-format on

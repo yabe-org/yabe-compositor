@@ -23,6 +23,17 @@ void MovePointerGrab::cleanup() {
 void MovePointerGrab::move_relative(float dx, float dy) {
   server::get().ray_cursor.move_relative(dy, dx);
 
+  const auto intersection =
+      server::get().workspace.current_scene().get_nearest_intersection(
+          server::get().ray_cursor.origin(),
+          server::get().ray_cursor.direction());
+  if (intersection) {
+    server::get().ray_cursor.set_length(
+        intersection.value().intersect_info.distance);
+    server::get().ray_cursor.set_cursor_rotation(
+        intersection.value().node->geometry().rotation());
+  }
+
   const auto toplevel = this->moving_scene_node_.lock();
   if (!toplevel) {
     server::get().seat.pointer.end_grab();

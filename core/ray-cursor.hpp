@@ -55,7 +55,7 @@ class RayCursor {
   [[nodiscard]] glm::mat4 cursor_model_mat() const;
   [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
-  constexpr static float kDefaultLength = scene::kSceneNodeDistance * 2.F;
+  constexpr static float kDefaultLength = scene::kSceneNodeDistance + 0.1F;
 
   glm::vec3 origin_ = {0.F, -0.3F, -0.001F};
   float     length_ = kDefaultLength;

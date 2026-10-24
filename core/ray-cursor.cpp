@@ -87,7 +87,8 @@ void RayCursor::draw_cursor(const glm::mat4& vp_mat) {
       this->drag_and_drop_icon_surface_.lock();
   if (drag_and_drop_icon_surface) {
     drag_and_drop_icon_surface->upload_texture_if_needed();
-    server::get().rect_renderer.render(vp_mat * this->cursor_model_mat(),
+    server::get().rect_renderer.render(
+        vp_mat * this->drag_and_drop_icon_model_mat(),
         drag_and_drop_icon_surface->texture());
   }
 
@@ -143,8 +144,9 @@ glm::mat4 RayCursor::cursor_model_mat() const {
   const auto hotspot_offset =
       glm::vec3(*offset_x.to_world_unit(), *offset_y.to_world_unit(), 0.F);
 
-  return glm::translate(glm::mat4(1.F), pos + hotspot_offset) *
-         this->cursor_rotation_mat_ *
+  // hotspot_offset is in surface-local coordinates, so apply it after rotation
+  return glm::translate(glm::mat4(1.F), pos) * this->cursor_rotation_mat_ *
+         glm::translate(glm::mat4(1.F), hotspot_offset) *
          glm::scale(glm::mat4(1.F),
              glm::vec3(*width.to_world_unit(), *height.to_world_unit(), 0.F));
 }
@@ -152,13 +154,13 @@ glm::mat4 RayCursor::drag_and_drop_icon_model_mat() const {
   const auto surface = this->drag_and_drop_icon_surface_.lock();
   const auto pos     = this->origin_ + this->direction() * this->length_;
   const auto offset  = glm::vec3{
-      +(*surface->texture_width().to_world_unit()),
-      -(*surface->texture_height().to_world_unit()),
+      +(*surface->texture_width().to_world_unit()) / 2.F,
+      -(*surface->texture_height().to_world_unit()) / 2.F,
       0.F,
   };
 
-  return glm::translate(glm::mat4(1.F), pos + offset) *
-         this->cursor_rotation_mat_ *
+  return glm::translate(glm::mat4(1.F), pos) * this->cursor_rotation_mat_ *
+         glm::translate(glm::mat4(1.F), offset) *
          glm::scale(
              glm::mat4(1.F), glm::vec3{
                                  *surface->texture_width().to_world_unit(),

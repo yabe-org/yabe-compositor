@@ -172,26 +172,25 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
     this->is_first_rendering_         = true;
     this->should_invalidate_graphics_ = false;
   }
-  this->thread_for_rendering_thread_tasks_         = std::thread([this]() {
+  this->thread_for_rendering_thread_tasks_    = std::thread([this]() {
     this->rendering_thread_tasks_.consume();
   });
-  const GLboolean        was_cull_face_enabled     = glIsEnabled(GL_CULL_FACE);
-  const GLboolean        was_depth_test_enabled    = glIsEnabled(GL_DEPTH_TEST);
-  const GLboolean        was_blend_enabled         = glIsEnabled(GL_BLEND);
-  GLint                  previous_program          = 0;
-  GLint                  previous_vao              = 0;
-  GLint                  previous_array_buffer     = 0;
-  GLint                  previous_active_texture   = 0;
-  GLint                  previous_texture_2d       = 0;
-  GLint                  previous_unpack_alignment = 0;
-  GLint                  previous_unpack_row_length  = 0;
-  GLint                  previous_unpack_skip_pixels = 0;
-  GLint                  previous_unpack_skip_rows   = 0;
-  GLint                  previous_blend_src_rgb      = 0;
-  GLint                  previous_blend_dst_rgb      = 0;
-  GLint                  previous_blend_src_alpha    = 0;
-  GLint                  previous_blend_dst_alpha    = 0;
-  std::array<GLfloat, 4> previous_clear_color        = {};
+  const GLboolean was_cull_face_enabled       = glIsEnabled(GL_CULL_FACE);
+  const GLboolean was_depth_test_enabled      = glIsEnabled(GL_DEPTH_TEST);
+  const GLboolean was_blend_enabled           = glIsEnabled(GL_BLEND);
+  GLint           previous_program            = 0;
+  GLint           previous_vao                = 0;
+  GLint           previous_array_buffer       = 0;
+  GLint           previous_active_texture     = 0;
+  GLint           previous_texture_2d         = 0;
+  GLint           previous_unpack_alignment   = 0;
+  GLint           previous_unpack_row_length  = 0;
+  GLint           previous_unpack_skip_pixels = 0;
+  GLint           previous_unpack_skip_rows   = 0;
+  GLint           previous_blend_src_rgb      = 0;
+  GLint           previous_blend_dst_rgb      = 0;
+  GLint           previous_blend_src_alpha    = 0;
+  GLint           previous_blend_dst_alpha    = 0;
   glGetIntegerv(GL_CURRENT_PROGRAM, &previous_program);
   glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previous_vao);
   glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previous_array_buffer);
@@ -206,15 +205,12 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   glGetIntegerv(GL_BLEND_DST_RGB, &previous_blend_dst_rgb);
   glGetIntegerv(GL_BLEND_SRC_ALPHA, &previous_blend_src_alpha);
   glGetIntegerv(GL_BLEND_DST_ALPHA, &previous_blend_dst_alpha);
-  glGetFloatv(GL_COLOR_CLEAR_VALUE, previous_clear_color.data());
 
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-  glClearColor(0.F, 0.F, 0.F, 1.F);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   this->draw_content(glm::make_mat4(proj_mat), glm::make_mat4(view_mat));
 
   if (was_cull_face_enabled) {
@@ -234,8 +230,6 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   }
   glBlendFuncSeparate(previous_blend_src_rgb, previous_blend_dst_rgb,
       previous_blend_src_alpha, previous_blend_dst_alpha);
-  glClearColor(previous_clear_color[0], previous_clear_color[1],
-      previous_clear_color[2], previous_clear_color[3]);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, previous_unpack_row_length);
   glPixelStorei(GL_UNPACK_SKIP_PIXELS, previous_unpack_skip_pixels);
   glPixelStorei(GL_UNPACK_SKIP_ROWS, previous_unpack_skip_rows);

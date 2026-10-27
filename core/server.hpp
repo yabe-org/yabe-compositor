@@ -2,6 +2,7 @@
 
 #include <wayland-server.h>
 
+#include <atomic>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -41,6 +42,8 @@ class Server {
   void     enqueue_wayland_thread_task(std::function<void()> task);
   void     enqueue_rendering_thread_task(std::function<void()> task);
   void     draw(const float* proj_mat, const float* view_mat);
+  /// makes the current head direction the front at the next draw()
+  void     request_recenter();
 
   uint32_t                next_serial();
   wl_event_loop*          loop();
@@ -64,6 +67,7 @@ class Server {
   static Server instance;
 
   void draw_content(const glm::mat4& proj_mat, const glm::mat4& view_mat);
+  void update_anchor_mat(const glm::mat4& view_mat);
 
   bool       is_initialized_             = false;
   bool       is_first_rendering_         = true;
@@ -100,6 +104,11 @@ class Server {
 
   glm::mat4  vp_mat_ = glm::mat4(1.F);
   std::mutex vp_mat_mutex_;
+
+  // transformation from the compositor world to the tracking space of the
+  // host; only accessed in draw()
+  glm::mat4         anchor_mat_ = glm::mat4(1.F);
+  std::atomic<bool> is_recenter_requested_{false};
 };
 
 /// shortening

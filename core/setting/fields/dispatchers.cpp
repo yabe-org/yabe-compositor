@@ -47,6 +47,19 @@ void Dispatchers::initialize(Engine* engine) {
               return Dispatchers::get_next_dispatcher_id();
             }));
 
+    engine->create_field("recenter",
+        schema::FunctionEntry<int()>::create(
+            {
+                .description     = "Make the current head direction the front",
+                .parameter_names = {},
+            },
+            [this]() {
+              this->dispatchers_.emplace_back([]() {
+                server::get().request_recenter();
+              });
+              return Dispatchers::get_next_dispatcher_id();
+            }));
+
     engine->create_field("exec",
         schema::FunctionEntry<int(std::string)>::create(
             {

@@ -17,8 +17,8 @@ class Keybinds {
   void reset();
 
   /// @return true if the key event is handled by the keybinds
-  bool handle_key(
-      xkb_keysym_t key, bool is_pressed, xkb_mod_mask_t modifier_mask);
+  bool handle_key(xkb_keysym_t pressed_keysym, bool is_pressed,
+      xkb_mod_mask_t modifier_mask);
 
  private:
   /// @return false if it fails to parse key combination

@@ -35,23 +35,25 @@ void Keybinds::reset() {
   this->keybinds_.clear();
 }
 
-bool Keybinds::handle_key(
-    xkb_keysym_t keysym, bool is_pressed, xkb_mod_mask_t modifier_mask) {
+bool Keybinds::handle_key(xkb_keysym_t pressed_keysym, bool is_pressed,
+    xkb_mod_mask_t modifier_mask) {
   // keybind has lower keysyms because of XKB_KEYSYM_CASE_INSENSITIVE
-  keysym       = xkb_keysym_to_lower(keysym);
-  // FIXME: prevent sending release event by properly setting `handled``
-  bool handled = false;
+  pressed_keysym = xkb_keysym_to_lower(pressed_keysym);
+  // FIXME: prevent sending release event by properly setting `handled`
+  bool handled   = false;
   for (auto& state : this->keybinds_) {
-    bool all_keys_pressed = true;
-    // update state and check if all keys are pressed
+    bool is_pressed_keysym_in_keybind = false;
+    bool all_keys_pressed             = true;
     for (auto& key : state.keys) {
-      if (key.first == keysym) {
-        key.second = is_pressed;
+      if (key.first == pressed_keysym) {
+        key.second                   = is_pressed;
+        is_pressed_keysym_in_keybind = true;
       }
       all_keys_pressed &= key.second;
     }
 
-    if (!all_keys_pressed) {
+    // fire only when the last key of the combination is pressed
+    if (!is_pressed || !is_pressed_keysym_in_keybind || !all_keys_pressed) {
       continue;
     }
     if ((state.modifier_mask & modifier_mask) != state.modifier_mask) {

@@ -66,8 +66,7 @@ class FunctionEntry<ReturnType(Args...)> : public FunctionEntryBase {
     auto get_arg      = [&]<typename T>(std::size_t index) {
       auto arg = engine->get_stack_value<T>(static_cast<int>(index));
       if (!arg) {
-        engine->add_error_message(
-            std::format("function argument {} is invalid", index));
+        LOG_ERR("function argument {} is invalid", index);
         has_optional = true;
       }
       return arg;
@@ -151,7 +150,7 @@ class FunctionEntry<ReturnType(Table<Fields...>)> : public FunctionEntryBase {
   int invoke(Engine* engine) const override {
     auto argument = engine->get_stack_value(1, this->schema_);
     if (!argument) {
-      engine->add_error_message("function argument 1 is invalid");
+      LOG_ERR("function argument 1 is invalid");
       return 0;
     }
 

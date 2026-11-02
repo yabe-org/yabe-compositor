@@ -31,22 +31,10 @@ void Engine::initialize(const std::function<void(Engine*)>& initializer) {
 }
 
 void Engine::do_string(const char* config_contents) {
-  this->error_messages_.clear();
   if (luaL_dostring(this->l_, config_contents) != LUA_OK) {
-    this->add_error_message(lua_tostring(this->l_, -1));
+    LOG_ERR("{}", lua_tostring(this->l_, -1));
     lua_pop(this->l_, 1);
   }
-  if (!this->error_messages_.empty()) {
-    LOG_ERR(">>> Lua error(s):");
-    for (const auto& message : this->error_messages_) {
-      LOG_ERR("{}", message);
-    }
-    LOG_ERR(">>> Lua error(s) finished");
-  }
-}
-
-void Engine::add_error_message(std::string&& message) {
-  this->error_messages_.emplace_back(std::move(message));
 }
 
 int Engine::push_function(int function_ref) {

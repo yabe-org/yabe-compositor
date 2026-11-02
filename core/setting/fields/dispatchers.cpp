@@ -77,15 +77,15 @@ void Dispatchers::initialize(Engine* engine) {
             }));
   });
 
-  engine->create_field("dispatch",
+  engine->create_field("dispatch",  //
       schema::FunctionEntry<void(int)>::create(
           {
               .description     = "Execute the dispatcher immediately",
               .parameter_names = {"dispatcher"},
           },
-          [this, engine](int dispatcher_id) {
+          [this](int dispatcher_id) {
             if (!this->is_valid(dispatcher_id)) {
-              engine->add_error_message("dispatch: 'dispatcher' is invalid");
+              LOG_ERR("dispatch: 'dispatcher' is invalid");
               return;
             }
             this->dispatch(dispatcher_id);

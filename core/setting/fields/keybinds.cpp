@@ -19,13 +19,11 @@ void Keybinds::initialize(Engine* engine) {
   },
           [this](std::vector<std::string> keys, int dispatcher_id) {
             if (!server::get().setting.dispatchers.is_valid(dispatcher_id)) {
-              server::get().setting.add_error_message(
-                  "keybind: 'dispatcher' is invalid");
+              LOG_ERR("keybind: 'dispatcher' is invalid");
               return;
             }
             if (!this->try_register_keybind(keys, dispatcher_id)) {
-              server::get().setting.add_error_message(
-                  std::format("keybind: 'keys' might be invalid ({})", keys));
+              LOG_ERR("keybind: 'keys' might be invalid ({})", keys);
             }
             return;
           }));

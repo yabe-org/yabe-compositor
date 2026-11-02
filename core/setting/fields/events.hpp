@@ -1,6 +1,5 @@
 #pragma once
 
-#include <format>
 #include <unordered_map>
 
 #include "common/common.hpp"
@@ -85,9 +84,8 @@ class Events {
             [this](Callback callback) {
               if (!this->handlers_.try_emplace(E, callback.ref).second) {
                 this->engine_->unref_function(callback.ref);
-                this->engine_->add_error_message(std::format(
-                    "on.{}: callback is already registered; ignored",
-                    Traits::kName));
+                LOG_ERR("on.{}: callback is already registered; ignored",
+                    Traits::kName);
               }
             }));
   }

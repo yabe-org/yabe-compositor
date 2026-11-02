@@ -15,7 +15,6 @@ class Setting {
   ~Setting() = default;
 
   void load_config(const char* config_contents);
-  void add_error_message(std::string&& message);
 
   fields::Config      config;
   fields::Dispatchers dispatchers;

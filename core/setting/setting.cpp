@@ -15,9 +15,6 @@ void Setting::load_config(const char* config_contents) {
   this->keybinds.reset();
   this->engine_.do_string(config_contents);
 }
-void Setting::add_error_message(std::string&& message) {
-  this->engine_.add_error_message(std::move(message));
-}
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
 std::string Setting::generate_metafile_text() const {
   return this->engine_.generate_metafile_text();

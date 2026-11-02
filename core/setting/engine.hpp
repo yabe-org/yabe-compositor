@@ -10,6 +10,7 @@
 
 #include "common/common.hpp"
 #include "common/is-vector.hpp"
+#include "core/setting/schema/lua-function.hpp"
 #include "core/setting/schema/table.hpp"
 
 namespace yabe::core::setting {
@@ -28,6 +29,15 @@ class Engine {
   void initialize(const std::function<void(Engine*)>& initializer);
   void do_string(const char* config_contents);
   void add_error_message(std::string&& message);
+
+  /// errors in the function are logged with traceback
+  template <typename... Args>
+  void call_function(int function_ref, const Args&... args) {
+    const int message_handler_index = this->push_function(function_ref);
+    (this->push_stack_value(args), ...);
+    this->call_pushed_function(sizeof...(Args), message_handler_index);
+  }
+  void unref_function(int function_ref);
 
   void create_table(const char*           name,
       const std::function<void(Engine*)>& handle_initialize_table);
@@ -81,6 +91,15 @@ class Engine {
       getter  = [](lua_State* l, int index, const int* /*len*/) {
         const auto* const str = lua_tostring(l, index);
         return str ? std::string(str) : std::string();
+      };
+    } else if constexpr (schema::IsLuaFunction<T>::value) {
+      checker = [](lua_State* l, int index) {
+        // this is macro so cannot be passed directly
+        return static_cast<int>(lua_isfunction(l, index));
+      };
+      getter = [](lua_State* l, int index, const int* /*len*/) {
+        lua_pushvalue(l, index);
+        return T{.ref = luaL_ref(l, LUA_REGISTRYINDEX)};
       };
     } else {
       static_assert(false, "Unsupported type for get_field");
@@ -152,6 +171,11 @@ class Engine {
   }
 
  private:
+  /// @brief pushes the message handler and the function
+  /// @return stack index of the message handler
+  int  push_function(int function_ref);
+  void call_pushed_function(int num_args, int message_handler_index);
+
   void push_metafile_table(const char* name);
   void pop_metafile_table();
   void add_metafile_field(const char* name);

@@ -49,6 +49,30 @@ void Engine::add_error_message(std::string&& message) {
   this->error_messages_.emplace_back(std::move(message));
 }
 
+int Engine::push_function(int function_ref) {
+  lua_pushcfunction(this->l_, [](lua_State* l) -> int {
+    const auto* const message = lua_tostring(l, 1);
+    luaL_traceback(
+        l, l, message ? message : "(error object is not a string)", 1);
+    return 1;
+  });
+  const int message_handler_index = lua_gettop(this->l_);
+  lua_rawgeti(this->l_, LUA_REGISTRYINDEX, function_ref);
+  return message_handler_index;
+}
+
+void Engine::call_pushed_function(int num_args, int message_handler_index) {
+  if (lua_pcall(this->l_, num_args, 0, message_handler_index) != LUA_OK) {
+    LOG_ERR("Lua error: {}", lua_tostring(this->l_, -1));
+    lua_pop(this->l_, 1);
+  }
+  lua_pop(this->l_, 1);
+}
+
+void Engine::unref_function(int function_ref) {
+  luaL_unref(this->l_, LUA_REGISTRYINDEX, function_ref);
+}
+
 void Engine::create_table(const char*   name,
     const std::function<void(Engine*)>& handle_initialize_table) {
   lua_newtable(this->l_);

@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "common/is-vector.hpp"
+#include "core/setting/schema/lua-function.hpp"
 #include "core/setting/schema/table.hpp"
 
 namespace yabe::core::setting::schema {
@@ -27,6 +28,26 @@ inline std::string metafile_pascal_case(std::string_view name) {
 }
 
 template <typename T>
+std::string metafile_type_name();
+
+template <typename... Parameters>
+std::string metafile_lua_function_type_name(
+    std::type_identity<LuaFunction<Parameters...>> /*type*/) {
+  std::string result          = "fun(";
+  std::size_t index           = 0;
+  auto        write_parameter = [&result, &index]<typename Parameter>() {
+    if (index != 0) {
+      result += ", ";
+    }
+    result += static_cast<std::string_view>(Parameter::kName);
+    result += ": " + metafile_type_name<typename Parameter::ValueType>();
+    ++index;
+  };
+  (write_parameter.template operator()<Parameters>(), ...);
+  return result + ")";
+}
+
+template <typename T>
 std::string metafile_type_name() {
   if constexpr (common::IsVector<T>::value) {
     return metafile_type_name<typename common::IsVector<T>::value_type>() +
@@ -39,6 +60,8 @@ std::string metafile_type_name() {
     return "number";
   } else if constexpr (std::is_same_v<T, std::string>) {
     return "string";
+  } else if constexpr (IsLuaFunction<T>::value) {
+    return metafile_lua_function_type_name(std::type_identity<T>{});
   } else if constexpr (std::is_same_v<T, void>) {
     return "nil";
   } else {

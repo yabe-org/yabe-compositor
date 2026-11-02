@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "core/server.hpp"
 #include "protocols/wayland/workspace/workspace.hpp"
 
 namespace yabe::core {
@@ -21,6 +22,8 @@ void Workspace::set_current_scene_index(int32_t index) {
   for (auto& manager : this->workspace_managers_) {
     manager->renew_workspace_state(previous, index);
   }
+  server::get().setting.events.emit<setting::fields::Event::kWorkspaceChanged>(
+      previous, index);
 }
 
 void Workspace::add_scene_index(int32_t delta) {

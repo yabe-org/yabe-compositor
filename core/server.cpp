@@ -89,6 +89,9 @@ void Server::start() {
     const auto lock   = this->is_started_mutex_.lock();
     this->is_started_ = true;
   }
+  this->enqueue_wayland_thread_task([this]() {
+    this->setting.events.emit<setting::fields::Event::kStartup>();
+  });
   wl_display_run(this->wl_display_);
   {
     const auto lock   = this->is_started_mutex_.lock();
@@ -119,6 +122,7 @@ void Server::load_config(const char* config_contents) {
   this->enqueue_wayland_thread_task(
       [this, config = std::string(config_contents)]() {
         this->setting.load_config(config.c_str());
+        this->setting.events.emit<setting::fields::Event::kConfigReloaded>();
       });
 }
 
@@ -213,8 +217,11 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   const glm::mat4 host_view_mat = glm::make_mat4(view_mat);
-  if (this->is_recenter_requested_.exchange(false)) {
-    this->update_anchor_mat(host_view_mat);
+  if (this->is_recenter_requested_.exchange(false) &&
+      this->update_anchor_mat(host_view_mat)) {
+    this->enqueue_wayland_thread_task([this]() {
+      this->setting.events.emit<setting::fields::Event::kRecentered>();
+    });
   }
   this->draw_content(
       glm::make_mat4(proj_mat), host_view_mat * this->anchor_mat_);
@@ -263,7 +270,7 @@ void Server::request_recenter() {
   this->is_recenter_requested_.store(true);
 }
 
-void Server::update_anchor_mat(const glm::mat4& view_mat) {
+bool Server::update_anchor_mat(const glm::mat4& view_mat) {
   // pose of the head (eye) in the tracking space
   const glm::mat4 head_mat = glm::inverse(view_mat);
   const glm::vec3 position = glm::vec3(head_mat[3]);
@@ -271,12 +278,13 @@ void Server::update_anchor_mat(const glm::mat4& view_mat) {
   // only yaw is reset to keep the direction of gravity
   if (glm::length(glm::vec2(forward.x, forward.z)) < 1e-3F) {
     LOG_WARN("Cannot recenter while looking straight up or down");
-    return;
+    return false;
   }
   const float yaw = std::atan2(-forward.x, -forward.z);
   this->anchor_mat_ =
       glm::translate(glm::mat4(1.F), position) *
       glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
+  return true;
 }
 
 void Server::draw_content(

@@ -67,7 +67,8 @@ class Server {
   static Server instance;
 
   void draw_content(const glm::mat4& proj_mat, const glm::mat4& view_mat);
-  void update_anchor_mat(const glm::mat4& view_mat);
+  /// @return false if it cannot recenter
+  bool update_anchor_mat(const glm::mat4& view_mat);
 
   bool       is_initialized_             = false;
   bool       is_first_rendering_         = true;

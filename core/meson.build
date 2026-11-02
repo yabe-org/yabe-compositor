@@ -18,6 +18,7 @@ srcs += files(
   'setting/setting.cpp',
   'setting/fields/config.cpp',
   'setting/fields/dispatchers.cpp',
+  'setting/fields/events.cpp',
   'setting/fields/keybinds.cpp',
 
   'data-device/data-device.cpp',

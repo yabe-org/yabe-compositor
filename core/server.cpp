@@ -295,6 +295,7 @@ void Server::draw_content(
   }
   this->layer_manager.draw_under_scene(proj_mat);
   this->workspace.current_scene().draw(proj_mat, view_mat);
+  this->seat.input_method.draw(this->vp_mat_);
   this->layer_manager.draw_above_scene(proj_mat);
   server_seat::pointer_grab::ToplevelSelectionPointerGrab::draw(
       this->lasso_renderer_, this->vp_mat_);

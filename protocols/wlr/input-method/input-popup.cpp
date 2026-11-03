@@ -3,7 +3,6 @@
 #include <input-method-protocol.h>
 #include <wayland-server-core.h>
 
-#include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wlr::input_method {
@@ -11,11 +10,7 @@ InputPopup::InputPopup(
     wl_resource* resource, const std::shared_ptr<core::Surface>& surface)
     : resource_(resource), surface_(surface) {
 }
-InputPopup::~InputPopup() {
-  if (const auto surface = this->surface_.lock()) {
-    surface->unmap();
-  }
-}
+
 void InputPopup::send_text_input_rectangle(const common::Box2D& cursor_rect) {
   // this sends where is the cursor position relative to the popup
   // send so that popup is at the bottom of the cursor

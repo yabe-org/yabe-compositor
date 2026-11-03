@@ -15,7 +15,7 @@ class InputPopup : public core::SurfaceRole {
   DISABLE_MOVE_AND_COPY(InputPopup);
   InputPopup(
       wl_resource* resource, const std::shared_ptr<core::Surface>& surface);
-  ~InputPopup() override;
+  ~InputPopup() override = default;
 
   void commit() override {
   }

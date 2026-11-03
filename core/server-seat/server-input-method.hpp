@@ -3,11 +3,13 @@
 #include <text-input-protocol.h>
 #include <wayland-server.h>
 
+#include <glm/ext.hpp>
 #include <memory>
 #include <optional>
 
 #include "common/box.hpp"
 #include "common/common.hpp"
+#include "common/thread-safety.hpp"
 #include "core/surface.hpp"
 #include "protocols/wlr/input-method/input-method.hpp"
 #include "protocols/wlr/input-method/input-popup.hpp"
@@ -18,6 +20,8 @@ class ServerInputMethod {
   DISABLE_MOVE_AND_COPY(ServerInputMethod);
   ServerInputMethod()  = default;
   ~ServerInputMethod() = default;
+
+  void draw(const glm::mat4& vp_mat);
 
   /// if this class already have a input method,
   /// send unavailable() and overwrite it by given resource
@@ -36,6 +40,7 @@ class ServerInputMethod {
   void try_clear_current_input_popup(
       std::shared_ptr<proto::wlr::input_method::InputMethod>& input_method);
   [[nodiscard]] bool has_input_popup() {
+    const auto lock = this->mutex_.lock();
     return this->input_popup_.lock() != nullptr;
   }
   void renew_popup_parent(std::shared_ptr<core::Surface>& focused_surface);
@@ -62,14 +67,12 @@ class ServerInputMethod {
       uint32_t hint, zwp_text_input_v3_content_purpose purpose);
   void send_done();
 
-  [[nodiscard]]
-  const std::optional<common::Box2D>& current_cursor_rect() {
+  [[nodiscard]] std::optional<common::Box2D> current_cursor_rect() {
+    const auto lock = this->mutex_.lock();
     return this->cursor_rect_;
   }
 
  private:
-  void reposition_popup();
-
   struct {
     std::optional<std::string> commit_string;
     std::optional<std::string> preedit_string;
@@ -78,9 +81,12 @@ class ServerInputMethod {
     std::optional<uint32_t>    before_length = 0;
     std::optional<uint32_t>    after_length  = 0;
   } pending_, current_;
-  std::optional<common::Box2D> cursor_rect_;
+  std::optional<common::Box2D> cursor_rect_ GUARDED_BY(mutex_);
+  common::Mutex                             mutex_;
 
+  std::weak_ptr<Surface> parent_surface_               GUARDED_BY(mutex_);
   std::weak_ptr<proto::wlr::input_method::InputMethod> input_method_;
-  std::weak_ptr<proto::wlr::input_method::InputPopup>  input_popup_;
+  std::weak_ptr<proto::wlr::input_method::InputPopup> input_popup_ GUARDED_BY(
+      mutex_);
 };
 }  // namespace yabe::core::server_seat

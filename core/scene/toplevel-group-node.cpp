@@ -2,6 +2,7 @@
 
 #include <wayland-server-protocol.h>
 
+#include <algorithm>
 #include <core/server.hpp>
 #include <cstdint>
 #include <glm/ext.hpp>
@@ -148,5 +149,13 @@ void ToplevelGroupNode::handle_child_erased() {
 }
 void ToplevelGroupNode::handle_child_resized() {
   this->reconfigure();
+}
+bool ToplevelGroupNode::try_raise_child_to_front(
+    const std::shared_ptr<SceneNode>& child) {
+  if (std::ranges::find(this->children_, child) != this->children_.end()) {
+    // do not raise to keep order of children
+    return true;
+  }
+  return SceneNode::try_raise_child_to_front(child);
 }
 }  // namespace yabe::core::scene

@@ -33,6 +33,8 @@ class ToplevelGroupNode : public SceneNode {
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
   void handle_child_erased() override REQUIRES(Scene::mutex);
   void handle_child_resized() override REQUIRES(Scene::mutex);
+  bool try_raise_child_to_front(
+      const std::shared_ptr<SceneNode>& child) override REQUIRES(Scene::mutex);
 
   [[nodiscard]] auto toplevels() const REQUIRES(Scene::mutex) {
     return this->children_ | std::views::filter([](const auto& c) {

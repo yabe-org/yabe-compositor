@@ -37,8 +37,9 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   /// @return true if the child was erased
   bool try_erace_child(const std::shared_ptr<SceneNode>& child)
       REQUIRES(Scene::mutex);
-  /// @return true if the child was raised
-  bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child)
+  /// @brief raise the descendant to the front among its siblings
+  /// @return true if the descendant was found
+  virtual bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child)
       REQUIRES(Scene::mutex);
   void move_absolute(const glm::vec3& pos);
   void move_relative(float polar, float azimuth);

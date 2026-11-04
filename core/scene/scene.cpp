@@ -40,8 +40,10 @@ void Scene::raise_to_front(const std::shared_ptr<SceneNode>& node) {
     this->nodes_.splice(this->nodes_.end(), this->nodes_, it);
     return;
   }
-  for (auto& it : this->nodes_) {
-    if (it->try_raise_child_to_front(node)) {
+  // raise the root node too because the descendant is drawn with it
+  for (auto it = this->nodes_.begin(); it != this->nodes_.end(); ++it) {
+    if ((*it)->try_raise_child_to_front(node)) {
+      this->nodes_.splice(this->nodes_.end(), this->nodes_, it);
       return;
     }
   }

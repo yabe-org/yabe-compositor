@@ -43,14 +43,19 @@ bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
   }
   return false;
 }
+// NOLINTNEXTLINE(misc-no-recursion): ???
 bool SceneNode::try_raise_child_to_front(
     const std::shared_ptr<SceneNode>& child) {
-  auto it = std::find(this->children_.begin(), this->children_.end(), child);
-  if (it == this->children_.end()) {
-    return false;
+  for (auto it = this->children_.begin(); it != this->children_.end(); ++it) {
+    if (*it == child) {
+      this->children_.splice(this->children_.end(), this->children_, it);
+      return true;
+    }
+    if ((*it)->try_raise_child_to_front(child)) {
+      return true;
+    }
   }
-  this->children_.splice(this->children_.end(), this->children_, it);
-  return true;
+  return false;
 }
 
 void SceneNode::move_absolute(const glm::vec3& pos) {

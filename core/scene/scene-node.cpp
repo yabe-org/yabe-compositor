@@ -127,4 +127,11 @@ SceneNode::check_intersection(  // NOLINT(misc-no-recursion): ???
 
 void SceneNode::handle_child_erased() {
 }
+void SceneNode::handle_child_resized() {
+}
+void SceneNode::notify_resized() {
+  if (const auto parent = this->parent_.lock()) {
+    parent->handle_child_resized();
+  }
+}
 }  // namespace yabe::core::scene

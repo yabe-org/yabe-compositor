@@ -96,6 +96,10 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const SceneNode* parent, const glm::mat4& parent_world_transform) const;
   /// called when a child is erased from this node
   virtual void handle_child_erased() REQUIRES(Scene::mutex);
+  /// called when the size (geometry().scale()) of a child is changed
+  virtual void handle_child_resized() REQUIRES(Scene::mutex);
+  /// call this after changing geometry().scale() of this node
+  void         notify_resized() REQUIRES(Scene::mutex);
 
   // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
   std::list<std::shared_ptr<SceneNode>> children_ GUARDED_BY(Scene::mutex);

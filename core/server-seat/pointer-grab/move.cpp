@@ -39,6 +39,12 @@ void MovePointerGrab::move_relative(float dx, float dy) {
     server::get().seat.pointer.end_grab();
     return;
   }
+  {
+    const auto lock = scene::Scene::mutex.lock();
+    if (toplevel->parent().lock()) {
+      return;
+    }
+  }
   toplevel->move_relative(dy, dx);
   toplevel->look_at_camera();
 }

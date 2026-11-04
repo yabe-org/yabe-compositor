@@ -146,4 +146,7 @@ void ToplevelGroupNode::handle_child_erased() {
     this->reconfigure();
   }
 }
+void ToplevelGroupNode::handle_child_resized() {
+  this->reconfigure();
+}
 }  // namespace yabe::core::scene

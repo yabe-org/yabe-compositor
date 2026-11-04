@@ -106,7 +106,11 @@ glm::mat4 SurfaceNode::model_mat() const {
 }
 
 void SurfaceNode::prepare_for_draw() {
+  const auto prev_scale = this->geometry().scale();
   this->surface()->upload_texture_if_needed();
+  if (this->geometry().scale() != prev_scale) {
+    this->notify_resized();
+  }
 }
 
 void SurfaceNode::draw_self(const glm::mat4& proj_mat,

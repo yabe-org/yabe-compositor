@@ -84,6 +84,14 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
   if (!surface_node) {
     return;
   }
+  // position and rotation is decided by parent if it exists
+  {
+    const auto lock = scene::Scene::mutex.lock();
+    if (surface_node->parent().lock()) {
+      return;
+    }
+  }
+
   glm::vec3 move_amount{
       *surface_delta_width / 2.F,
       *surface_delta_height / 2.F,
@@ -95,6 +103,7 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
   if (this->edges_.at(common::Edge::BOTTOM)) {
     move_amount.y *= -1.F;
   }
+
   surface_node->move_absolute(this->initial_toplevel_pos_ + move_amount);
   surface_node->look_at_camera();
 }

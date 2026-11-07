@@ -5,7 +5,6 @@
 #include <atomic>
 #include <functional>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -47,7 +46,9 @@ class Server {
 
   uint32_t                next_serial();
   wl_event_loop*          loop();
-  [[nodiscard]] glm::mat4 get_vp_mat();
+  [[nodiscard]] glm::mat4 view_mat();
+  [[nodiscard]] glm::mat4 proj_mat();
+  [[nodiscard]] glm::vec3 head_direction();
 
   ResourceStorage         resources;
   setting::Setting        setting;
@@ -103,8 +104,10 @@ class Server {
   } wayland_thread_tasks_, rendering_thread_tasks_;
   std::thread thread_for_rendering_thread_tasks_;
 
-  glm::mat4  vp_mat_ = glm::mat4(1.F);
-  std::mutex vp_mat_mutex_;
+  // (view|proj)_mat are only written at draw()
+  common::Mutex       vp_mat_mutex_;
+  glm::mat4 view_mat_ GUARDED_BY(vp_mat_mutex_) = glm::mat4(1.F);
+  glm::mat4 proj_mat_ GUARDED_BY(vp_mat_mutex_) = glm::mat4(1.F);
 
   // transformation from the compositor world to the tracking space of the
   // host; only accessed in draw()

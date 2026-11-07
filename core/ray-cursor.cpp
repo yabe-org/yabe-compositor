@@ -6,6 +6,7 @@
 #include <memory>
 #include <numbers>
 
+#include "common/coordinate.hpp"
 #include "common/unit.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/server.hpp"
@@ -47,6 +48,13 @@ constexpr std::array kDefaultCursorTexture = []() {
   return data;
 }();
 }  // namespace
+
+RayState::RayState(const glm::vec3& direction) {
+  const auto spherical =
+      common::coordinate::CartesianCoord(direction).to_spherical();
+  this->polar   = spherical.polar;
+  this->azimuth = spherical.azimuth;
+}
 
 void RayCursor::move_relative(float polar, float azimuth) {
   this->state_.azimuth += azimuth;

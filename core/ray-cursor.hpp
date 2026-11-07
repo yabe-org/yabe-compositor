@@ -14,8 +14,12 @@
 
 namespace yabe::core {
 struct RayState {
-  float polar;
-  float azimuth;
+  RayState(float polar, float azimuth) : polar(polar), azimuth(azimuth) {
+  }
+  explicit RayState(const glm::vec3& direction);
+
+  float polar   = 0.F;
+  float azimuth = 0.F;  // x-z plane
 };
 
 class RayCursor {
@@ -59,10 +63,7 @@ class RayCursor {
 
   glm::vec3 origin_ = {0.F, -0.3F, -0.001F};
   float     length_ = kDefaultLength;
-  RayState  state_  = {
-      .polar   = 0,
-      .azimuth = 0,  // x-z plane, [0, 2pi]
-  };
+  RayState  state_{0.F, 0.F};
 
   bool            is_default_cursor_texture_uploaded_ = false;
   render::Texture default_cursor_texture_;

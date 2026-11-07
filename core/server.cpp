@@ -290,17 +290,19 @@ bool Server::update_anchor_mat(const glm::mat4& view_mat) {
 void Server::draw_content(
     const glm::mat4& proj_mat, const glm::mat4& view_mat) {
   {
-    const std::lock_guard lock(this->vp_mat_mutex_);
-    this->vp_mat_ = proj_mat * view_mat;
+    const auto lock = this->vp_mat_mutex_.lock();
+    this->view_mat_ = view_mat;
+    this->proj_mat_ = proj_mat;
   }
+  const auto vp_mat = proj_mat * view_mat;
   this->layer_manager.draw_under_scene(proj_mat);
   this->workspace.current_scene().draw(proj_mat, view_mat);
-  this->seat.input_method.draw(this->vp_mat_);
+  this->seat.input_method.draw(vp_mat);
   this->layer_manager.draw_above_scene(proj_mat);
   server_seat::pointer_grab::ToplevelSelectionPointerGrab::draw(
-      this->lasso_renderer_, this->vp_mat_);
-  this->ray_cursor.draw_cursor(this->vp_mat_);
-  this->ray_renderer_.render(this->vp_mat_, this->ray_cursor.origin(),
+      this->lasso_renderer_, vp_mat);
+  this->ray_cursor.draw_cursor(vp_mat);
+  this->ray_renderer_.render(vp_mat, this->ray_cursor.origin(),
       this->ray_cursor.direction(), this->ray_cursor.length());
 }
 
@@ -310,8 +312,16 @@ uint32_t Server::next_serial() {
 wl_event_loop* Server::loop() {
   return wl_display_get_event_loop(this->wl_display_);
 }
-glm::mat4 Server::get_vp_mat() {
-  const std::lock_guard lock(this->vp_mat_mutex_);
-  return this->vp_mat_;
+glm::mat4 Server::view_mat() {
+  const auto lock = this->vp_mat_mutex_.lock();
+  return this->view_mat_;
+}
+glm::mat4 Server::proj_mat() {
+  const auto lock = this->vp_mat_mutex_.lock();
+  return this->proj_mat_;
+}
+glm::vec3 Server::head_direction() {
+  const auto head_mat = glm::inverse(this->view_mat());
+  return -glm::vec3(head_mat[2]);
 }
 }  // namespace yabe::core::server

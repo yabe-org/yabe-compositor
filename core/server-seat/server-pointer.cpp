@@ -58,6 +58,11 @@ void ServerPointer::end_grab() {
 void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
   this->grab_->move_relative(dx, dy);
 }
+void ServerPointer::set_ray_state(const RayState& state) {
+  const auto& current = server::get().ray_cursor.ray_state();
+  this->grab_->move_relative(
+      state.azimuth - current.azimuth, state.polar - current.polar);
+}
 void ServerPointer::handle_pointer_button(uint32_t button, bool is_pressed) {
   this->grab_->button(button, is_pressed);
 }

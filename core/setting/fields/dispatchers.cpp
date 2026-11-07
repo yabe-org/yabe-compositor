@@ -47,6 +47,21 @@ void Dispatchers::initialize(Engine* engine) {
               return Dispatchers::get_next_dispatcher_id();
             }));
 
+    engine->create_field("reset_ray",
+        schema::FunctionEntry<int()>::create(
+            {
+                .description =
+                    "Point the ray horizontally in the current head direction",
+                .parameter_names = {},
+            },
+            [this]() {
+              this->dispatchers_.emplace_back([]() {
+                const RayState head(server::get().head_direction());
+                server::get().seat.pointer.set_ray_state({0.F, head.azimuth});
+              });
+              return Dispatchers::get_next_dispatcher_id();
+            }));
+
     engine->create_field("recenter",
         schema::FunctionEntry<int()>::create(
             {

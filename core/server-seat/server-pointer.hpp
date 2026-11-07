@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "common/common.hpp"
+#include "core/ray-cursor.hpp"
 #include "core/scene/scene-node.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
 
@@ -29,6 +30,8 @@ class ServerPointer {
   }
 
   void handle_pointer_move_relative(float dx, float dy);
+  /// moves the ray through the current grab, as if the pointer were moved
+  void set_ray_state(const RayState& state);
   void handle_pointer_button(uint32_t button, bool is_pressed);
   void handle_pointer_axis(uint32_t axis, float value);
 

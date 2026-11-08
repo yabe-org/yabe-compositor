@@ -14,7 +14,7 @@ namespace yabe::proto::xdg::shell::xdg_positioner {
 class XdgPositioner {
  public:
   DISABLE_MOVE_AND_COPY(XdgPositioner);
-  explicit XdgPositioner(wl_resource* resource);
+  XdgPositioner() = default;
   explicit XdgPositioner(XdgPositioner* other);  // copy constructor
   ~XdgPositioner() = default;
 
@@ -45,8 +45,6 @@ class XdgPositioner {
 
   common::unit::Pixel parent_width_{0};
   common::unit::Pixel parent_height_{0};
-
-  wl_resource* resource_;
 };
 
 void           create(wl_client* client, int version, uint32_t id);

@@ -8,7 +8,7 @@
 namespace yabe::core {
 namespace {
 TEST(RegionAdd, AddsRectangleToEmptyRegion) {
-  Region region(nullptr);
+  Region region;
 
   region.add(10, 20, 5, 4);
 
@@ -27,7 +27,7 @@ TEST(RegionAdd, AddsRectangleToEmptyRegion) {
 }
 
 TEST(RegionAdd, UnitesOverlappingRectangles) {
-  Region region(nullptr);
+  Region region;
 
   region.add(10, 10, 10, 10);
   region.add(15, 15, 10, 10);
@@ -45,7 +45,7 @@ TEST(RegionAdd, UnitesOverlappingRectangles) {
 }
 
 TEST(RegionAdd, IgnoresRectanglesWithNonPositiveSize) {
-  Region region(nullptr);
+  Region region;
 
   region.add(10, 10, 0, 10);
   region.add(10, 10, 10, 0);
@@ -57,7 +57,7 @@ TEST(RegionAdd, IgnoresRectanglesWithNonPositiveSize) {
 }
 
 TEST(RegionContains, IncludesTopLeftAndExcludesBottomRightBoundaries) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 20, 5, 4);
 
   EXPECT_TRUE(
@@ -77,7 +77,7 @@ TEST(RegionContains, IncludesTopLeftAndExcludesBottomRightBoundaries) {
 //     | region|
 //     +-------+
 TEST(RegionSubtract, RemovesOverlapAtTopLeftCorner) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(5, 5, 10, 10);
@@ -101,7 +101,7 @@ TEST(RegionSubtract, RemovesOverlapAtTopLeftCorner) {
 // | region  |
 // +---------+
 TEST(RegionSubtract, RemovesOverlapAtTopRightCorner) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(15, 5, 10, 10);
@@ -125,7 +125,7 @@ TEST(RegionSubtract, RemovesOverlapAtTopRightCorner) {
 // | sub |
 // +-----+
 TEST(RegionSubtract, RemovesOverlapAtBottomLeftCorner) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(5, 15, 10, 10);
@@ -149,7 +149,7 @@ TEST(RegionSubtract, RemovesOverlapAtBottomLeftCorner) {
 //     |       sub |
 //     +-----------+
 TEST(RegionSubtract, RemovesOverlapAtBottomRightCorner) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(15, 15, 10, 10);
@@ -173,7 +173,7 @@ TEST(RegionSubtract, RemovesOverlapAtBottomRightCorner) {
 // |   +-----+   |
 // +-------------+
 TEST(RegionSubtract, RemovesRectangleFullyInsideRegion) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(12, 12, 6, 6);
@@ -196,7 +196,7 @@ TEST(RegionSubtract, RemovesRectangleFullyInsideRegion) {
 // | region  |   | sub |
 // +---------+   +-----+
 TEST(RegionSubtract, PreservesRegionWhenRectangleIsOutside) {
-  Region region(nullptr);
+  Region region;
   region.add(10, 10, 10, 10);
 
   region.subtract(20, 20, 5, 5);
@@ -210,7 +210,7 @@ TEST(RegionSubtract, PreservesRegionWhenRectangleIsOutside) {
 }
 
 TEST(RegionAdd, ClampsRectangleWithMaximumSize) {
-  Region region(nullptr);
+  Region region;
 
   region.add(10, 20, std::numeric_limits<int32_t>::max(),
       std::numeric_limits<int32_t>::max());
@@ -224,9 +224,9 @@ TEST(RegionAdd, ClampsRectangleWithMaximumSize) {
 }
 
 TEST(RegionAdd, UnitesRegions) {
-  Region region(nullptr);
+  Region region;
   region.add(0, 0, 10, 10);
-  Region other(nullptr);
+  Region other;
   other.add(5, 5, 10, 10);
   other.add(30, 30, 5, 5);
 
@@ -242,7 +242,7 @@ TEST(RegionAdd, UnitesRegions) {
 }
 
 TEST(RegionIntersect, ClipsRectanglesOutsideOfBounds) {
-  Region region(nullptr);
+  Region region;
   region.add(0, 0, std::numeric_limits<int32_t>::max(),
       std::numeric_limits<int32_t>::max());
   region.add(-10, -10, 5, 5);
@@ -260,7 +260,7 @@ TEST(RegionIntersect, ClipsRectanglesOutsideOfBounds) {
 }
 
 TEST(RegionIntersect, BecomesEmptyWhenNoRectangleIntersects) {
-  Region region(nullptr);
+  Region region;
   region.add(200, 200, 10, 10);
 
   region.intersect(0, 0, 100, 100);
@@ -270,7 +270,7 @@ TEST(RegionIntersect, BecomesEmptyWhenNoRectangleIntersects) {
 }
 
 TEST(RegionBoxes, ReturnsNonOverlappingBoxes) {
-  Region region(nullptr);
+  Region region;
   region.add(0, 0, 10, 10);
   region.add(5, 5, 10, 10);
   region.add(2, 2, 3, 3);
@@ -285,7 +285,7 @@ TEST(RegionBoxes, ReturnsNonOverlappingBoxes) {
 }
 
 TEST(RegionClear, RemovesAllRectangles) {
-  Region region(nullptr);
+  Region region;
   region.add(0, 0, 10, 10);
 
   region.clear();

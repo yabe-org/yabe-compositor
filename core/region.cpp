@@ -6,9 +6,6 @@
 #include <limits>
 
 namespace yabe::core {
-Region::Region(wl_resource* resource) : resource_(resource) {
-}
-
 void Region::add(int32_t x, int32_t y, int32_t width, int32_t height) {
   this->add(Rect::from(x, y, width, height));
 }

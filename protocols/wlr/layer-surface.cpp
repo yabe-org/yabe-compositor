@@ -12,11 +12,9 @@
 
 namespace yabe::proto::wlr::layer_shell::layer_surface {
 LayerSurface::LayerSurface(wl_resource* resource,
-    std::shared_ptr<core::Surface>& wl_surface, zwlr_layer_shell_v1_layer layer,
-    std::string&& name_space)
+    std::shared_ptr<core::Surface>& wl_surface, std::string&& name_space)
     : resource_(resource)
     , wl_surface_(wl_surface)
-    , layer_(layer)
     , name_space_(std::move(name_space)) {
   LOG_DBG("layer_surface#{}: created", wl_resource_get_id(resource));
 }
@@ -277,8 +275,7 @@ void handle_destruction(wl_resource* resource) {
 }  // namespace
 
 void create(wl_client* client, int version, uint32_t id,
-    std::shared_ptr<core::Surface>& wl_surface, zwlr_layer_shell_v1_layer layer,
-    const char* name_space) {
+    std::shared_ptr<core::Surface>& wl_surface, const char* name_space) {
   wl_resource* resource =
       wl_resource_create(client, &zwlr_layer_surface_v1_interface, version, id);
   if (resource == nullptr) {
@@ -287,7 +284,7 @@ void create(wl_client* client, int version, uint32_t id,
   }
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
   auto self = std::make_shared<LayerSurface>(
-      resource, wl_surface, layer, std::string{name_space});
+      resource, wl_surface, std::string{name_space});
   wl_surface->set_role(self);
   core::server::get().layer_manager.add(std::move(self));
 }

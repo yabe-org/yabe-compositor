@@ -19,8 +19,7 @@ class LayerSurface : public core::SurfaceRole {
  public:
   DISABLE_MOVE_AND_COPY(LayerSurface);
   LayerSurface(wl_resource*           resource,
-      std::shared_ptr<core::Surface>& wl_surface,
-      zwlr_layer_shell_v1_layer layer, std::string&& name_space);
+      std::shared_ptr<core::Surface>& wl_surface, std::string&& name_space);
   ~LayerSurface() override;
 
   void                                          commit() override;
@@ -74,11 +73,9 @@ class LayerSurface : public core::SurfaceRole {
 
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> wl_surface_;
-  zwlr_layer_shell_v1_layer    layer_;
   std::string                  name_space_;
 };
 
 void create(wl_client* client, int version, uint32_t id,
-    std::shared_ptr<core::Surface>& wl_surface, zwlr_layer_shell_v1_layer layer,
-    const char* name_space);
+    std::shared_ptr<core::Surface>& wl_surface, const char* name_space);
 }  // namespace yabe::proto::wlr::layer_shell::layer_surface

@@ -46,7 +46,7 @@ void create(wl_client* client, uint32_t id) {
     return;
   }
   wl_resource_set_implementation(resource, &kImpl, nullptr, handle_destruction);
-  const auto self = std::make_shared<core::Region>(resource);
+  const auto self = std::make_shared<core::Region>();
   core::server::get().resources.add(resource, self);
 }
 }  // namespace yabe::proto::wayland::region

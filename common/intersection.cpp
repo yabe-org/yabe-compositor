@@ -4,6 +4,7 @@
 #include <glm/ext.hpp>
 #include <limits>
 #include <optional>
+#include <utility>
 
 namespace yabe::common::intersection {
 // using Möller–Trumbore intersection algorithm
@@ -51,17 +52,18 @@ std::optional<SurfaceInfo> with_surface(
 
 // based
 // https://www.opengl-tutorial.org/jp/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access): glm::vec3[i] cannot be replaced
 std::optional<float> with_obb(const glm::vec3& origin,
     const glm::vec3& direction, const glm::vec3& half_size,
     const glm::mat4& model_mat) {
   const glm::vec3 direction_norm = glm::normalize(direction);
-  const glm::vec3 obb_world_pos  = model_mat[3];
+  const glm::vec3 obb_world_pos  = glm::column(model_mat, 3);
   const glm::vec3 delta          = obb_world_pos - origin;
 
   float near = 0.F;
   float far  = std::numeric_limits<float>::max();
   for (int i = 0; i <= 2; ++i) {
-    const glm::vec3 axis = model_mat[i];
+    const glm::vec3 axis = glm::column(model_mat, i);
     const float     e    = glm::dot(axis, delta);
     const float     f    = glm::dot(direction_norm, axis);
     if (std::abs(f) > 0.001F) {
@@ -81,4 +83,5 @@ std::optional<float> with_obb(const glm::vec3& origin,
   }
   return near;
 }
+// NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 }  // namespace yabe::common::intersection

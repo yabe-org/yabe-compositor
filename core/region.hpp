@@ -10,7 +10,7 @@
 namespace yabe::core {
 class Region {
  public:
-  explicit Region(wl_resource* resource = nullptr);
+  Region()  = default;
   ~Region() = default;
 
   Region(const Region&)            = default;
@@ -52,7 +52,5 @@ class Region {
 
   /// all rects are non-overlapping
   std::vector<Rect> rects_;
-
-  wl_resource* resource_;
 };
 }  // namespace yabe::core

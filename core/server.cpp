@@ -148,7 +148,7 @@ void Server::terminate() {
 
 void Server::enqueue_wayland_thread_task(std::function<void()> task) {
   {
-    const std::lock_guard lock(this->wayland_thread_tasks_.mutex);
+    const std::scoped_lock lock(this->wayland_thread_tasks_.mutex);
     this->wayland_thread_tasks_.tasks.push_back(std::move(task));
   }
   const uint64_t value = 1;
@@ -158,7 +158,7 @@ void Server::enqueue_wayland_thread_task(std::function<void()> task) {
   }
 }
 void Server::enqueue_rendering_thread_task(std::function<void()> task) {
-  const std::lock_guard lock(this->rendering_thread_tasks_.mutex);
+  const std::scoped_lock lock(this->rendering_thread_tasks_.mutex);
   this->rendering_thread_tasks_.tasks.push_back(std::move(task));
 }
 
@@ -169,7 +169,7 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   }
   if (this->should_invalidate_graphics_.load()) {
     {
-      const std::lock_guard lock(this->rendering_thread_tasks_.mutex);
+      const std::scoped_lock lock(this->rendering_thread_tasks_.mutex);
       this->rendering_thread_tasks_.tasks.clear();
     }
     this->rect_renderer.invalidate();
@@ -259,15 +259,15 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   this->is_first_rendering_     = false;
   std::array<GLint, 4> viewport = {};  // x, y, width, height
   glGetIntegerv(GL_VIEWPORT, viewport.data());
-  proto::wayland::output::set_viewport_size(viewport[2], viewport[3]);
+  proto::wayland::output::set_viewport_size(viewport.at(2), viewport.at(3));
 }
 
 bool Server::update_anchor_mat() {
   const auto      lock     = this->rendering_mutex_.lock();
   // pose of the head (eye) in the tracking space
   const glm::mat4 head_mat = glm::inverse(this->view_mat_);
-  const glm::vec3 position = glm::vec3(head_mat[3]);
-  const glm::vec3 forward  = -glm::vec3(head_mat[2]);
+  const glm::vec3 position = glm::vec3(glm::column(head_mat, 3));
+  const glm::vec3 forward  = -glm::vec3(glm::column(head_mat, 2));
   // only yaw is reset to keep the direction of gravity
   if (glm::length(glm::vec2(forward.x, forward.z)) < 1e-3F) {
     LOG_WARN("Cannot recenter while looking straight up or down");
@@ -310,6 +310,6 @@ glm::mat4 Server::proj_mat() {
 }
 glm::vec3 Server::head_direction() {
   const auto head_mat = glm::inverse(this->view_mat());
-  return -glm::vec3(head_mat[2]);
+  return -glm::vec3(glm::column(head_mat, 2));
 }
 }  // namespace yabe::core::server

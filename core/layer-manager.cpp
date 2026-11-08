@@ -2,12 +2,13 @@
 
 #include <cstdlib>
 #include <glm/glm.hpp>
+#include <utility>
 
 #include "common/box.hpp"
 #include "core/render/rect-renderer.hpp"
 #include "core/server.hpp"
 #include "protocols/wayland/output.hpp"
-#include "protocols/wlr/layer-surface.hpp"
+#include "protocols/wlr/layer-surface.hpp"  // IWYU pragma: keep
 
 namespace yabe::core {
 void LayerManager::add(StoredLayerSurface&& surface) {
@@ -87,8 +88,8 @@ void LayerManager::draw_layer(Layer layer, const glm::mat4& proj_mat) const {
     y *= 2.F;                             // [0, 2]
     y = 1.F - y;                          // [-1, 1], invert Y
 
-    const auto projection_scale_x = 1.F / proj_mat[0][0];
-    const auto projection_scale_y = 1.F / proj_mat[1][1];
+    const auto projection_scale_x = 1.F / glm::column(proj_mat, 0).x;
+    const auto projection_scale_y = 1.F / glm::column(proj_mat, 1).y;
     glm::mat4  model_mat{1.F};
     // place the layer on the z = -1 eye-space plane so that the
     // projection matrix does not scale the calculated NDC size

@@ -80,8 +80,6 @@ void Edge::set(xdg_positioner_anchor value) {
 }  // namespace yabe::common
 
 namespace yabe::proto::xdg::shell::xdg_positioner {
-XdgPositioner::XdgPositioner(wl_resource* resource) : resource_(resource) {
-}
 XdgPositioner::XdgPositioner(XdgPositioner* other) {
   this->width_                 = other->width_;
   this->height_                = other->height_;
@@ -220,7 +218,7 @@ void create(wl_client* client, int version, uint32_t id) {
     wl_client_post_no_memory(client);
     return;
   }
-  auto* self = new XdgPositioner(resource);
+  auto* self = new XdgPositioner();
   wl_resource_set_implementation(resource, &kImpl, self, handle_destruction);
 }
 XdgPositioner* get(wl_resource* resource) {

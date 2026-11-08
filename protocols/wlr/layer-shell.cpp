@@ -13,12 +13,11 @@ constexpr struct zwlr_layer_shell_v1_interface kImpl = {
     .get_layer_surface =
         [](wl_client* client, wl_resource* resource, uint32_t id,
             wl_resource* surface_resource, wl_resource* /*output_resource*/,
-            uint32_t layer, const char* name_space) {
+            uint32_t /*layer*/, const char* name_space) {
           auto wl_surface = core::server::get().resources.get<core::Surface>(
               surface_resource);
           layer_surface::create(client, wl_resource_get_version(resource), id,
-              wl_surface, static_cast<zwlr_layer_shell_v1_layer>(layer),
-              name_space);
+              wl_surface, name_space);
         },
     .destroy =
         [](wl_client* /*client*/, wl_resource* resource) {

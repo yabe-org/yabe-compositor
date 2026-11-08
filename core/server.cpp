@@ -8,6 +8,7 @@
 #include <wayland-server-core.h>
 
 #include <cmath>
+#include <glm/glm.hpp>
 #include <mutex>
 
 #include "common/common.hpp"
@@ -52,8 +53,7 @@ void Server::init() {
   }
 
   LOG_INFO("Server is initialized");
-  const std::lock_guard rendering_lock(this->rendering_mutex_);
-  this->is_initialized_ = true;
+  this->is_initialized_.store(true);
 }
 
 uint32_t Server::set_socket_fd(std::optional<int> fd) {
@@ -80,8 +80,8 @@ uint32_t Server::set_socket_fd(std::optional<int> fd) {
 
 void Server::start() {
   {
-    const std::lock_guard rendering_lock(this->rendering_mutex_);
-    if (!this->is_initialized_) {
+    const auto load = this->rendering_mutex_.lock();
+    if (!this->is_initialized_.load()) {
       throw std::runtime_error("Server is not initialized");
     }
   }
@@ -98,24 +98,26 @@ void Server::start() {
     this->is_started_ = false;
   }
 
-  const std::lock_guard rendering_lock(this->rendering_mutex_);
-  this->is_initialized_ = false;
+  const auto load = this->rendering_mutex_.lock();
+  this->is_initialized_.store(false);
   wl_display_destroy_clients(this->wl_display_);
   wl_event_source_remove(this->task_source_);
   this->task_source_ = nullptr;
   close(this->task_dispatch_event_fd_);
   this->task_dispatch_event_fd_ = -1;
   wl_display_destroy(this->wl_display_);
-  this->wl_display_                 = nullptr;
-  this->should_invalidate_graphics_ = true;
+  this->wl_display_ = nullptr;
+  this->should_invalidate_graphics_.store(true);
 }
 
 void Server::load_config(const char* config_contents) {
   const auto lock = this->is_started_mutex_.lock();
+  // before starting server, always load config
   if (!this->is_started_) {
     this->setting.load_config(config_contents);
     return;
   }
+  // after starting, reload only occurs if auto reload is enabled
   if (!this->setting.config.get<"auto_reload_config">()) {
     return;
   }
@@ -161,11 +163,11 @@ void Server::enqueue_rendering_thread_task(std::function<void()> task) {
 }
 
 void Server::draw(const float* proj_mat, const float* view_mat) {
-  const std::lock_guard rendering_lock(this->rendering_mutex_);
-  if (!this->is_initialized_) {
+  const auto rendering_lock = this->rendering_mutex_.lock();
+  if (!this->is_initialized_.load()) {
     return;
   }
-  if (this->should_invalidate_graphics_) {
+  if (this->should_invalidate_graphics_.load()) {
     {
       const std::lock_guard lock(this->rendering_thread_tasks_.mutex);
       this->rendering_thread_tasks_.tasks.clear();
@@ -174,8 +176,8 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
     this->resize_handle_renderer.invalidate();
     this->ray_renderer_.invalidate();
     this->ray_cursor.invalidate_graphics();
-    this->is_first_rendering_         = true;
-    this->should_invalidate_graphics_ = false;
+    this->is_first_rendering_ = true;
+    this->should_invalidate_graphics_.store(false);
   }
   this->thread_for_rendering_thread_tasks_    = std::thread([this]() {
     this->rendering_thread_tasks_.consume();
@@ -216,15 +218,9 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-  const glm::mat4 host_view_mat = glm::make_mat4(view_mat);
-  if (this->is_recenter_requested_.exchange(false) &&
-      this->update_anchor_mat(host_view_mat)) {
-    this->enqueue_wayland_thread_task([this]() {
-      this->setting.events.emit<setting::fields::Event::kRecentered>();
-    });
-  }
-  this->draw_content(
-      glm::make_mat4(proj_mat), host_view_mat * this->anchor_mat_);
+  this->view_mat_ = glm::make_mat4(view_mat) * this->anchor_mat_;
+  this->proj_mat_ = glm::make_mat4(proj_mat);
+  this->draw_content();
 
   if (was_cull_face_enabled) {
     glEnable(GL_CULL_FACE);
@@ -266,13 +262,10 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   proto::wayland::output::set_viewport_size(viewport[2], viewport[3]);
 }
 
-void Server::request_recenter() {
-  this->is_recenter_requested_.store(true);
-}
-
-bool Server::update_anchor_mat(const glm::mat4& view_mat) {
+bool Server::update_anchor_mat() {
+  const auto      lock     = this->rendering_mutex_.lock();
   // pose of the head (eye) in the tracking space
-  const glm::mat4 head_mat = glm::inverse(view_mat);
+  const glm::mat4 head_mat = glm::inverse(this->view_mat_);
   const glm::vec3 position = glm::vec3(head_mat[3]);
   const glm::vec3 forward  = -glm::vec3(head_mat[2]);
   // only yaw is reset to keep the direction of gravity
@@ -280,25 +273,20 @@ bool Server::update_anchor_mat(const glm::mat4& view_mat) {
     LOG_WARN("Cannot recenter while looking straight up or down");
     return false;
   }
-  const float yaw = std::atan2(-forward.x, -forward.z);
-  this->anchor_mat_ =
-      glm::translate(glm::mat4(1.F), position) *
-      glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
+  const float yaw  = std::atan2(-forward.x, -forward.z);
+  const auto delta = glm::translate(glm::mat4(1.F), position) *
+                     glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
+  this->anchor_mat_ = this->anchor_mat_ * delta;
+  this->view_mat_   = this->view_mat_ * delta;
   return true;
 }
 
-void Server::draw_content(
-    const glm::mat4& proj_mat, const glm::mat4& view_mat) {
-  {
-    const auto lock = this->vp_mat_mutex_.lock();
-    this->view_mat_ = view_mat;
-    this->proj_mat_ = proj_mat;
-  }
-  const auto vp_mat = proj_mat * view_mat;
-  this->layer_manager.draw_under_scene(proj_mat);
-  this->workspace.current_scene().draw(proj_mat, view_mat);
+void Server::draw_content() {
+  const auto vp_mat = this->proj_mat_ * this->view_mat_;
+  this->layer_manager.draw_under_scene(this->proj_mat_);
+  this->workspace.current_scene().draw(this->proj_mat_, this->view_mat_);
   this->seat.input_method.draw(vp_mat);
-  this->layer_manager.draw_above_scene(proj_mat);
+  this->layer_manager.draw_above_scene(this->proj_mat_);
   server_seat::pointer_grab::ToplevelSelectionPointerGrab::draw(
       this->lasso_renderer_, vp_mat);
   this->ray_cursor.draw_cursor(vp_mat);
@@ -313,11 +301,11 @@ wl_event_loop* Server::loop() {
   return wl_display_get_event_loop(this->wl_display_);
 }
 glm::mat4 Server::view_mat() {
-  const auto lock = this->vp_mat_mutex_.lock();
+  const auto lock = this->rendering_mutex_.lock();
   return this->view_mat_;
 }
 glm::mat4 Server::proj_mat() {
-  const auto lock = this->vp_mat_mutex_.lock();
+  const auto lock = this->rendering_mutex_.lock();
   return this->proj_mat_;
 }
 glm::vec3 Server::head_direction() {

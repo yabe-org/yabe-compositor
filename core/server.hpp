@@ -41,8 +41,9 @@ class Server {
   void     enqueue_wayland_thread_task(std::function<void()> task);
   void     enqueue_rendering_thread_task(std::function<void()> task);
   void     draw(const float* proj_mat, const float* view_mat);
-  /// makes the current head direction the front at the next draw()
-  void     request_recenter();
+
+  /// @return false if it cannot recenter
+  bool update_anchor_mat();
 
   uint32_t                next_serial();
   wl_event_loop*          loop();
@@ -67,21 +68,27 @@ class Server {
   ~Server() = default;
   static Server instance;
 
-  void draw_content(const glm::mat4& proj_mat, const glm::mat4& view_mat);
-  /// @return false if it cannot recenter
-  bool update_anchor_mat(const glm::mat4& view_mat);
+  void draw_content() REQUIRES(rendering_mutex_);
 
-  bool       is_initialized_             = false;
-  bool       is_first_rendering_         = true;
+  std::atomic<bool> is_initialized_{false};
+  /// written and read only from rendering thread
+  bool              is_first_rendering_ = true;
   // some OpenXR platform (e.g. Meta Quest) does not fully stop the app process
   // while it releases OpenGL context. So, after being called terminate(),
   // we should invalidate OpenGL resources and re-create them
   // when the process is resumed
-  bool       should_invalidate_graphics_ = false;
-  std::mutex rendering_mutex_;
+  std::atomic<bool> should_invalidate_graphics_{false};
 
+  // not std::atomic<bool> because load_config() must hold the lock while
+  // loading config; otherwise start() can proceed while loading
   common::Mutex    is_started_mutex_;
   bool is_started_ GUARDED_BY(is_started_mutex_) = false;
+
+  common::Mutex         rendering_mutex_;
+  glm::mat4 view_mat_   GUARDED_BY(rendering_mutex_) = glm::mat4(1.F);
+  glm::mat4 proj_mat_   GUARDED_BY(rendering_mutex_) = glm::mat4(1.F);
+  /// transformation from the compositor world to the tracking space
+  glm::mat4 anchor_mat_ GUARDED_BY(rendering_mutex_) = glm::mat4(1.F);
 
   render::RayRenderer   ray_renderer_;
   render::LassoRenderer lasso_renderer_;
@@ -103,16 +110,6 @@ class Server {
     }
   } wayland_thread_tasks_, rendering_thread_tasks_;
   std::thread thread_for_rendering_thread_tasks_;
-
-  // (view|proj)_mat are only written at draw()
-  common::Mutex       vp_mat_mutex_;
-  glm::mat4 view_mat_ GUARDED_BY(vp_mat_mutex_) = glm::mat4(1.F);
-  glm::mat4 proj_mat_ GUARDED_BY(vp_mat_mutex_) = glm::mat4(1.F);
-
-  // transformation from the compositor world to the tracking space of the
-  // host; only accessed in draw()
-  glm::mat4         anchor_mat_ = glm::mat4(1.F);
-  std::atomic<bool> is_recenter_requested_{false};
 };
 
 /// shortening

@@ -70,7 +70,11 @@ void Dispatchers::initialize(Engine* engine) {
             },
             [this]() {
               this->dispatchers_.emplace_back([]() {
-                server::get().request_recenter();
+                if (server::get().update_anchor_mat()) {
+                  server::get()
+                      .setting.events
+                      .emit<setting::fields::Event::kRecentered>();
+                }
               });
               return Dispatchers::get_next_dispatcher_id();
             }));

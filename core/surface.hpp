@@ -78,9 +78,11 @@ class Surface : public std::enable_shared_from_this<Surface> {
     return this->texture_height_;
   }
   [[nodiscard]] const std::optional<Region>& input_region() const {
+#pragma clang diagnostic push
     // input_region is accessed only from Wayland thread
 #pragma clang diagnostic ignored "-Wthread-safety"
     return this->current_.input_region;
+#pragma clang diagnostic pop
   }
   [[nodiscard]] std::shared_ptr<Toplevel> get_toplevel() {
     if (const auto role = this->role_.lock()) {

@@ -1,9 +1,10 @@
 #include "scene-node.hpp"
 
-#include <algorithm>
+#include <glm/gtc/matrix_access.hpp>
 #include <optional>
 
 #include "core/scene/scene-intersection.hpp"
+#include "core/scene/scene.hpp"
 
 namespace yabe::core::scene {
 SceneNode::SceneNode()
@@ -22,8 +23,16 @@ void SceneNode::draw(const glm::mat4& proj_mat, const glm::mat4& view_mat,
   }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
+void SceneNode::set_owner(Scene* owner) {
+  this->owner_ = owner;
+  for (const auto& child : this->children_) {
+    child->set_owner(owner);
+  }
+}
 void SceneNode::add_child(std::shared_ptr<SceneNode> child) {
   child->parent_ = this->weak_from_this();
+  child->set_owner(this->owner_);
   this->children_.push_back(std::move(child));
 }
 // NOLINTNEXTLINE(misc-no-recursion): ???
@@ -33,6 +42,7 @@ bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
   for (auto it = this->children_.begin(); it != this->children_.end(); ++it) {
     if (*it == child) {
       child->parent_.reset();
+      child->set_owner(nullptr);
       this->children_.erase(it);
       this->handle_child_erased();
       return true;
@@ -42,6 +52,24 @@ bool SceneNode::try_erace_child(const std::shared_ptr<SceneNode>& child) {
     }
   }
   return false;
+}
+void SceneNode::detach_from_parent() {
+  std::shared_ptr<SceneNode> parent;
+  {
+    const auto lock = Scene::mutex.lock();
+    parent          = this->parent_.lock();
+    if (!parent) {
+      return;
+    }
+    // resolve before erasing because world_transform() depends on the
+    // ancestors and handle_child_erased() may change the parent's geometry
+    // world transforms consist of translation and rotation only
+    const auto world_transform = this->world_transform();
+    this->geometry_.pos()      = glm::vec3(glm::column(world_transform, 3));
+    this->geometry_.rotation() = glm::quat_cast(glm::mat3(world_transform));
+    parent->try_erace_child(this->shared_from_this());
+  }
+  parent->owner_->insert(this->shared_from_this());
 }
 // NOLINTNEXTLINE(misc-no-recursion): ???
 bool SceneNode::try_raise_child_to_front(

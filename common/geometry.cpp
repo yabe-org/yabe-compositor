@@ -35,5 +35,4 @@ void Geometry::move_relative(float d_azimuth, float d_polar, float d_radius) {
   spherical.radius += d_radius;
   this->cartesian_ = spherical.to_cartesian();
 }
-
 }  // namespace yabe::common

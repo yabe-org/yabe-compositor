@@ -1,7 +1,6 @@
 #include "scene.hpp"
 
 #include <memory>
-#include <mutex>
 #include <numbers>
 #include <ranges>
 
@@ -17,6 +16,7 @@ void Scene::insert(std::shared_ptr<SceneNode>&& node) {
     this->set_active_node(node);
   }
   const auto lock = Scene::mutex.lock();
+  node->set_owner(this);
   this->nodes_.emplace_back(std::move(node));
 }
 
@@ -24,6 +24,7 @@ void Scene::erase(const std::shared_ptr<SceneNode>& node) {
   const auto lock = Scene::mutex.lock();
   for (auto& it : this->nodes_) {
     if (it == node) {
+      node->set_owner(nullptr);
       this->nodes_.remove(it);
       return;
     }

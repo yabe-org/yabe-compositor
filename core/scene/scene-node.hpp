@@ -33,10 +33,12 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const SceneNode* parent, const glm::mat4& parent_world_transform)
       REQUIRES(Scene::mutex);
 
+  void set_owner(Scene* owner) REQUIRES(Scene::mutex);
   void add_child(std::shared_ptr<SceneNode> child) REQUIRES(Scene::mutex);
   /// @return true if the child was erased
   bool try_erace_child(const std::shared_ptr<SceneNode>& child)
       REQUIRES(Scene::mutex);
+  void detach_from_parent() EXCLUDES(Scene::mutex);  // it calls Scene::insert()
   /// @brief raise the descendant to the front among its siblings
   /// @return true if the descendant was found
   virtual bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child)
@@ -106,6 +108,8 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   std::list<std::shared_ptr<SceneNode>> children_ GUARDED_BY(Scene::mutex);
 
  private:
+  /// nonnull while being mapped; accessed only on Wayland thread
+  Scene*                           owner_ = nullptr;
   common::Geometry                 geometry_;
   std::weak_ptr<SceneNode> parent_ GUARDED_BY(Scene::mutex);
 };

@@ -34,6 +34,7 @@ Checks: >
   -readability-identifier-length,
   -readability-implicit-bool-conversion,
   -readability-magic-numbers,
+  -readability-trailing-comma,
 
 HeaderFilterRegex: '.*\.h(pp)?'
 

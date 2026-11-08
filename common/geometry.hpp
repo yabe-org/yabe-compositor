@@ -43,8 +43,6 @@ class Geometry {
   void move_relative(const glm::vec3& d_cartesian);
   void move_relative(float d_azimuth, float d_polar, float d_radius);
 
-  void set_rotation(const glm::quat& new_rotation);
-
  private:
   coordinate::CartesianCoord cartesian_;
   glm::quat                  rotation_ = glm::quat(1.F, 0.F, 0.F, 0.F);

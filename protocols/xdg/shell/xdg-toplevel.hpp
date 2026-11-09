@@ -30,6 +30,7 @@ class XdgToplevel : public core::SurfaceRole,
   void set_activated(bool is_activated) override;
   [[nodiscard]] std::weak_ptr<core::Surface> surface() override;
 
+  void set_parent(std::optional<std::shared_ptr<XdgToplevel>> parent);
   void start_move();
   void start_resize(uint32_t edges);
   void request_resize(common::unit::Pixel width, common::unit::Pixel height);
@@ -39,6 +40,9 @@ class XdgToplevel : public core::SurfaceRole,
   }
   [[nodiscard]] std::weak_ptr<core::scene::SurfaceNode> surface_node();
 
+  [[nodiscard]] bool is_ancestor_of(
+      const std::shared_ptr<XdgToplevel>& other) const;
+
  private:
   void send_configure(int32_t width, int32_t height);
 
@@ -47,6 +51,7 @@ class XdgToplevel : public core::SurfaceRole,
   std::shared_ptr<core::scene::DecorationNode>   decoration_;
   std::shared_ptr<core::scene::ResizeHandleNode> resize_handle_;
   std::weak_ptr<xdg_surface::XdgSurface>         xdg_surface_;
+  std::weak_ptr<XdgToplevel>                     parent_;
 
   bool is_initial_commit_sent_ = false;
   bool is_activated_           = false;

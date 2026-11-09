@@ -61,6 +61,9 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
       const SceneNode* parent, const glm::mat4& parent_world_transform)
       REQUIRES(Scene::mutex);
 
+  [[nodiscard]] Scene* owner() const {
+    return this->owner_;
+  }
   [[nodiscard]] const std::weak_ptr<SceneNode>& parent() const
       REQUIRES(Scene::mutex) {
     return this->parent_;

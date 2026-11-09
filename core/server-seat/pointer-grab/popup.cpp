@@ -17,6 +17,8 @@ PopupPointerGrab* PopupPointerGrab::start(
 }
 
 void PopupPointerGrab::cleanup() {
+  // restore keyboard focus
+  server::get().workspace.current_scene().focus_to_active_node();
 }
 
 void PopupPointerGrab::move_relative(float dx, float dy) {

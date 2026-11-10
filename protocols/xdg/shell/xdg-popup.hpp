@@ -43,6 +43,7 @@ class XdgPopup : public core::SurfaceRole {
 
  private:
   wl_resource*                                   resource_;
+  bool                                           is_grabbed_ = false;
   std::weak_ptr<xdg_surface::XdgSurface>         popup_surface_;
   std::weak_ptr<xdg_surface::XdgSurface>         parent_surface_;
   std::unique_ptr<xdg_positioner::XdgPositioner> positioner_;

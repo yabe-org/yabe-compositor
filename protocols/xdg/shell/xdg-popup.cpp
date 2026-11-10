@@ -37,8 +37,8 @@ XdgPopup::XdgPopup(wl_resource*               resource,
 }
 XdgPopup::~XdgPopup() {
   LOG_DBG("xdg_popup#{}: destroyed", wl_resource_get_id(this->resource_));
-  if (core::server_seat::pointer_grab::PopupPointerGrab::is_active(this)) {
-    core::server::get().seat.pointer.end_grab();
+  if (this->is_grabbed_) {
+    core::server_seat::pointer_grab::PopupPointerGrab::remove(this);
   }
 
   const auto popup_surface = this->popup_surface_.lock();
@@ -128,6 +128,7 @@ void XdgPopup::reposition(std::optional<uint32_t> token) {
 }
 
 void XdgPopup::start_grab() {
+  this->is_grabbed_ = true;
   core::server::get().seat.pointer.start_grab(
       core::server_seat::pointer_grab::PopupPointerGrab::start(this));
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "common/common.hpp"
 #include "core/server-seat/pointer-grab/pointer-grab.hpp"
 #include "protocols/xdg/shell/xdg-popup.hpp"
@@ -10,7 +12,7 @@ class PopupPointerGrab final : public PointerGrab {
   DISABLE_MOVE_AND_COPY(PopupPointerGrab);
 
   static PopupPointerGrab* start(proto::xdg::shell::xdg_popup::XdgPopup* popup);
-  static bool is_active(proto::xdg::shell::xdg_popup::XdgPopup* popup);
+  static void remove(proto::xdg::shell::xdg_popup::XdgPopup* popup);
 
   void cleanup() override;
   void move_relative(float dx, float dy) override;
@@ -21,7 +23,7 @@ class PopupPointerGrab final : public PointerGrab {
   explicit PopupPointerGrab() = default;
   ~PopupPointerGrab()         = default;
 
-  // XdgPopup ends popup grab when it is destroyed
-  proto::xdg::shell::xdg_popup::XdgPopup* popup_ = nullptr;
+  // XdgPopup must remove itself from this stack by calling remove()
+  std::vector<proto::xdg::shell::xdg_popup::XdgPopup*> popup_stack_;
 };
 }  // namespace yabe::core::server_seat::pointer_grab

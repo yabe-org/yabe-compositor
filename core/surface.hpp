@@ -3,6 +3,7 @@
 #include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <memory>
 #include <optional>
@@ -18,6 +19,12 @@
 #include "core/toplevel.hpp"
 
 namespace yabe::core {
+enum class SurfaceSetParentResult : uint8_t {
+  SUCCEEDED,
+  FAILED_SELF_IS_SAME_AS_OR_ANCESTOR_OF_NEW_PARENT,
+  FAILED_OTHER,
+};
+
 class SurfaceRole {
  public:
   DISABLE_MOVE_AND_COPY(SurfaceRole);
@@ -53,7 +60,9 @@ class Surface : public std::enable_shared_from_this<Surface> {
   void map(
       std::optional<std::shared_ptr<scene::SceneNode>> parent = std::nullopt,
       scene::SurfaceNode::Anchor anchor = scene::SurfaceNode::Anchor::CENTER);
-  void unmap();
+  void                   unmap();
+  SurfaceSetParentResult set_parent(
+      std::optional<std::shared_ptr<Surface>> new_parent);
 
   void focus();
   void unfocus();
@@ -90,6 +99,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
     }
     return nullptr;
   }
+  [[nodiscard]] bool is_ancestor_of(
+      const std::shared_ptr<Surface>& other) const;
 
   [[nodiscard]] bool has_buffer() {
     const auto lock = this->mutex_.lock();
@@ -132,6 +143,7 @@ class Surface : public std::enable_shared_from_this<Surface> {
   std::shared_ptr<Buffer> uploaded_buffer_;
 
   std::weak_ptr<SurfaceRole>                         role_;
+  std::weak_ptr<Surface>                             parent_;
   std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =
       std::nullopt;
 

@@ -12,6 +12,7 @@
 
 #include "common/common.hpp"
 #include "common/time.hpp"
+#include "core/scene/scene.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core {
@@ -225,4 +226,66 @@ void Surface::unmap() {
     wl_surface_send_leave(this->resource_, output->second);
   }
 }
+SurfaceSetParentResult Surface::set_parent(
+    std::optional<std::shared_ptr<Surface>> new_parent) {
+  if (new_parent.value_or(nullptr) == this->parent_.lock()) {
+    // note that it also returns if both are null
+    return SurfaceSetParentResult::FAILED_OTHER;
+  }
+  // FIXME: this function does not set the parent
+  // if this or the parent is not yet mapped
+  if (!this->surface_node_) {
+    return SurfaceSetParentResult::FAILED_OTHER;
+  }
+
+  if (!new_parent) {
+    this->surface_node_.value()->detach_from_parent();
+    this->parent_.reset();
+    return SurfaceSetParentResult::SUCCEEDED;
+  }
+  if (this->is_ancestor_of(*new_parent)) {
+    return SurfaceSetParentResult::
+        FAILED_SELF_IS_SAME_AS_OR_ANCESTOR_OF_NEW_PARENT;
+  }
+  const auto new_parent_node = new_parent.value()->surface_node_;
+  if (!new_parent_node.has_value()) {
+    this->surface_node_.value()->detach_from_parent();
+    this->parent_.reset();
+    return SurfaceSetParentResult::SUCCEEDED;
+  }
+  this->parent_                    = *new_parent;
+  core::scene::Scene* scene        = nullptr;
+  core::scene::Scene* parent_scene = nullptr;
+  {
+    const auto lock = core::scene::Scene::mutex.lock();
+    scene           = this->surface_node_.value()->owner();
+    parent_scene    = new_parent_node.value()->owner();
+  }
+  scene->erase(this->surface_node_.value());
+
+  {
+    const auto lock = core::scene::Scene::mutex.lock();
+    // reset pos&rot so that parent can decide them of the child
+    this->surface_node_.value()->geometry().pos()      = glm::vec3(0.F);
+    this->surface_node_.value()->geometry().rotation() = glm::quat();
+    new_parent_node.value()->add_child(this->surface_node_.value());
+  }
+  // if parent is keyboard-focused, newly added child should be focused now
+  const auto keyboard_focused_surface =
+      core::server::get().seat.keyboard.get_focused_surface().lock();
+  if (keyboard_focused_surface == *new_parent) {
+    parent_scene->set_active_node(this->surface_node_.value());
+  }
+  return SurfaceSetParentResult::SUCCEEDED;
+}
+
+bool Surface::is_ancestor_of(const std::shared_ptr<Surface>& other) const {
+  for (auto ancestor = other; ancestor; ancestor = ancestor->parent_.lock()) {
+    if (ancestor.get() == this) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace yabe::core

@@ -15,6 +15,7 @@
 #include "core/server-seat/pointer-grab/move.hpp"
 #include "core/server-seat/pointer-grab/resize.hpp"
 #include "core/server.hpp"
+#include "core/surface.hpp"
 #include "core/toplevel.hpp"
 #include "protocols/xdg/shell/xdg-surface.hpp"
 
@@ -79,55 +80,6 @@ std::weak_ptr<core::Surface> XdgToplevel::surface() {
     return {};
   }
   return xdg_surface->wl_surface();
-}
-
-void XdgToplevel::set_parent(
-    std::optional<std::shared_ptr<XdgToplevel>> new_parent) {
-  if (new_parent.value_or(nullptr) == this->parent_.lock()) {
-    // note that it also returns if both are null
-    return;
-  }
-  const auto node = this->surface_node().lock();
-  if (!node) {
-    return;
-  }
-
-  if (!new_parent) {
-    node->detach_from_parent();
-    this->parent_.reset();
-    return;
-  }
-  const auto new_parent_node = new_parent.value()->surface_node().lock();
-  if (!new_parent_node) {
-    node->detach_from_parent();
-    this->parent_.reset();
-    return;
-  }
-  this->parent_                    = *new_parent;
-  core::scene::Scene* scene        = nullptr;
-  core::scene::Scene* parent_scene = nullptr;
-  {
-    const auto lock = core::scene::Scene::mutex.lock();
-    scene           = node->owner();
-    parent_scene    = new_parent_node->owner();
-  }
-  scene->erase(node);
-
-  {
-    const auto lock             = core::scene::Scene::mutex.lock();
-    // reset pos&rot so that parent can decide them of the child
-    node->geometry().pos()      = glm::vec3(0.F);
-    node->geometry().rotation() = glm::quat();
-    new_parent_node->add_child(node);
-  }
-  // if parent is keyboard-focused, newly added child should be focused now
-  const auto keyboard_focused_surface =
-      core::server::get().seat.keyboard.get_focused_surface().lock();
-  const auto parent_surface = new_parent.value()->surface().lock();
-  if (keyboard_focused_surface != parent_surface) {
-    return;
-  }
-  parent_scene->set_active_node(node);
 }
 
 void XdgToplevel::start_move() {
@@ -204,16 +156,6 @@ std::weak_ptr<core::scene::SurfaceNode> XdgToplevel::surface_node() {
   }
   return surface_node.value();
 }
-bool XdgToplevel::is_ancestor_of(
-    const std::shared_ptr<XdgToplevel>& other) const {
-  for (auto ancestor = other; ancestor; ancestor = ancestor->parent_.lock()) {
-    if (ancestor.get() == this) {
-      return true;
-    }
-  }
-  return false;
-}
-
 namespace {
 constexpr struct xdg_toplevel_interface kImpl = {
     .destroy =
@@ -225,25 +167,33 @@ constexpr struct xdg_toplevel_interface kImpl = {
             wl_resource* parent_resource) {
           const auto self =
               core::server::get().resources.get<XdgToplevel>(resource);
-          std::optional<std::shared_ptr<XdgToplevel>> parent = std::nullopt;
+          const auto self_wl_surface = self->surface().lock();
+          if (!self_wl_surface) {
+            return;
+          }
+          std::optional<std::shared_ptr<core::Surface>> parent = std::nullopt;
           if (parent_resource) {
-            auto ptr =
+            const auto ptr =
                 core::server::get().resources.get<XdgToplevel>(parent_resource);
             if (!ptr) {
               wl_client_post_implementation_error(
                   client, "parent is non-null resource but not found");
               return;
             }
-            if (self->is_ancestor_of(ptr)) {
-              wl_resource_post_error(resource,
-                  XDG_TOPLEVEL_ERROR_INVALID_PARENT,
-                  "requested toplevel is same as or the ancestor of "
-                  "new parent");
+            const auto wl_surface = ptr->surface().lock();
+            if (!wl_surface) {
+              wl_client_post_implementation_error(client,
+                  "parent is non-null resource but wl_surface is not found");
               return;
             }
-            parent = ptr;
+            parent = wl_surface;
           }
-          self->set_parent(parent);
+          if (self_wl_surface->set_parent(parent) ==
+              core::SurfaceSetParentResult::
+                  FAILED_SELF_IS_SAME_AS_OR_ANCESTOR_OF_NEW_PARENT) {
+            wl_resource_post_error(resource, XDG_TOPLEVEL_ERROR_INVALID_PARENT,
+                "requested toplevel is same as or the ancestor of new parent");
+          }
         },
     .set_title =
         [](wl_client* /*client*/, wl_resource* /*resource*/,

@@ -8,7 +8,7 @@
 #include "scene-node.hpp"
 
 namespace yabe::core::scene {
-class ToplevelGroupNode : public SceneNode {
+class ToplevelGroupNode final : public SceneNode {
  public:
   DISABLE_MOVE_AND_COPY(ToplevelGroupNode);
   ToplevelGroupNode()           = default;
@@ -24,7 +24,10 @@ class ToplevelGroupNode : public SceneNode {
     return nullptr;
   }
 
- private:
+  bool try_raise_child_to_front(
+      const std::shared_ptr<SceneNode>& child) override REQUIRES(Scene::mutex);
+
+ protected:
   void prepare_for_draw() override REQUIRES(Scene::mutex);
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
@@ -33,8 +36,8 @@ class ToplevelGroupNode : public SceneNode {
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
   void handle_child_erased() override REQUIRES(Scene::mutex);
   void handle_child_resized() override REQUIRES(Scene::mutex);
-  bool try_raise_child_to_front(
-      const std::shared_ptr<SceneNode>& child) override REQUIRES(Scene::mutex);
+  bool handle_child_moved(
+      const std::shared_ptr<SceneNode>& child, float dx, float dy) override;
 
   [[nodiscard]] auto toplevels() const REQUIRES(Scene::mutex) {
     return this->children_ | std::views::filter([](const auto& c) {
@@ -42,6 +45,7 @@ class ToplevelGroupNode : public SceneNode {
     });
   }
 
+ private:
   std::shared_ptr<DecorationNode> decoration_;
   render::Texture                 bg_texture_;
   bool                            is_texture_uploaded_ = false;

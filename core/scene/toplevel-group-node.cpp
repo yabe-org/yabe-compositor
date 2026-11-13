@@ -16,6 +16,7 @@
 #include "common/coordinate.hpp"
 #include "common/unit.hpp"
 #include "core/scene/decoration-node.hpp"
+#include "core/scene/scene.hpp"
 
 namespace yabe::core::scene {
 namespace {
@@ -149,6 +150,19 @@ void ToplevelGroupNode::handle_child_erased() {
 }
 void ToplevelGroupNode::handle_child_resized() {
   this->reconfigure();
+}
+bool ToplevelGroupNode::handle_child_moved(
+    const std::shared_ptr<SceneNode>& child, float dx, float dy) {
+  const auto threshold =
+      server::get()
+          .setting.config.get<"surface_grouping", "detach_threshold">();
+  // usually dx&dy are too short and less than 1, so multiply their length
+  // not to force users to set too small value for it
+  if (((dx * dx) + (dy * dy)) * 10'000 > threshold) {
+    child->detach_from_parent();
+  }
+  // do not move child
+  return true;
 }
 bool ToplevelGroupNode::try_raise_child_to_front(
     const std::shared_ptr<SceneNode>& child) {

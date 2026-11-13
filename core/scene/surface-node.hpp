@@ -39,7 +39,7 @@ class SurfaceNode : public SceneNode {
   }
   [[nodiscard]] glm::mat4 model_mat() const REQUIRES(Scene::mutex);
 
- private:
+ protected:
   void prepare_for_draw() override REQUIRES(Scene::mutex);
   void draw_self(const glm::mat4& proj_mat, const glm::mat4& view_mat,
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
@@ -48,10 +48,13 @@ class SurfaceNode : public SceneNode {
       const glm::mat4& world_transform) override REQUIRES(Scene::mutex);
   [[nodiscard]] glm::mat4 resolve_world_transform(const SceneNode* parent,
       const glm::mat4& parent_world_transform) const override;
+  bool                    handle_child_moved(
+      const std::shared_ptr<SceneNode>& child, float dx, float dy) override;
 
   [[nodiscard]] std::optional<std::shared_ptr<client_seat::ClientSeat>> seat()
       const;
 
+ private:
   // weak reference to avoid circular reference
   // Surface always valid while SurfaceNode exists
   // (note that Surface owner is Server::resources)

@@ -44,7 +44,7 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   virtual bool try_raise_child_to_front(const std::shared_ptr<SceneNode>& child)
       REQUIRES(Scene::mutex);
   void move_absolute(const glm::vec3& pos);
-  void move_relative(float polar, float azimuth);
+  void move_relative(float dx, float dy);
   void look_at_camera();
 
   virtual void enter(const glm::vec3& origin, const glm::vec3& direction,
@@ -101,11 +101,26 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   [[nodiscard]] virtual glm::mat4 resolve_world_transform(
       const SceneNode* parent, const glm::mat4& parent_world_transform) const;
   /// called when a child is erased from this node
-  virtual void handle_child_erased() REQUIRES(Scene::mutex);
+  virtual void handle_child_erased() REQUIRES(Scene::mutex) {
+  }
   /// called when the size (geometry().scale()) of a child is changed
-  virtual void handle_child_resized() REQUIRES(Scene::mutex);
+  virtual void handle_child_resized() REQUIRES(Scene::mutex) {
+  }
+  /// @brief called when the position of a child node is moved
+  /// @return true if the move is handled.
+  /// In order to let the child decide the position, return false
+  virtual bool handle_child_moved(
+      const std::shared_ptr<SceneNode>& child, float dx, float dy) {
+    (void)child;
+    (void)dx;
+    (void)dy;
+    return false;
+  }
+  bool notify_move(float dx, float dy)
+      EXCLUDES(Scene::mutex);  // it accesses SceneNode::parent_
   /// call this after changing geometry().scale() of this node
-  void         notify_resized() REQUIRES(Scene::mutex);
+  void notify_resized()
+      REQUIRES(Scene::mutex);  // FIXME: replace this with EXCLUDES()
 
   // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
   std::list<std::shared_ptr<SceneNode>> children_ GUARDED_BY(Scene::mutex);

@@ -1,6 +1,7 @@
 #include "scene-node.hpp"
 
 #include <glm/gtc/matrix_access.hpp>
+#include <memory>
 #include <optional>
 
 #include "core/scene/scene-intersection.hpp"
@@ -89,8 +90,14 @@ bool SceneNode::try_raise_child_to_front(
 void SceneNode::move_absolute(const glm::vec3& pos) {
   this->geometry_.move_absolute(pos);
 }
-void SceneNode::move_relative(float polar, float azimuth) {
+void SceneNode::move_relative(float dx, float dy) {
+  if (this->notify_move(dx, dy)) {
+    return;
+  }
+  const auto azimuth = dx;
+  const auto polar   = dy;
   this->geometry_.move_relative(azimuth, polar, 0.F);
+  this->look_at_camera();
 }
 void SceneNode::look_at_camera() {
   const auto pos                  = this->geometry_.pos();
@@ -158,9 +165,16 @@ SceneNode::check_intersection(  // NOLINT(misc-no-recursion): ???
   return this->check_intersection_self(origin, direction, world_transform);
 }
 
-void SceneNode::handle_child_erased() {
-}
-void SceneNode::handle_child_resized() {
+bool SceneNode::notify_move(float dx, float dy) {
+  std::weak_ptr<SceneNode> parent_weak;
+  {
+    const auto lock = Scene::mutex.lock();
+    parent_weak     = this->parent_;
+  }
+  if (const auto parent = parent_weak.lock()) {
+    return parent->handle_child_moved(this->shared_from_this(), dx, dy);
+  }
+  return false;
 }
 void SceneNode::notify_resized() {
   if (const auto parent = this->parent_.lock()) {

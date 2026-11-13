@@ -65,6 +65,10 @@ constexpr auto kConfigTable = schema::table(
       schema::field<"padding", double>(
          "padding around the group",
          0.01
+      ),
+      schema::field<"detach_threshold", double>(
+         "the amount of triggering children detach",
+         0.65
       )
   )),
   schema::field<"window">(schema::table(

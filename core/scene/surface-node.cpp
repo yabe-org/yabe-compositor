@@ -1,5 +1,7 @@
 #include "surface-node.hpp"
 
+#include <memory>
+
 #include "common/geometry.hpp"
 #include "common/intersection.hpp"
 #include "core/scene/scene-intersection.hpp"
@@ -98,6 +100,16 @@ glm::mat4 SurfaceNode::resolve_world_transform(
       glm::mat4(1.F), glm::vec3{scale.x / 2.F, -scale.y / 2.F, 0.F});
   return parent_world_transform * parent_center_to_top_left *
          this->geometry().transform_mat() * top_left_to_center;
+}
+
+bool SurfaceNode::handle_child_moved(
+    const std::shared_ptr<SceneNode>& child, float dx, float dy) {
+  const auto child_surface_node = std::dynamic_pointer_cast<SurfaceNode>(child);
+  if (!child_surface_node) {
+    return false;
+  }
+  child_surface_node->geometry().pos() += glm::vec3{dx, dy, 0.F};
+  return true;
 }
 
 glm::mat4 SurfaceNode::model_mat() const {

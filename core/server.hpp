@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -21,6 +22,12 @@
 #include "core/server-seat/server-seat.hpp"
 #include "core/setting/setting.hpp"
 #include "core/workspace.hpp"
+
+// in order to reduce dependencies
+// currently Exported is referred via shared_ptr
+namespace yabe::proto::xdg::foreign::exported {
+class Exported;
+}
 
 namespace yabe::core::server {
 class Server {
@@ -62,6 +69,9 @@ class Server {
   render::ResizeHandleRenderer resize_handle_renderer;
 
   std::unordered_map<wl_client*, wl_resource*> output_map;
+  std::unordered_map<std::string,
+      std::shared_ptr<proto::xdg::foreign::exported::Exported>>
+      exported_map;
 
  private:
   Server()  = default;

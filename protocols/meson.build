@@ -33,6 +33,10 @@ srcs += files(
   'wlr/layer-surface.cpp',
   'wlr/wlr.cpp',
 
+  'xdg/foreign/exported.cpp',
+  'xdg/foreign/exporter.cpp',
+  'xdg/foreign/imported.cpp',
+  'xdg/foreign/importer.cpp',
   'xdg/shell/xdg-popup.cpp',
   'xdg/shell/xdg-positioner.cpp',
   'xdg/shell/xdg-surface.cpp',

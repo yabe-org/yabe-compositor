@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "common/common.hpp"
+#include "common/signal.hpp"
 #include "common/thread-safety.hpp"
 #include "common/unit.hpp"
 #include "core/buffer.hpp"
@@ -67,11 +68,16 @@ class Surface : public std::enable_shared_from_this<Surface> {
   void focus();
   void unfocus();
 
+  void add_listener_destroyed(common::Listener<std::nullptr_t*>& listener);
+
   [[nodiscard]] wl_resource* resource() const {
     return this->resource_;
   }
   [[nodiscard]] wl_client* client() const {
     return wl_resource_get_client(this->resource_);
+  }
+  [[nodiscard]] std::weak_ptr<Surface> parent() const {
+    return this->parent_;
   }
   [[nodiscard]] std::optional<std::shared_ptr<scene::SurfaceNode>>
   surface_node() const {
@@ -101,6 +107,14 @@ class Surface : public std::enable_shared_from_this<Surface> {
   }
   [[nodiscard]] bool is_ancestor_of(
       const std::shared_ptr<Surface>& other) const;
+  template <typename T>
+  [[nodiscard]] bool is_role_of() const {
+    const auto role = this->role_.lock();
+    if (!role) {
+      return false;
+    }
+    return std::dynamic_pointer_cast<T>(role) != nullptr;
+  }
 
   [[nodiscard]] bool has_buffer() {
     const auto lock = this->mutex_.lock();
@@ -146,6 +160,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
   std::weak_ptr<Surface>                             parent_;
   std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =
       std::nullopt;
+
+  struct {
+    common::Signal<std::nullptr_t*> destroyed;
+  } events_;
 
   wl_resource* resource_;
 };

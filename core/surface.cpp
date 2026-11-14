@@ -20,6 +20,7 @@ Surface::Surface(wl_resource* resource) : resource_(resource) {
   LOG_DBG("wl_surface#{}: created", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
+  this->events_.destroyed.emit(nullptr);
   this->unmap();
   LOG_DBG("wl_surface#{}: destroyed", wl_resource_get_id(this->resource_));
 }
@@ -228,10 +229,6 @@ void Surface::unmap() {
 }
 SurfaceSetParentResult Surface::set_parent(
     std::optional<std::shared_ptr<Surface>> new_parent) {
-  if (new_parent.value_or(nullptr) == this->parent_.lock()) {
-    // note that it also returns if both are null
-    return SurfaceSetParentResult::FAILED_OTHER;
-  }
   // FIXME: this function does not set the parent
   // if this or the parent is not yet mapped
   if (!this->surface_node_) {
@@ -239,9 +236,22 @@ SurfaceSetParentResult Surface::set_parent(
   }
 
   if (!new_parent) {
+    {
+      const auto lock = core::scene::Scene::mutex.lock();
+      // chwck parent existence with SurfaceNode::parent(), not Surface::parent_
+      // (Surface::parent_ have expired when ~Surface() is called,
+      // but Surface::surface_node_ still alives)
+      if (this->surface_node_.value()->parent().expired()) {
+        return SurfaceSetParentResult::FAILED_OTHER;
+      }
+    }
     this->surface_node_.value()->detach_from_parent();
     this->parent_.reset();
     return SurfaceSetParentResult::SUCCEEDED;
+  }
+
+  if (*new_parent == this->parent_.lock()) {
+    return SurfaceSetParentResult::FAILED_OTHER;
   }
   if (this->is_ancestor_of(*new_parent)) {
     return SurfaceSetParentResult::
@@ -277,6 +287,11 @@ SurfaceSetParentResult Surface::set_parent(
     parent_scene->set_active_node(this->surface_node_.value());
   }
   return SurfaceSetParentResult::SUCCEEDED;
+}
+
+void Surface::add_listener_destroyed(
+    common::Listener<std::nullptr_t*>& listener) {
+  this->events_.destroyed.add_listener(listener);
 }
 
 bool Surface::is_ancestor_of(const std::shared_ptr<Surface>& other) const {

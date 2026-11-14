@@ -16,7 +16,11 @@
 #include "core/server.hpp"
 
 namespace yabe::core {
-Surface::Surface(wl_resource* resource) : resource_(resource) {
+Surface::Surface(wl_resource* resource)
+    : parent_destroyed_listener_([this](std::nullptr_t*) {
+      this->set_parent(std::nullopt);
+    })
+    , resource_(resource) {
   LOG_DBG("wl_surface#{}: created", wl_resource_get_id(resource));
 }
 Surface::~Surface() {
@@ -245,6 +249,7 @@ SurfaceSetParentResult Surface::set_parent(
         return SurfaceSetParentResult::FAILED_OTHER;
       }
     }
+    this->parent_destroyed_listener_.remove();
     this->surface_node_.value()->detach_from_parent();
     this->parent_.reset();
     return SurfaceSetParentResult::SUCCEEDED;
@@ -259,11 +264,14 @@ SurfaceSetParentResult Surface::set_parent(
   }
   const auto new_parent_node = new_parent.value()->surface_node_;
   if (!new_parent_node.has_value()) {
+    this->parent_destroyed_listener_.remove();
     this->surface_node_.value()->detach_from_parent();
     this->parent_.reset();
     return SurfaceSetParentResult::SUCCEEDED;
   }
-  this->parent_                    = *new_parent;
+  this->parent_destroyed_listener_.remove();
+  this->parent_ = *new_parent;
+  new_parent.value()->add_listener_destroyed(this->parent_destroyed_listener_);
   core::scene::Scene* scene        = nullptr;
   core::scene::Scene* parent_scene = nullptr;
   {

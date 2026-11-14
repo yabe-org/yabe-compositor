@@ -165,6 +165,8 @@ class Surface : public std::enable_shared_from_this<Surface> {
     common::Signal<std::nullptr_t*> destroyed;
   } events_;
 
+  common::Listener<std::nullptr_t*> parent_destroyed_listener_;
+
   wl_resource* resource_;
 };
 }  // namespace yabe::core

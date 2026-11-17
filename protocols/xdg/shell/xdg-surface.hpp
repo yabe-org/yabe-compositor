@@ -24,25 +24,35 @@ class XdgSurface {
     return this->wl_surface_;
   }
 
-  [[nodiscard]] const common::Box2D& window_geometry() const {
-    return this->current_;
+  [[nodiscard]] common::Box2D window_geometry() const {
+    if (this->current_window_geometry_) {
+      return *this->current_window_geometry_;
+    }
+    if (const auto surface = this->wl_surface_.lock()) {
+      return common::Box2D{
+          .width  = surface->texture_width(),
+          .height = surface->texture_height(),
+      };
+    }
+    return {};
   }
 
   [[nodiscard]] common::unit::Pixel width() const {
-    return this->current_.width;
+    return this->window_geometry().width;
   }
   [[nodiscard]] common::unit::Pixel height() const {
-    return this->current_.height;
+    return this->window_geometry().height;
   }
   [[nodiscard]] common::unit::Pixel x() const {
-    return this->current_.x;
+    return this->window_geometry().x;
   }
   [[nodiscard]] common::unit::Pixel y() const {
-    return this->current_.y;
+    return this->window_geometry().y;
   }
 
  private:
-  common::Box2D                pending_, current_;
+  std::optional<common::Box2D> pending_window_geometry_,
+      current_window_geometry_;
   wl_resource*                 resource_;
   std::weak_ptr<core::Surface> wl_surface_;
 };

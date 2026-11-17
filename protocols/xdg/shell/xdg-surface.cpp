@@ -22,7 +22,10 @@ XdgSurface::~XdgSurface() {
 }
 
 void XdgSurface::commit() {
-  this->current_ = this->pending_;
+  if (this->pending_window_geometry_) {
+    this->current_window_geometry_ = this->pending_window_geometry_;
+    this->pending_window_geometry_.reset();
+  }
 }
 void XdgSurface::configure() {
   xdg_surface_send_configure(
@@ -30,7 +33,7 @@ void XdgSurface::configure() {
 }
 void XdgSurface::set_window_geometry(
     int32_t x, int32_t y, int32_t width, int32_t height) {
-  this->pending_ = common::Box2D{
+  this->pending_window_geometry_ = common::Box2D{
       .x      = common::unit::Pixel(x),
       .y      = common::unit::Pixel(y),
       .width  = common::unit::Pixel(width),

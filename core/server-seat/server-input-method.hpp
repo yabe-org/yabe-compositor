@@ -76,10 +76,10 @@ class ServerInputMethod {
   struct {
     std::optional<std::string> commit_string;
     std::optional<std::string> preedit_string;
-    std::optional<int32_t>     cursor_begin  = 0;
-    std::optional<int32_t>     cursor_end    = 0;
-    std::optional<uint32_t>    before_length = 0;
-    std::optional<uint32_t>    after_length  = 0;
+    std::optional<int32_t>     cursor_begin;
+    std::optional<int32_t>     cursor_end;
+    std::optional<uint32_t>    before_length;
+    std::optional<uint32_t>    after_length;
   } pending_, current_;
   std::optional<common::Box2D> cursor_rect_ GUARDED_BY(mutex_);
   common::Mutex                             mutex_;

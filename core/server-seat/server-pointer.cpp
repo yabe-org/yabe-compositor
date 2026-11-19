@@ -6,6 +6,7 @@
 
 #include "core/server-seat/pointer-grab/default.hpp"
 #include "core/server.hpp"
+#include "yabe-compositor.h"
 
 namespace yabe::core::server_seat {
 ServerPointer::ServerPointer()
@@ -63,9 +64,8 @@ void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
   }
   // currently entire code assumes that dx/dy is in radian, so convert here
   // todo?: define unit::Radian to distinguish them
-  constexpr float kRadianPerPixel = 0.002F;
-  this->grab_->move_relative(
-      dx * kRadianPerPixel * multiplier, dy * kRadianPerPixel * multiplier);
+  this->grab_->move_relative(dx * YABE_COMPOSITOR_RADIAN_PER_PIXEL * multiplier,
+      dy * YABE_COMPOSITOR_RADIAN_PER_PIXEL * multiplier);
 }
 void ServerPointer::set_ray_state(const RayState& state) {
   const auto& current = server::get().ray_cursor.ray_state();

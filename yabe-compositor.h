@@ -8,6 +8,9 @@ extern "C" {
 #include <stdint.h>
 #endif
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): This header is not only for C++
+#define YABE_COMPOSITOR_RADIAN_PER_PIXEL 0.002F
+
 void     yabe_compositor_init(void (*print_log)(const char*),
     /// @retval nullptr if failed, otherwise keymap string in
     /// XKB_KEYMAP_FORMAT_TEXT_V1, which pointer should alive longer until the

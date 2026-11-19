@@ -50,6 +50,8 @@ class SceneNode : public std::enable_shared_from_this<SceneNode> {
   virtual void enter(const glm::vec3& origin, const glm::vec3& direction,
       const glm::vec3& pos);
   virtual void leave();
+  virtual void relative_motion(
+      float dx, float dy, float dx_unaccel, float dy_unaccel);
   virtual void motion(const glm::vec3& origin, const glm::vec3& direction,
       const glm::vec3& pos);
   virtual void button(uint32_t button, bool is_pressed);

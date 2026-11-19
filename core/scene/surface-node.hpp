@@ -27,6 +27,8 @@ class SurfaceNode : public SceneNode {
   void enter(const glm::vec3& origin, const glm::vec3& direction,
       const glm::vec3& pos) override;
   void leave() override;
+  void relative_motion(
+      float dx, float dy, float dx_unaccel, float dy_unaccel) override;
   void motion(const glm::vec3& origin, const glm::vec3& direction,
       const glm::vec3& pos) override;
   void button(uint32_t button, bool is_pressed) override;

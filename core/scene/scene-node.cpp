@@ -116,6 +116,9 @@ void SceneNode::enter(const glm::vec3& /*origin*/,
 }
 void SceneNode::leave() {
 }
+void SceneNode::relative_motion(
+    float /*dx*/, float /*dy*/, float /*dx_unaccel*/, float /*dy_unaccel*/) {
+}
 void SceneNode::motion(const glm::vec3& /*origin*/,
     const glm::vec3& /*direction*/, const glm::vec3& /*intersect_info*/) {
 }

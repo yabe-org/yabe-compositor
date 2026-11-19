@@ -15,6 +15,8 @@ srcs += files(
   'wayland/pointer-constraints/confined-pointer.cpp',
   'wayland/pointer-constraints/locked-pointer.cpp',
   'wayland/pointer-constraints/pointer-constraints.cpp',
+  'wayland/relative-pointer/relative-pointer-manager.cpp',
+  'wayland/relative-pointer/relative-pointer.cpp',
   'wayland/seat/seat.cpp',
   'wayland/seat/pointer.cpp',
   'wayland/seat/keyboard.cpp',

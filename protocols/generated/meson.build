@@ -6,6 +6,7 @@ wayland_protocols_base_dir = wayland_protocols_dep.get_variable('pkgdatadir')
 
 foreach name, path : {
   'pointer-constraints': join_paths(wayland_protocols_base_dir,  'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml'),
+  'relative-pointer'   : join_paths(wayland_protocols_base_dir,  'unstable/relative-pointer/relative-pointer-unstable-v1.xml'),
   'text-input'         : join_paths(wayland_protocols_base_dir,  'unstable/text-input/text-input-unstable-v3.xml'),
   'wl-workspace'       : join_paths(wayland_protocols_base_dir,  'staging/ext-workspace/ext-workspace-v1.xml'),
   'xdg-foreign'        : join_paths(wayland_protocols_base_dir,  'unstable/xdg-foreign/xdg-foreign-unstable-v2.xml'),

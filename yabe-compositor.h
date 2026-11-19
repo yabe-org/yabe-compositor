@@ -25,8 +25,8 @@ void     yabe_compositor_terminate();
 void     yabe_compositor_add_client_fd(int fd);
 void     yabe_compositor_draw(const float* proj_mat, const float* view_mat);
 
-/// @param dx right is positive
-/// @param dy up is positive
+/// @param dx unit is pixel and right is positive
+/// @param dy unit is pixel and up is positive
 void yabe_compositor_move_pointer(float dx, float dy);
 /// @param button same as the button code in the linux/input-event-codes.h
 ///               such as BTN_LEFT

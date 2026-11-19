@@ -56,7 +56,16 @@ void ServerPointer::end_grab() {
 }
 
 void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
-  this->grab_->move_relative(dx, dy);
+  const auto multiplier = static_cast<float>(yabe::core::server::get()
+          .setting.config.get<"input", "pointer", "movement_multiplier">());
+  if (const auto node = this->focused_scene_node_.lock()) {
+    node->relative_motion(dx * multiplier, -dy * multiplier, dx, -dy);
+  }
+  // currently entire code assumes that dx/dy is in radian, so convert here
+  // todo?: define unit::Radian to distinguish them
+  constexpr float kRadianPerPixel = 0.002F;
+  this->grab_->move_relative(
+      dx * kRadianPerPixel * multiplier, dy * kRadianPerPixel * multiplier);
 }
 void ServerPointer::set_ray_state(const RayState& state) {
   const auto& current = server::get().ray_cursor.ray_state();

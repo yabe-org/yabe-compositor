@@ -35,6 +35,15 @@ void SurfaceNode::leave() {
   }
   seat.value()->pointer.send_leave(surface->resource());
 }
+void SurfaceNode::relative_motion(
+    float dx, float dy, float dx_unaccel, float dy_unaccel) {
+  auto seat = this->seat();
+  if (!seat.has_value()) {
+    return;
+  }
+  seat.value()->relative_pointer.send_relative_motion(
+      dx, dy, dx_unaccel, dy_unaccel);
+}
 void SurfaceNode::motion(const glm::vec3& /*origin*/,
     const glm::vec3& /*direction*/, const glm::vec3& pos) {
   auto seat = this->seat();

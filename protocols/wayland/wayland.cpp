@@ -1,6 +1,7 @@
 #include "wayland.hpp"
 
 #include <pointer-constraints-protocol.h>
+#include <relative-pointer-protocol.h>
 #include <text-input-protocol.h>
 #include <wayland-server-protocol.h>
 #include <wl-workspace-protocol.h>
@@ -10,6 +11,7 @@
 #include "data-device/data-device-manager.hpp"
 #include "output.hpp"
 #include "pointer-constraints/pointer-constraints.hpp"
+#include "relative-pointer/relative-pointer-manager.hpp"
 #include "seat/seat.hpp"
 #include "subcompositor/subcompositor.hpp"
 #include "text-input/text-input-manager.hpp"
@@ -36,6 +38,12 @@ bool init(wl_display* display) {
           zwp_pointer_constraints_v1_interface.version, nullptr,
           pointer_constraints::bind)) {
     LOG_ERR("Failed to create global (pointer_constraints)");
+    return false;
+  }
+  if (!wl_global_create(display, &zwp_relative_pointer_manager_v1_interface,
+          zwp_relative_pointer_manager_v1_interface.version, nullptr,
+          relative_pointer::bind)) {
+    LOG_ERR("Failed to create global (relative_pointer)");
     return false;
   }
   if (!wl_global_create(display, &wl_data_device_manager_interface,

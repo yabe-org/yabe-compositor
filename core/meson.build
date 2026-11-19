@@ -50,6 +50,7 @@ srcs += files(
   'server-seat/pointer-grab/default.cpp',
   'server-seat/pointer-grab/drag-and-drop.cpp',
   'server-seat/pointer-grab/implicit.cpp',
+  'server-seat/pointer-grab/locked.cpp',
   'server-seat/pointer-grab/move.cpp',
   'server-seat/pointer-grab/popup.cpp',
   'server-seat/pointer-grab/resize.cpp',

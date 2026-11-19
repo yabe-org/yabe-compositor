@@ -18,6 +18,7 @@
 #include "core/render/texture.hpp"
 #include "core/scene/surface-node.hpp"
 #include "core/toplevel.hpp"
+#include "protocols/wayland/pointer-constraints/locked-pointer.hpp"
 
 namespace yabe::core {
 enum class SurfaceSetParentResult : uint8_t {
@@ -51,6 +52,10 @@ class Surface : public std::enable_shared_from_this<Surface> {
   void damage(int32_t x, int32_t y, int32_t width, int32_t height);
   void commit();
 
+  /// @return false if Surface already has valid LockedPointer
+  bool set_locked_pointer(const std::shared_ptr<
+      proto::wayland::pointer_constraints::locked::LockedPointer>& locked);
+
   void upload_texture_if_needed();
 
   void set_role(std::weak_ptr<SurfaceRole>&& role) {
@@ -75,6 +80,11 @@ class Surface : public std::enable_shared_from_this<Surface> {
   }
   [[nodiscard]] wl_client* client() const {
     return wl_resource_get_client(this->resource_);
+  }
+  [[nodiscard]] const std::weak_ptr<
+      proto::wayland::pointer_constraints::locked::LockedPointer>&
+  locked_pointer() const {
+    return this->locked_pointer_;
   }
   [[nodiscard]] std::weak_ptr<Surface> parent() const {
     return this->parent_;
@@ -160,6 +170,9 @@ class Surface : public std::enable_shared_from_this<Surface> {
   std::weak_ptr<Surface>                             parent_;
   std::optional<std::shared_ptr<scene::SurfaceNode>> surface_node_ =
       std::nullopt;
+
+  std::weak_ptr<proto::wayland::pointer_constraints::locked::LockedPointer>
+      locked_pointer_;
 
   struct {
     common::Signal<std::nullptr_t*> destroyed;

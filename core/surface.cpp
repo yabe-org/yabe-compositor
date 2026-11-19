@@ -117,6 +117,15 @@ void Surface::commit() {
   }
 }
 
+bool Surface::set_locked_pointer(const std::shared_ptr<
+    proto::wayland::pointer_constraints::locked::LockedPointer>& locked) {
+  if (this->locked_pointer_.lock()) {
+    return false;
+  }
+  this->locked_pointer_ = locked;
+  return true;
+}
+
 void Surface::upload_texture_if_needed() {
   std::shared_ptr<Buffer>     current_buffer;
   std::vector<wl_resource*>   frame_callbacks;

@@ -9,12 +9,14 @@ class DefaultPointerGrab final : public PointerGrab {
   DISABLE_MOVE_AND_COPY(DefaultPointerGrab);
 
   static DefaultPointerGrab* start();
+  [[nodiscard]] static bool  is_active();
 
   void cleanup() override;
   void move_relative(float dx, float dy) override;
   void button(uint32_t button, bool is_pressed) override;
 
  private:
+  static DefaultPointerGrab instance;
   explicit DefaultPointerGrab() = default;
   ~DefaultPointerGrab()         = default;
 };

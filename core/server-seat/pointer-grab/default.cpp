@@ -7,12 +7,17 @@
 #include "core/scene/surface-node.hpp"
 #include "core/server.hpp"
 #include "implicit.hpp"
+#include "locked.hpp"
 #include "toplevel-selection.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
+DefaultPointerGrab DefaultPointerGrab::instance;
+
 DefaultPointerGrab* DefaultPointerGrab::start() {
-  static DefaultPointerGrab instance;
   return &instance;
+}
+bool DefaultPointerGrab::is_active() {
+  return server::get().seat.pointer.is_active_grab(&instance);
 }
 
 void DefaultPointerGrab::cleanup() {
@@ -46,9 +51,15 @@ void DefaultPointerGrab::button(uint32_t button, bool is_pressed) {
   pointer_focused_scene_node->frame();
   const auto surface_node =
       std::dynamic_pointer_cast<scene::SurfaceNode>(pointer_focused_scene_node);
-  if (is_pressed && surface_node) {
-    server::get().seat.pointer.start_grab(
-        ImplicitPointerGrab::start(surface_node, button));
+  if (!surface_node || !is_pressed) {
+    return;
   }
+  if (LockedPointerGrab::can_start_with(surface_node)) {
+    server::get().seat.pointer.start_grab(
+        LockedPointerGrab::start(surface_node));
+    return;
+  }
+  server::get().seat.pointer.start_grab(
+      ImplicitPointerGrab::start(surface_node, button));
 }
 }  // namespace yabe::core::server_seat::pointer_grab

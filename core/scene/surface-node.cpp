@@ -6,6 +6,7 @@
 #include "common/intersection.hpp"
 #include "core/scene/scene-intersection.hpp"
 #include "core/scene/scene-node.hpp"
+#include "core/scene/scene.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 

@@ -36,8 +36,6 @@ void ServerPointer::focus_pointed_surface() {
     return;
   }
   server::get().ray_cursor.set_length(intersect_info.distance);
-  server::get().ray_cursor.set_cursor_rotation(
-      scene_node->geometry().rotation());
 
   const auto is_focus_changed = this->set_focused_scene_node(scene_node);
   if (is_focus_changed) {

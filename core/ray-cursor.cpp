@@ -9,6 +9,7 @@
 #include "common/coordinate.hpp"
 #include "common/unit.hpp"
 #include "core/render/rect-renderer.hpp"
+#include "core/scene/scene.hpp"
 #include "core/server.hpp"
 #include "core/surface.hpp"
 
@@ -80,9 +81,6 @@ void RayCursor::set_cursor(
   this->cursor_hotspot_x_ = common::unit::Pixel(x);
   this->cursor_hotspot_y_ = common::unit::Pixel(y);
 }
-void RayCursor::set_cursor_rotation(glm::quat rotation) {
-  this->cursor_rotation_mat_ = glm::mat4_cast(rotation);
-}
 void RayCursor::reset_cursor() {
   this->cursor_surface_   = std::nullopt;
   this->cursor_hotspot_x_ = 0;
@@ -129,6 +127,15 @@ glm::quat RayCursor::rotation() const {
   return glm::angleAxis(-this->state_.azimuth, glm::vec3{0.F, 1.F, 0.F}) *
          glm::angleAxis(+this->state_.polar, glm::vec3{1.F, 0.F, 0.F});
 }
+glm::mat4 RayCursor::rotation_mat() const {
+  const auto node = server::get().seat.pointer.get_focused_scene_node().lock();
+  if (!node) {
+    return glm::toMat4(this->rotation());
+  }
+  const auto lock = scene::Scene::mutex.lock();
+  // delete position component
+  return glm::column(node->world_transform(), 3, glm::vec4{0.F, 0.F, 0.F, 1.F});
+}
 glm::mat4 RayCursor::cursor_model_mat() const {
   common::unit::Pixel width{0};
   common::unit::Pixel height{0};
@@ -153,7 +160,7 @@ glm::mat4 RayCursor::cursor_model_mat() const {
       glm::vec3(*offset_x.to_world_unit(), *offset_y.to_world_unit(), 0.F);
 
   // hotspot_offset is in surface-local coordinates, so apply it after rotation
-  return glm::translate(glm::mat4(1.F), pos) * this->cursor_rotation_mat_ *
+  return glm::translate(glm::mat4(1.F), pos) * this->rotation_mat() *
          glm::translate(glm::mat4(1.F), hotspot_offset) *
          glm::scale(glm::mat4(1.F),
              glm::vec3(*width.to_world_unit(), *height.to_world_unit(), 0.F));
@@ -167,7 +174,7 @@ glm::mat4 RayCursor::drag_and_drop_icon_model_mat() const {
       0.F,
   };
 
-  return glm::translate(glm::mat4(1.F), pos) * this->cursor_rotation_mat_ *
+  return glm::translate(glm::mat4(1.F), pos) * this->rotation_mat() *
          glm::translate(glm::mat4(1.F), offset) *
          glm::scale(
              glm::mat4(1.F), glm::vec3{

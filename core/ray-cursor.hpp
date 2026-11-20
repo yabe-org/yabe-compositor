@@ -33,7 +33,6 @@ class RayCursor {
   void set_drag_and_drop_icon(std::weak_ptr<Surface>&& surface);
   void set_cursor(
       std::weak_ptr<Surface>&& surface, int32_t hotspot_x, int32_t hotspot_y);
-  void set_cursor_rotation(glm::quat rotation);
   void reset_cursor();
 
   void draw_cursor(const glm::mat4& vp_mat);
@@ -56,6 +55,7 @@ class RayCursor {
 
  private:
   [[nodiscard]] glm::quat rotation() const;
+  [[nodiscard]] glm::mat4 rotation_mat() const;
   [[nodiscard]] glm::mat4 cursor_model_mat() const;
   [[nodiscard]] glm::mat4 drag_and_drop_icon_model_mat() const;
 
@@ -70,7 +70,6 @@ class RayCursor {
   // nullopt              : uses default cursor texture
   // has value but nullptr: invisible cursor
   std::optional<std::weak_ptr<Surface>> cursor_surface_;
-  glm::mat4                             cursor_rotation_mat_ = glm::mat4(1.F);
   common::unit::Pixel                   cursor_hotspot_x_{0};
   common::unit::Pixel                   cursor_hotspot_y_{0};
 

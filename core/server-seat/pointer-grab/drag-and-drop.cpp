@@ -120,8 +120,6 @@ void DragAndDropPointerGrab::enter_pointed_surface() {
   }
   server::get().ray_cursor.set_length(
       intersection.value().intersect_info.distance);
-  server::get().ray_cursor.set_cursor_rotation(
-      intersection.value().node->geometry().rotation());
 
   auto*       client      = surface_node->surface()->client();
   const auto& client_seat = server::get().seat.get_client_seat(client);

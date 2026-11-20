@@ -50,8 +50,6 @@ void ResizePointerGrab::move_relative(float dx, float dy) {
   if (intersection) {
     server::get().ray_cursor.set_length(
         intersection.value().intersect_info.distance);
-    server::get().ray_cursor.set_cursor_rotation(
-        intersection.value().node->geometry().rotation());
   }
 
   // dx, dy are in OpenGL coordinate (+Y is upper)

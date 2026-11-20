@@ -15,6 +15,7 @@ class ImplicitPointerGrab final : public PointerGrab {
   static ImplicitPointerGrab* start(
       const std::shared_ptr<scene::SurfaceNode>& focused_surface_node,
       uint32_t                                   button);
+  [[nodiscard]] static bool is_active();
 
   void cleanup() override;
   void move_relative(float dx, float dy) override;
@@ -24,6 +25,7 @@ class ImplicitPointerGrab final : public PointerGrab {
   std::unordered_set<uint32_t>      pressed_buttons_;
   std::weak_ptr<scene::SurfaceNode> focused_surface_node_;
 
+  static ImplicitPointerGrab instance;
   explicit ImplicitPointerGrab() = default;
   ~ImplicitPointerGrab()         = default;
 };

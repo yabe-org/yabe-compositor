@@ -2,6 +2,7 @@
 
 #include "core/scene/surface-node.hpp"
 #include "core/server-seat/pointer-grab/default.hpp"
+#include "core/server-seat/pointer-grab/implicit.hpp"
 #include "core/server.hpp"
 
 namespace yabe::core::server_seat::pointer_grab {
@@ -15,7 +16,8 @@ LockedPointerGrab* LockedPointerGrab::start(
 }
 bool LockedPointerGrab::can_start_with(
     const std::shared_ptr<scene::SurfaceNode>& node) {
-  if (!DefaultPointerGrab::is_active()) {
+  // at this time, grab is likely to Implicit; locking fires by click event
+  if (!ImplicitPointerGrab::is_active() && !DefaultPointerGrab::is_active()) {
     return false;
   }
   if (server::get().seat.pointer.get_focused_scene_node().lock() != node) {

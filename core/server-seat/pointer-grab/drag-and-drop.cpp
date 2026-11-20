@@ -102,20 +102,23 @@ void DragAndDropPointerGrab::enter_pointed_surface() {
 
   if (!intersection.has_value()) {
     this->set_entered_surface({});
-    server::get().ray_cursor.reset_cursor();
+    server::get().ray_cursor.reset_cursor_length();
+    server::get().ray_cursor.reset_cursor_surface();
     return;
   }
   const auto surface_node =
       std::dynamic_pointer_cast<scene::SurfaceNode>(intersection.value().node);
   if (!surface_node) {
     this->set_entered_surface({});
-    server::get().ray_cursor.reset_cursor();
+    server::get().ray_cursor.reset_cursor_length();
+    server::get().ray_cursor.reset_cursor_surface();
     return;
   }
   const auto surface = surface_node->surface();
   if (!surface) {
     this->set_entered_surface({});
-    server::get().ray_cursor.reset_cursor();
+    server::get().ray_cursor.reset_cursor_length();
+    server::get().ray_cursor.reset_cursor_surface();
     return;
   }
   server::get().ray_cursor.set_length(

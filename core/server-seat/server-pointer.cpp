@@ -14,6 +14,8 @@ ServerPointer::ServerPointer()
 }
 
 void ServerPointer::unfocus_surface() {
+  // this is called when move or resize is started, so
+  // do not reset RayCursor surface in order to keep cursor appearance
   this->set_focused_scene_node({});
 }
 void ServerPointer::focus_pointed_surface() {
@@ -25,20 +27,23 @@ void ServerPointer::focus_pointed_surface() {
 
   if (!intersection.has_value()) {
     this->set_focused_scene_node({});
-    server::get().ray_cursor.reset_cursor();
+    server::get().ray_cursor.reset_cursor_length();
+    server::get().ray_cursor.reset_cursor_surface();
     return;
   }
   auto       intersect_info = intersection.value().intersect_info;
   const auto scene_node     = intersection.value().node;
   if (!scene_node) {
     this->set_focused_scene_node({});
-    server::get().ray_cursor.reset_cursor();
+    server::get().ray_cursor.reset_cursor_length();
+    server::get().ray_cursor.reset_cursor_surface();
     return;
   }
   server::get().ray_cursor.set_length(intersect_info.distance);
 
   const auto is_focus_changed = this->set_focused_scene_node(scene_node);
   if (is_focus_changed) {
+    server::get().ray_cursor.reset_cursor_surface();
     scene_node->enter(origin, direction, intersect_info.pos);
   }
   scene_node->motion(origin, direction, intersect_info.pos);

@@ -33,7 +33,8 @@ class RayCursor {
   void set_drag_and_drop_icon(std::weak_ptr<Surface>&& surface);
   void set_cursor(
       std::weak_ptr<Surface>&& surface, int32_t hotspot_x, int32_t hotspot_y);
-  void reset_cursor();
+  void reset_cursor_surface();
+  void reset_cursor_length();
 
   void draw_cursor(const glm::mat4& vp_mat);
   void invalidate_graphics();

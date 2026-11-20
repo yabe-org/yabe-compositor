@@ -81,10 +81,12 @@ void RayCursor::set_cursor(
   this->cursor_hotspot_x_ = common::unit::Pixel(x);
   this->cursor_hotspot_y_ = common::unit::Pixel(y);
 }
-void RayCursor::reset_cursor() {
+void RayCursor::reset_cursor_surface() {
   this->cursor_surface_   = std::nullopt;
   this->cursor_hotspot_x_ = 0;
   this->cursor_hotspot_y_ = 0;
+}
+void RayCursor::reset_cursor_length() {
   this->set_length(kDefaultLength);
 }
 

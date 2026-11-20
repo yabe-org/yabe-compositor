@@ -91,6 +91,12 @@ constexpr auto kConfigTable = schema::table(
          15
       )
   )),
+  schema::field<"fixed_layer">(schema::table(
+      schema::field<"follow_speed", double>(
+         "how fast the head-fixed layer follows the user's head direction",
+         7.5
+      )
+  )),
   schema::field<"auto_reload_config", bool>(
      "Automatically reload config file if it is changed",
      true

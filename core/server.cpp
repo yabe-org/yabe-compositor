@@ -278,15 +278,17 @@ bool Server::update_anchor_mat() {
                      glm::rotate(glm::mat4(1.F), yaw, glm::vec3(0.F, 1.F, 0.F));
   this->anchor_mat_ = this->anchor_mat_ * delta;
   this->view_mat_   = this->view_mat_ * delta;
+  this->layer_manager.reset_rotation();
   return true;
 }
 
 void Server::draw_content() {
   const auto vp_mat = this->proj_mat_ * this->view_mat_;
-  this->layer_manager.draw_under_scene(this->proj_mat_);
+  this->layer_manager.update_rotation(this->view_mat_);
+  this->layer_manager.draw_under_scene(this->proj_mat_, this->view_mat_);
   this->workspace.current_scene().draw(this->proj_mat_, this->view_mat_);
   this->seat.input_method.draw(vp_mat);
-  this->layer_manager.draw_above_scene(this->proj_mat_);
+  this->layer_manager.draw_above_scene(this->proj_mat_, this->view_mat_);
   server_seat::pointer_grab::ToplevelSelectionPointerGrab::draw(
       this->lasso_renderer_, vp_mat);
   this->ray_cursor.draw_cursor(vp_mat);

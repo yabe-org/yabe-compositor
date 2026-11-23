@@ -60,7 +60,7 @@ void ServerPointer::end_grab() {
 }
 
 void ServerPointer::handle_pointer_move_relative(float dx, float dy) {
-  const auto multiplier = static_cast<float>(yabe::core::server::get()
+  const auto multiplier = static_cast<float>(server::get()
           .setting.config.get<"input", "pointer", "movement_multiplier">());
   if (const auto node = this->focused_scene_node_.lock()) {
     node->relative_motion(dx * multiplier, -dy * multiplier, dx, -dy);

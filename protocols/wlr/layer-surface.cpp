@@ -74,8 +74,7 @@ void LayerSurface::reconfigure(
 
   // do not update available_area if this surface is not mapped (not shown)
   // to prevent other surfaces from being moved due to invisible surface
-  if (this->state_ == State::MAPPED && !this->current_.exclusive_zone &&
-      this->current_.exclusive_zone == -1) {
+  if (this->state_ == State::MAPPED && this->current_.exclusive_zone > 0) {
     auto zone = common::unit::Pixel{this->current_.exclusive_zone};
     switch (this->exclusive_edge_.value_or(ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP)) {
       case ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP:

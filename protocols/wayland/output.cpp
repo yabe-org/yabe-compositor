@@ -2,6 +2,7 @@
 
 #include <wayland-server.h>
 
+#include "common/thread-safety.hpp"
 #include "core/server.hpp"
 
 namespace yabe::proto::wayland::output {
@@ -16,18 +17,16 @@ void handle_destruction(wl_resource* resource) {
   core::server::get().output_map.erase(resource->client);
 }
 
-int32_t viewport_width  = 1920;
-int32_t viewport_height = 1080;
+common::Mutex              mutex;
+ViewportSize viewport_size GUARDED_BY(mutex){.width = 1920, .height = 1080};
 }  // namespace
 void set_viewport_size(int32_t width, int32_t height) {
-  viewport_width  = width;
-  viewport_height = height;
+  const auto lock = mutex.lock();
+  viewport_size   = {.width = width, .height = height};
 }
-int32_t get_viewport_width() {
-  return viewport_width;
-}
-int32_t get_viewport_height() {
-  return viewport_height;
+ViewportSize get_viewport_size() {
+  const auto lock = mutex.lock();
+  return viewport_size;
 }
 
 void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
@@ -41,8 +40,9 @@ void bind(wl_client* client, void* /*data*/, uint32_t version, uint32_t id) {
   core::server::get().output_map.emplace(client, resource);
   wl_output_send_geometry(resource, 0, 0, 0, 0, WL_OUTPUT_SUBPIXEL_UNKNOWN,
       "yabe-compositor", "output", WL_OUTPUT_TRANSFORM_NORMAL);
+  const auto viewport = get_viewport_size();
   wl_output_send_mode(
-      resource, WL_OUTPUT_MODE_CURRENT, viewport_width, viewport_height, 0);
+      resource, WL_OUTPUT_MODE_CURRENT, viewport.width, viewport.height, 0);
   if (version >= WL_OUTPUT_SCALE_SINCE_VERSION) {
     wl_output_send_scale(resource, 1);
   }

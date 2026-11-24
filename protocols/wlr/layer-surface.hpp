@@ -25,7 +25,8 @@ class LayerSurface : public core::SurfaceRole {
   void                                          commit() override;
   [[nodiscard]] std::shared_ptr<core::Toplevel> get_toplevel() override;
 
-  void reconfigure(common::Box2D& available_area);
+  void reconfigure(
+      const common::Box2D& entire_area, common::Box2D& available_area);
 
   void set_size(uint32_t width, uint32_t height);
   void set_anchor(uint32_t anchor);

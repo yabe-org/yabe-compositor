@@ -26,9 +26,8 @@ void create(
   wl_resource_set_implementation(resource, &kImpl, nullptr, nullptr);
 
   zxdg_output_v1_send_logical_position(resource, 0, 0);
-  zxdg_output_v1_send_logical_size(resource,
-      wayland::output::get_viewport_width(),
-      wayland::output::get_viewport_height());
+  const auto viewport = wayland::output::get_viewport_size();
+  zxdg_output_v1_send_logical_size(resource, viewport.width, viewport.height);
   if (version >= ZXDG_OUTPUT_V1_NAME_SINCE_VERSION) {
     zxdg_output_v1_send_name(resource, "WL-1");
   }

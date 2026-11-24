@@ -259,7 +259,11 @@ void Server::draw(const float* proj_mat, const float* view_mat) {
   this->is_first_rendering_     = false;
   std::array<GLint, 4> viewport = {};  // x, y, width, height
   glGetIntegerv(GL_VIEWPORT, viewport.data());
-  proto::wayland::output::set_viewport_size(viewport.at(2), viewport.at(3));
+  this->enqueue_wayland_thread_task(
+      [this, width = viewport.at(2), height = viewport.at(3)]() {
+        proto::wayland::output::set_viewport_size(width, height);
+        this->layer_manager.reconfigure_all();
+      });
 }
 
 bool Server::update_anchor_mat() {

@@ -1,5 +1,6 @@
 #include "layer-manager.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <glm/ext.hpp>
@@ -37,6 +38,32 @@ glm::quat from_rotation_vector(const glm::vec3& v) {
   }
   return glm::angleAxis(angle, v / angle);
 }
+
+template <setting::schema::FixedString Side, setting::schema::FixedString Axis>
+int resolve_margin(const auto& margin) {
+  return margin.template get_if_set<Side>()
+      .or_else([&margin] {
+        return margin.template get_if_set<Axis>();
+      })
+      .value_or(margin.template get<"rest">());
+}
+common::Box2D viewport() {
+  const auto& margin =
+      server::get().setting.config.get<"fixed_layer", "margin">();
+  const int  left          = resolve_margin<"left", "x">(margin);
+  const int  right         = resolve_margin<"right", "x">(margin);
+  const int  top           = resolve_margin<"top", "y">(margin);
+  const int  bottom        = resolve_margin<"bottom", "y">(margin);
+  const auto viewport_size = proto::wayland::output::get_viewport_size();
+  // setting zero to width/height means that the client can decide its size,
+  // so fallback to 1 in order to prevent it
+  return {
+      .x{left},
+      .y{top},
+      .width{std::max(1, viewport_size.width - (left + right))},
+      .height{std::max(1, viewport_size.height - (top + bottom))},
+  };
+}
 }  // namespace
 
 void LayerManager::add(StoredLayerSurface&& surface) {
@@ -64,15 +91,20 @@ std::optional<LayerManager::StoredLayerSurface> LayerManager::get(
   return std::nullopt;
 }
 
-void LayerManager::reconfigure(Layer layer) const {
-  common::Box2D available_area{
-      .x{0},
-      .y{0},
-      .width{proto::wayland::output::get_viewport_width()},
-      .height{proto::wayland::output::get_viewport_height()},
-  };
-  for (const auto& surface : surfaces_.at(static_cast<size_t>(layer))) {
-    surface.second->reconfigure(available_area);
+void LayerManager::reconfigure_all() const {
+  const auto entire_area = viewport();
+  for (const auto& layer : this->surfaces_) {
+    auto available_area = entire_area;
+    for (const auto& surface : layer) {
+      surface.second->reconfigure(entire_area, available_area);
+    }
+  }
+}
+void LayerManager::reconfigure_layer(Layer layer) const {
+  const auto entire_area    = viewport();
+  auto       available_area = entire_area;
+  for (const auto& surface : this->surfaces_.at(static_cast<size_t>(layer))) {
+    surface.second->reconfigure(entire_area, available_area);
   }
 }
 
@@ -161,10 +193,9 @@ glm::mat4 LayerManager::eye_from_layer_mat(const glm::mat4& view_mat) const {
 
 void LayerManager::draw_layer(Layer layer, const glm::mat4& proj_mat,
     const glm::mat4& eye_from_layer_mat) const {
-  const auto viewport_width =
-      static_cast<float>(proto::wayland::output::get_viewport_width());
-  const auto viewport_height =
-      static_cast<float>(proto::wayland::output::get_viewport_height());
+  const auto viewport_size   = proto::wayland::output::get_viewport_size();
+  const auto viewport_width  = static_cast<float>(viewport_size.width);
+  const auto viewport_height = static_cast<float>(viewport_size.height);
 
   for (const auto& layer_surface : surfaces_.at(static_cast<size_t>(layer))) {
     if (!layer_surface.second->is_mapped()) {

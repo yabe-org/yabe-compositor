@@ -6,6 +6,36 @@
 
 namespace yabe::core::setting::fields {
 // clang-format off
+constexpr auto kMargin = schema::table(
+  schema::field<"top", int>(
+     "top margin",
+     0
+  ),
+  schema::field<"bottom", int>(
+     "bottom margin",
+     0
+  ),
+  schema::field<"left", int>(
+     "left margin",
+     0
+  ),
+  schema::field<"right", int>(
+     "right margin",
+     0
+  ),
+  schema::field<"x", int>(
+     "left and right margin",
+     0
+  ),
+  schema::field<"y", int>(
+     "top and bottom margin",
+     0
+  ),
+  schema::field<"rest", int>(
+     "margin that is not specified",
+     0
+  )
+);
 constexpr auto kConfigTable = schema::table(
   schema::field<"input">(schema::table(
     schema::field<"pointer">(schema::table(
@@ -92,6 +122,7 @@ constexpr auto kConfigTable = schema::table(
       )
   )),
   schema::field<"fixed_layer">(schema::table(
+      schema::field<"margin">(kMargin),
       schema::field<"follow_speed", double>(
          "how fast the head-fixed layer follows the user's head direction",
          7.5

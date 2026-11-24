@@ -24,5 +24,6 @@ void Config::on_config_changed() const {
       this->get<"input", "keyboard", "layout">().c_str(),
       this->get<"input", "keyboard", "variant">().c_str(),
       this->get<"input", "keyboard", "options">().c_str());
+  server::get().layer_manager.reconfigure_all();
 }
 }  // namespace yabe::core::setting::fields

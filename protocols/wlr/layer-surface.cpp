@@ -8,7 +8,6 @@
 #include "common/margin.hpp"
 #include "common/unit.hpp"
 #include "core/server.hpp"
-#include "protocols/wayland/output.hpp"
 
 namespace yabe::proto::wlr::layer_shell::layer_surface {
 LayerSurface::LayerSurface(wl_resource* resource,
@@ -24,24 +23,16 @@ LayerSurface::~LayerSurface() {
 
 void LayerSurface::commit() {
   this->current_ = this->pending_;
-  core::server::get().layer_manager.reconfigure(this->current_.layer);
+  core::server::get().layer_manager.reconfigure_layer(this->current_.layer);
 }
 [[nodiscard]] std::shared_ptr<core::Toplevel> LayerSurface::get_toplevel() {
   return {};
 }
 
-void LayerSurface::reconfigure(common::Box2D& available_area) {
-  common::Box2D area;
-  if (this->current_.exclusive_zone == -1) {
-    area = common::Box2D{
-        .x{0},
-        .y{0},
-        .width{wayland::output::get_viewport_width()},
-        .height{wayland::output::get_viewport_height()},
-    };
-  } else {
-    area = available_area;
-  }
+void LayerSurface::reconfigure(
+    const common::Box2D& entire_area, common::Box2D& available_area) {
+  const common::Box2D area =
+      (this->current_.exclusive_zone == -1) ? entire_area : available_area;
   common::Box2D result{
       .x{area.x},
       .y{area.y},

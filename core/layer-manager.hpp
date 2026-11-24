@@ -38,7 +38,8 @@ class LayerManager {
   void                              add(StoredLayerSurface&& surface);
   void                              remove(wl_resource* resource);
   std::optional<StoredLayerSurface> get(wl_resource* resource) const;
-  void                              reconfigure(Layer layer) const;
+  void                              reconfigure_all() const;
+  void                              reconfigure_layer(Layer layer) const;
 
   /// updates the stabilized layer rotation that lazily follows the head
   /// rotation; may be called for each eye because the update amount depends

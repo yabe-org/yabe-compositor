@@ -121,6 +121,10 @@ class FieldValue<Field<Name, Type>> {
     }
     return Type{this->default_value_};
   }
+  /// @brief returns std::nullopt if the value is not set (unlike get())
+  [[nodiscard]] constexpr const std::optional<Type>& get_if_set() const {
+    return this->value_;
+  }
 
   constexpr void set(Type value) {
     this->value_ = std::move(value);
@@ -157,6 +161,25 @@ class TableValue<Table<Fields...>> {
       return field.get();
     } else if constexpr (requires { field.get().template get<Path...>(); }) {
       return field.get().template get<Path...>();
+    } else {
+      static_assert(sizeof...(Path) == 0, "Cannot traverse a non-table value");
+    }
+  }
+  /// @brief same as get(), but returns std::nullopt if the value is not set
+  template <FixedString Name, FixedString... Path>
+  [[nodiscard]] constexpr decltype(auto) get_if_set() const {
+    constexpr auto kFieldIndex = TableValue::find_field_index<Name>();
+    const auto&    field       = std::get<kFieldIndex>(this->values_);
+
+    if constexpr (sizeof...(Path) == 0) {
+      static_assert(
+          requires { field.get_if_set(); },
+          "get_if_set() cannot be used for a table");
+      return field.get_if_set();
+    } else if constexpr (requires {
+                           field.get().template get_if_set<Path...>();
+                         }) {
+      return field.get().template get_if_set<Path...>();
     } else {
       static_assert(sizeof...(Path) == 0, "Cannot traverse a non-table value");
     }

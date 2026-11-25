@@ -7,7 +7,7 @@
 #include "core/setting/schema/function-entry.hpp"
 
 namespace yabe::core::setting::fields {
-DispatcherId Dispatchers::next_dispatcher_id = 0;
+int Dispatchers::next_dispatcher_id = 0;
 
 void Dispatchers::set_executer(
     const std::function<int(const char* const *)>&& execvp) {
@@ -17,7 +17,7 @@ void Dispatchers::set_executer(
 void Dispatchers::initialize(Engine* engine) {
   engine->create_table("dispatchers", [this](Engine* engine) {
     engine->create_field("set_workspace",
-        schema::FunctionEntry<int(int)>::create(
+        schema::FunctionEntry<DispatcherId(int)>::create(
             {
                 .description = "Set the current workspace by absolute index",
                 .parameter_names = {"index"},
@@ -25,7 +25,7 @@ void Dispatchers::initialize(Engine* engine) {
             [this](int index) {
               if (index < 0 || index >= 10) {
                 LOG_ERR("Invalid workspace index: {}", index);
-                return -1;
+                return static_cast<DispatcherId>(-1);
               }
               this->dispatchers_.emplace_back([index]() {
                 server::get().workspace.set_current_scene_index(index);
@@ -34,7 +34,7 @@ void Dispatchers::initialize(Engine* engine) {
             }));
 
     engine->create_field("add_workspace_index",
-        schema::FunctionEntry<int(int)>::create(
+        schema::FunctionEntry<DispatcherId(int)>::create(
             {
                 .description =
                     "Add to the current workspace index (can be negative)",
@@ -48,7 +48,7 @@ void Dispatchers::initialize(Engine* engine) {
             }));
 
     engine->create_field("reset_ray",
-        schema::FunctionEntry<int()>::create(
+        schema::FunctionEntry<DispatcherId()>::create(
             {
                 .description =
                     "Point the ray horizontally in the current head direction",
@@ -63,7 +63,7 @@ void Dispatchers::initialize(Engine* engine) {
             }));
 
     engine->create_field("recenter",
-        schema::FunctionEntry<int()>::create(
+        schema::FunctionEntry<DispatcherId()>::create(
             {
                 .description     = "Make the current head direction the front",
                 .parameter_names = {},
@@ -80,7 +80,7 @@ void Dispatchers::initialize(Engine* engine) {
             }));
 
     engine->create_field("exec",
-        schema::FunctionEntry<int(std::string)>::create(
+        schema::FunctionEntry<DispatcherId(std::string)>::create(
             {
                 .description     = "Execute a shell command via `sh -c`",
                 .parameter_names = {"command"},
@@ -97,12 +97,12 @@ void Dispatchers::initialize(Engine* engine) {
   });
 
   engine->create_field("dispatch",  //
-      schema::FunctionEntry<void(int)>::create(
+      schema::FunctionEntry<void(DispatcherId)>::create(
           {
               .description     = "Execute the dispatcher immediately",
               .parameter_names = {"dispatcher"},
           },
-          [this](int dispatcher_id) {
+          [this](DispatcherId dispatcher_id) {
             if (!this->is_valid(dispatcher_id)) {
               LOG_ERR("dispatch: 'dispatcher' is invalid");
               return;
@@ -117,11 +117,11 @@ void Dispatchers::reset() {
 }
 
 void Dispatchers::dispatch(DispatcherId id) {
-  if (id < 0 || static_cast<size_t>(id) >= this->dispatchers_.size()) {
-    LOG_ERR("Invalid dispatcher id: {}", id);
+  if (!this->is_valid(id)) {
+    LOG_ERR("Invalid dispatcher id: {}", id.id);
     return;
   }
-  this->dispatchers_[id]();
+  this->dispatchers_[id.id]();
 }
 
 DispatcherId Dispatchers::get_next_dispatcher_id() {

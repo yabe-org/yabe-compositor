@@ -5,13 +5,17 @@
 #include <lua.hpp>
 
 #include "common/common.hpp"
+#include "core/setting/schema/describe.hpp"  // IWYU pragma: keep
 #include "core/setting/schema/function-entry.hpp"
-#include "core/setting/schema/metafile.hpp"  // IWYU pragma: keep
 
 // Lua macro uses these features
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, bugprone-casting-through-void)
 
 namespace yabe::core::setting {
+namespace {
+constexpr const char* kGlobalName = "yabe";
+}  // namespace
+
 Engine::Engine() {
   this->l_ = luaL_newstate();
   luaL_openlibs(this->l_);
@@ -23,11 +27,11 @@ Engine::~Engine() {
 
 void Engine::initialize(const std::function<void(Engine*)>& initializer) {
   lua_newtable(this->l_);
-  this->push_metafile_table(nullptr);
+  this->push_reference_namespace(nullptr);
   initializer(this);
-  this->pop_metafile_table();
+  this->pop_reference_namespace();
   assert(lua_istable(this->l_, -1));
-  lua_setglobal(this->l_, "yabe");
+  lua_setglobal(this->l_, kGlobalName);
 }
 
 void Engine::do_string(const char* config_contents) {
@@ -64,9 +68,9 @@ void Engine::unref_function(int function_ref) {
 void Engine::create_table(const char*   name,
     const std::function<void(Engine*)>& handle_initialize_table) {
   lua_newtable(this->l_);
-  this->push_metafile_table(name);
+  this->push_reference_namespace(name);
   handle_initialize_table(this);
-  this->pop_metafile_table();
+  this->pop_reference_namespace();
   // -1 is the field that will be set to the table
   lua_setfield(this->l_, -2, name);
 }
@@ -75,12 +79,12 @@ void Engine::create_field(const char* name, int value) {
   assert(lua_istable(this->l_, -1));
   lua_pushinteger(this->l_, value);
   lua_setfield(this->l_, -2, name);
-  this->add_metafile_field(name);
+  this->add_reference_constant(name);
 }
 void Engine::create_field(
     const char* name, std::unique_ptr<schema::FunctionEntryBase>&& handler) {
   assert(lua_istable(this->l_, -1));
-  this->add_metafile_field(name, *handler);
+  this->add_reference_function(name, *handler);
   lua_pushlightuserdata(this->l_, handler.get());
   this->handlers_.emplace_back(std::move(handler));
 
@@ -99,73 +103,73 @@ void Engine::create_field(
 void Engine::push_stack_value(int value) {
   lua_pushinteger(this->l_, value);
 }
+void Engine::push_stack_value(schema::DispatcherId value) {
+  lua_pushinteger(this->l_, value.id);
+}
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
-void Engine::push_metafile_table(const char* name) {
+/// `name` is nullptr for the global namespace
+void Engine::push_reference_namespace(const char* name) {
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
   if (name == nullptr) {
-    this->metafile_tables_.push_back({
-        .class_name_prefix = "Yabe",
-        .class_name        = "YabeObject",
-        .fields            = {},
+    this->reference_.namespaces.push_back({
+        .path       = kGlobalName,
+        .class_name = "YabeObject",
+        .entries    = {},
     });
-    this->metafile_table_stack_.push_back(0);
+    this->reference_namespace_stack_.push_back({
+        .index       = this->reference_.namespaces.size() - 1,
+        .name_prefix = "Yabe",
+    });
     return;
   }
 
-  const auto& parent =
-      this->metafile_tables_[this->metafile_table_stack_.back()];
-  const auto class_name_prefix =
-      parent.class_name_prefix + schema::metafile_pascal_case(name);
-  const auto class_name = class_name_prefix + "Namespace";
-  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
-      .name        = name,
-      .type        = class_name,
-      .description = {},
+  const auto& parent_frame = this->reference_namespace_stack_.back();
+  const auto name_prefix = parent_frame.name_prefix + schema::pascal_case(name);
+  reference::NamespaceLink link{
+      .name = name,
+      .path = this->reference_.namespaces[parent_frame.index].path + '.' + name,
+      .class_name = name_prefix + "Namespace",
+  };
+  this->reference_.namespaces.push_back({
+      .path       = link.path,
+      .class_name = link.class_name,
+      .entries    = {},
   });
-  this->metafile_tables_.push_back({
-      .class_name_prefix = class_name_prefix,
-      .class_name        = class_name,
-      .fields            = {},
-  });
-  this->metafile_table_stack_.push_back(this->metafile_tables_.size() - 1);
-#else
-  static_cast<void>(name);
-#endif
-}
-void Engine::pop_metafile_table() {
-#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  this->metafile_table_stack_.pop_back();
-#endif
-}
-
-void Engine::add_metafile_field(const char* name) {
-#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
-      .name        = name,
-      .type        = "integer",
-      .description = {},
+  this->reference_.namespaces[parent_frame.index].entries.emplace_back(
+      std::move(link));
+  this->reference_namespace_stack_.push_back({
+      .index       = this->reference_.namespaces.size() - 1,
+      .name_prefix = name_prefix,
   });
 #else
   static_cast<void>(name);
 #endif
 }
+void Engine::pop_reference_namespace() {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  this->reference_namespace_stack_.pop_back();
+#endif
+}
 
-void Engine::add_metafile_field(
+void Engine::add_reference_constant(const char* name) {
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+  const auto& frame = this->reference_namespace_stack_.back();
+  this->reference_.namespaces[frame.index].entries.emplace_back(
+      reference::Constant{.name = name});
+#else
+  static_cast<void>(name);
+#endif
+}
+
+void Engine::add_reference_function(
     const char* name, const schema::FunctionEntryBase& handler) {
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  const auto& table =
-      this->metafile_tables_[this->metafile_table_stack_.back()];
-  auto metafile = handler.generate_metafile_text(
-      table.class_name_prefix + schema::metafile_pascal_case(name));
-  this->metafile_tables_[this->metafile_table_stack_.back()].fields.push_back({
-      .name        = name,
-      .type        = std::move(metafile.type),
-      .description = std::move(metafile.description),
-  });
-  if (!metafile.definitions.empty()) {
-    this->metafile_definitions_.push_back(std::move(metafile.definitions));
-  }
+  const auto& frame    = this->reference_namespace_stack_.back();
+  auto        function = handler.describe(name,
+      frame.name_prefix + schema::pascal_case(name), this->reference_.tables);
+  this->reference_.namespaces[frame.index].entries.emplace_back(
+      std::move(function));
 #else
   static_cast<void>(name);
   static_cast<void>(handler);

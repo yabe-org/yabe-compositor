@@ -11,13 +11,15 @@
 
 namespace yabe::core::setting::fields {
 void Keybinds::initialize(Engine* engine) {
+  using KeybindEntry =
+      schema::FunctionEntry<void(std::vector<std::string>, DispatcherId)>;
   engine->create_field("keybind",
-      schema::FunctionEntry<void(std::vector<std::string>, int)>::create(
+      KeybindEntry::create(
           {
               .description     = "Register a keybind",
               .parameter_names = {"keys", "dispatcher"},
   },
-          [this](std::vector<std::string> keys, int dispatcher_id) {
+          [this](std::vector<std::string> keys, DispatcherId dispatcher_id) {
             if (!server::get().setting.dispatchers.is_valid(dispatcher_id)) {
               LOG_ERR("keybind: 'dispatcher' is invalid");
               return;

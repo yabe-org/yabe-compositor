@@ -15,9 +15,4 @@ void Setting::load_config(const char* config_contents) {
   this->keybinds.reset();
   this->engine_.do_string(config_contents);
 }
-#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-std::string Setting::generate_metafile_text() const {
-  return this->engine_.generate_metafile_text();
-}
-#endif
 }  // namespace yabe::core::setting

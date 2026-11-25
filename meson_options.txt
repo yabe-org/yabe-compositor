@@ -16,3 +16,9 @@ option(
   value: false,
   description: 'Generate meta file of settings for LuaLS',
 )
+option(
+  'generate-setting-reference-file',
+  type: 'boolean',
+  value: false,
+  description: 'Generate reference JSON of settings for the documentation website',
+)

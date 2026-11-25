@@ -11,15 +11,8 @@
 #include "core/setting/schema/table.hpp"
 
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-#include "core/setting/schema/metafile.hpp"
-
-namespace yabe::core::setting::schema {
-struct FunctionMetafileText {
-  std::string type;
-  std::string definitions;
-  std::string description;
-};
-}  // namespace yabe::core::setting::schema
+#include "core/setting/reference.hpp"
+#include "core/setting/schema/describe.hpp"
 #endif
 
 namespace yabe::core::setting::schema {
@@ -36,8 +29,13 @@ class FunctionEntryBase {
   virtual ~FunctionEntryBase()             = default;
   virtual int invoke(Engine* engine) const = 0;
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  virtual FunctionMetafileText generate_metafile_text(
-      std::string_view class_name) const = 0;
+  /// @brief describes this function for the reference
+  /// @param name the field name of this function
+  /// @param table_name unique name of the table passed to this function
+  /// @param tables the table passed to this function is appended to it
+  virtual reference::Function describe(const std::string& name,
+      const std::string&                                  table_name,
+      std::vector<reference::Table>&                      tables) const = 0;
 #endif
 };
 
@@ -95,28 +93,26 @@ class FunctionEntry<ReturnType(Args...)> : public FunctionEntryBase {
   }
 
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  FunctionMetafileText generate_metafile_text(
-      std::string_view /*class_name*/) const override {
-    std::stringstream type;
-    type << "fun(";
-    std::size_t index          = 0;
-    auto        write_argument = [this, &type, &index]<typename Argument>() {
-      if (index != 0) {
-        type << ", ";
-      }
-      const auto name = index < this->metadata_.parameter_names.size() ?
-                            this->metadata_.parameter_names[index] :
-                            "arg" + std::to_string(index + 1);
-      type << name << ": " << metafile_type_name<Argument>();
-      ++index;
-    };
-    (write_argument.template operator()<Args>(), ...);
-    type << "): " << metafile_type_name<ReturnType>();
-    return {
-        .type        = type.str(),
-        .definitions = {},
+  reference::Function describe(const std::string& name,
+      const std::string& /*table_name*/,
+      std::vector<reference::Table>& /*tables*/) const override {
+    reference::Function result{
+        .name        = name,
         .description = this->metadata_.description,
+        .parameters  = {},
+        .return_type = describe_type<ReturnType>(),
     };
+    auto describe_argument = [this, &result]<typename Argument>() {
+      const auto index = result.parameters.size();
+      result.parameters.push_back({
+          .name = index < this->metadata_.parameter_names.size() ?
+                      this->metadata_.parameter_names[index] :
+                      "arg" + std::to_string(index + 1),
+          .type = describe_type<Argument>(),
+      });
+    };
+    (describe_argument.template operator()<Args>(), ...);
+    return result;
   }
 #endif
 
@@ -165,17 +161,20 @@ class FunctionEntry<ReturnType(Table<Fields...>)> : public FunctionEntryBase {
   }
 
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  FunctionMetafileText generate_metafile_text(
-      std::string_view class_name) const override {
-    const auto argument_name = this->metadata_.parameter_names.empty() ?
-                                   "arg1" :
-                                   this->metadata_.parameter_names.front();
+  reference::Function describe(const std::string& name,
+      const std::string&                          table_name,
+      std::vector<reference::Table>&              tables) const override {
+    describe_table(this->schema_, table_name, "", tables);
     return {
-        .type        = std::format("fun({}: {}): {}", argument_name, class_name,
-            metafile_type_name<ReturnType>()),
-        .definitions = generate_table_metafile_text(
-            this->schema_, std::string(class_name)),
+        .name        = name,
         .description = this->metadata_.description,
+        .parameters  = {{
+            .name = this->metadata_.parameter_names.empty() ?
+                        "arg1" :
+                        this->metadata_.parameter_names.front(),
+            .type = describe_table_type(table_name),
+        }},
+        .return_type = describe_type<ReturnType>(),
     };
   }
 #endif

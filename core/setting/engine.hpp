@@ -4,12 +4,15 @@
 #include <functional>
 #include <lua.hpp>
 #include <memory>
-#include <sstream>  // IWYU pragma: keep
 #include <string>
 #include <vector>
 
+#ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
+#include "core/setting/reference.hpp"
+#endif
 #include "common/common.hpp"
 #include "common/is-vector.hpp"
+#include "core/setting/schema/dispatcher-id.hpp"
 #include "core/setting/schema/lua-function.hpp"
 #include "core/setting/schema/table.hpp"
 
@@ -47,6 +50,7 @@ class Engine {
       const char* name, std::unique_ptr<schema::FunctionEntryBase>&& handler);
 
   void push_stack_value(int value);
+  void push_stack_value(schema::DispatcherId value);
 
   template <typename T>
   std::optional<T> get_stack_value(int stack_index) {
@@ -86,6 +90,11 @@ class Engine {
     } else if constexpr (std::is_same_v<T, double>) {
       checker = lua_isnumber;
       getter  = lua_tonumberx;
+    } else if constexpr (std::is_same_v<T, schema::DispatcherId>) {
+      checker = lua_isinteger;
+      getter  = [](lua_State* l, int index, const int* /*len*/) -> T {
+        return static_cast<int>(lua_tointeger(l, index));
+      };
     } else if constexpr (std::is_same_v<T, std::string>) {
       checker = lua_isstring;
       getter  = [](lua_State* l, int index, const int* /*len*/) {
@@ -176,10 +185,10 @@ class Engine {
   int  push_function(int function_ref);
   void call_pushed_function(int num_args, int message_handler_index);
 
-  void push_metafile_table(const char* name);
-  void pop_metafile_table();
-  void add_metafile_field(const char* name);
-  void add_metafile_field(
+  void push_reference_namespace(const char* name);
+  void pop_reference_namespace();
+  void add_reference_constant(const char* name);
+  void add_reference_function(
       const char* name, const schema::FunctionEntryBase& handler);
 
   lua_State*                                              l_;
@@ -188,41 +197,18 @@ class Engine {
 
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
  public:
-  std::string generate_metafile_text() const {
-    std::stringstream result;
-    result << "---@meta\n\n";
-    for (const auto& table : this->metafile_tables_) {
-      result << "---@class " << table.class_name << '\n';
-      for (const auto& field : table.fields) {
-        result << "---@field " << field.name << ' ' << field.type;
-        if (!field.description.empty()) {
-          result << " # " << field.description;
-        }
-        result << '\n';
-      }
-      result << '\n';
-    }
-    for (const auto& definitions : this->metafile_definitions_) {
-      result << definitions;
-    }
-    result << "---@type YabeObject\n" << "yabe = {}\n";
-    return result.str();
+  [[nodiscard]] const reference::Reference& reference() const {
+    return this->reference_;
   }
 
  private:
-  struct MetafileField {
-    std::string name;
-    std::string type;
-    std::string description;
+  struct ReferenceNamespaceFrame {
+    std::size_t index;
+    /// prefix of unique names of namespaces and tables defined in it
+    std::string name_prefix;
   };
-  struct MetafileTable {
-    std::string                class_name_prefix;
-    std::string                class_name;
-    std::vector<MetafileField> fields;
-  };
-  std::vector<MetafileTable> metafile_tables_;
-  std::vector<std::size_t>   metafile_table_stack_;
-  std::vector<std::string>   metafile_definitions_;
+  reference::Reference                 reference_;
+  std::vector<ReferenceNamespaceFrame> reference_namespace_stack_;
 #endif
 };
 }  // namespace yabe::core::setting

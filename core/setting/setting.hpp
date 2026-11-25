@@ -22,7 +22,9 @@ class Setting {
   fields::Keybinds    keybinds;
 
 #ifdef YABE_SETTING_ENABLE_META_FILE_GENERATION
-  std::string generate_metafile_text() const;
+  [[nodiscard]] const reference::Reference& reference() const {
+    return this->engine_.reference();
+  }
 #endif
 
  private:

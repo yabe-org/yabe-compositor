@@ -118,7 +118,7 @@ constexpr auto kConfigTable = schema::table(
       ),
       schema::field<"offset", int>(
          "space between contents (ex: window) and the decoration (px)",
-         15
+         45
       )
   )),
   schema::field<"fixed_layer">(schema::table(

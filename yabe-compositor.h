@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
 #include <cstdint>
-#elif
+extern "C" {
+#else
 #include <stdbool.h>
 #include <stdint.h>
 #endif
